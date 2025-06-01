@@ -1,0 +1,100 @@
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { AuthStackParamList } from '../../navigation/AuthNavigator';
+
+type RegisterScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Register'>;
+
+const RegisterScreen: React.FC = () => {
+  const navigation = useNavigation<RegisterScreenNavigationProp>();
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Join SCBC</Text>
+      
+      <Text style={styles.subtitle}>
+        Seattle Chinatown Book Club
+      </Text>
+
+      {/* TODO: Add actual registration form */}
+      <View style={styles.form}>
+        <View style={styles.inputPlaceholder}>
+          <Text style={styles.placeholderText}>Full Name</Text>
+        </View>
+        
+        <View style={styles.inputPlaceholder}>
+          <Text style={styles.placeholderText}>Email</Text>
+        </View>
+        
+        <View style={styles.inputPlaceholder}>
+          <Text style={styles.placeholderText}>Password</Text>
+        </View>
+
+        <TouchableOpacity style={styles.primaryButton}>
+          <Text style={styles.primaryButtonText}>Register</Text>
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity 
+        style={styles.linkButton}
+        onPress={() => navigation.navigate('Login')}
+      >
+        <Text style={styles.linkText}>
+          Already have an account? Login
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 32,
+  },
+  subtitle: {
+    color: '#6b7280',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  form: {
+    width: '100%',
+    gap: 16,
+  },
+  inputPlaceholder: {
+    backgroundColor: '#f3f4f6',
+    padding: 16,
+    borderRadius: 8,
+  },
+  placeholderText: {
+    color: '#6b7280',
+  },
+  primaryButton: {
+    backgroundColor: '#ec4899',
+    padding: 16,
+    borderRadius: 8,
+  },
+  primaryButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  linkButton: {
+    marginTop: 24,
+  },
+  linkText: {
+    color: '#ec4899',
+  },
+});
+
+export default RegisterScreen; 
