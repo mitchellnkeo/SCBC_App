@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import EventsListScreen from '../screens/events/EventsListScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
@@ -14,7 +14,7 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const MainNavigator: React.FC = () => {
   // TODO: Get user role from auth state
-  const userRole: 'admin' | 'member' = 'member'; // Properly typed now
+  const [userRole] = useState<'admin' | 'member'>('member'); // Now mutable
 
   return (
     <Tab.Navigator
