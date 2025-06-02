@@ -8,7 +8,7 @@ import MainNavigator from './MainNavigator';
 // For now, we'll use a simple boolean to simulate logged in state
 const useAuth = () => {
   // TODO: Replace with real auth state from Zustand store
-  const isLoggedIn = true; // Back to false for development
+  const isLoggedIn = false; // Back to false for development
   const user = null;
   return { isLoggedIn, user };
 };

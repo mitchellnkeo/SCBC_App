@@ -14,7 +14,7 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const MainNavigator: React.FC = () => {
   // TODO: Get user role from auth state
-  const [userRole] = useState<'admin' | 'member'>('admin'); // Back to member for development
+  const [userRole] = useState<'admin' | 'member'>('member'); // Back to member for development
 
   return (
     <Tab.Navigator
