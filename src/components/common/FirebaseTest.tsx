@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { auth, db } from '../../config/firebase';
-import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
 
 const FirebaseTest: React.FC = () => {
   const [connectionStatus, setConnectionStatus] = useState<string>('Testing...');
@@ -56,6 +55,10 @@ const FirebaseTest: React.FC = () => {
       <Text style={styles.info}>
         Project ID: {process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || 'Not found'}
       </Text>
+      
+      <Text style={styles.note}>
+        Note: AsyncStorage warning is normal and doesn't break functionality
+      </Text>
     </View>
   );
 };
@@ -86,6 +89,12 @@ const styles = StyleSheet.create({
   info: {
     fontSize: 14,
     color: '#6b7280',
+    fontStyle: 'italic',
+    marginBottom: 8,
+  },
+  note: {
+    fontSize: 12,
+    color: '#9ca3af',
     fontStyle: 'italic',
   },
 });

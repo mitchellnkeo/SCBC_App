@@ -1,7 +1,10 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getAnalytics } from "firebase/analytics";
+
+// Ensure we're using the web Firebase SDK explicitly
+console.log('Initializing Firebase with Web SDK');
 
 // Firebase configuration using environment variables
 // Your web app's Firebase configuration
@@ -16,11 +19,30 @@ const firebaseConfig = {
     measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-ZQK1QQCLVP"
   };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase (avoid multiple initialization)
+let app;
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig);
+  console.log('Firebase app initialized');
+} else {
+  app = getApp();
+  console.log('Firebase app already exists');
+}
 
-// Initialize Firebase services
+// Initialize Firebase services (web SDK only)
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const analytics = getAnalytics(app);
+
+console.log('Firebase Auth and Firestore initialized');
+
+// Analytics only works in web/production builds, not in Expo development
+let analytics;
+try {
+  analytics = getAnalytics(app);
+} catch (error) {
+  // Analytics not available in development environment
+  console.log('Analytics not available in this environment');
+}
+
+export { analytics };
 export default app; 
