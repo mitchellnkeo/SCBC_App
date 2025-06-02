@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
+import FirebaseTest from '../../components/common/FirebaseTest';
 
 type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -10,47 +11,56 @@ const LoginScreen: React.FC = () => {
   const navigation = useNavigation<LoginScreenNavigationProp>();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>SCBC Login</Text>
-      
-      <Text style={styles.subtitle}>
-        Seattle Chinatown Book Club
-      </Text>
-
-      {/* TODO: Add actual login form with React Hook Form */}
-      <View style={styles.form}>
-        <View style={styles.inputPlaceholder}>
-          <Text style={styles.placeholderText}>Email input placeholder</Text>
-        </View>
+    <ScrollView style={styles.scrollContainer}>
+      <View style={styles.container}>
+        <Text style={styles.title}>SCBC Login</Text>
         
-        <View style={styles.inputPlaceholder}>
-          <Text style={styles.placeholderText}>Password input placeholder</Text>
+        <Text style={styles.subtitle}>
+          Seattle Chinatown Book Club
+        </Text>
+
+        {/* Firebase Connection Test - Remove this after testing */}
+        <FirebaseTest />
+
+        {/* TODO: Add actual login form with React Hook Form */}
+        <View style={styles.form}>
+          <View style={styles.inputPlaceholder}>
+            <Text style={styles.placeholderText}>Email input placeholder</Text>
+          </View>
+          
+          <View style={styles.inputPlaceholder}>
+            <Text style={styles.placeholderText}>Password input placeholder</Text>
+          </View>
+
+          <TouchableOpacity style={styles.primaryButton}>
+            <Text style={styles.primaryButtonText}>Login</Text>
+          </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>Login</Text>
+        <TouchableOpacity 
+          style={styles.linkButton}
+          onPress={() => navigation.navigate('Register')}
+        >
+          <Text style={styles.linkText}>
+            Don't have an account? Register
+          </Text>
         </TouchableOpacity>
       </View>
-
-      <TouchableOpacity 
-        style={styles.linkButton}
-        onPress={() => navigation.navigate('Register')}
-      >
-        <Text style={styles.linkText}>
-          Don't have an account? Register
-        </Text>
-      </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  scrollContainer: {
     flex: 1,
     backgroundColor: 'white',
+  },
+  container: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
+    paddingVertical: 40,
   },
   title: {
     fontSize: 28,
