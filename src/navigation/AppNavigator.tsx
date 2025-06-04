@@ -1,27 +1,30 @@
 import React from 'react';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AuthNavigator from './AuthNavigator';
 import MainNavigator from './MainNavigator';
-
-// This would normally come from your auth state management
-// For now, we'll use a simple boolean to simulate logged in state
-const useAuth = () => {
-  // TODO: Replace with real auth state from Zustand store
-  const isLoggedIn = false; // Back to false for development
-  const user = null;
-  return { isLoggedIn, user };
-};
+import { useAuthStore } from '../stores/authStore';
 
 const Stack = createStackNavigator();
 
 const AppNavigator: React.FC = () => {
-  const { isLoggedIn } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuthStore();
+
+  // Show loading screen while initializing auth
+  if (isLoading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" color="#ec4899" />
+        <Text className="mt-4 text-gray-600">Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isLoggedIn ? (
+        {isAuthenticated ? (
           <Stack.Screen name="Main" component={MainNavigator} />
         ) : (
           <Stack.Screen name="Auth" component={AuthNavigator} />

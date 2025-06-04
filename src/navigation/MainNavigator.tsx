@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import EventsListScreen from '../screens/events/EventsListScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import AdminScreen from '../screens/admin/AdminScreen';
+import { useAuthStore } from '../stores/authStore';
 
 export type MainTabParamList = {
   Events: undefined;
@@ -13,8 +14,8 @@ export type MainTabParamList = {
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const MainNavigator: React.FC = () => {
-  // TODO: Get user role from auth state
-  const [userRole] = useState<'admin' | 'member'>('member'); // Back to member for development
+  const { user } = useAuthStore();
+  const userRole = user?.role || 'member';
 
   return (
     <Tab.Navigator

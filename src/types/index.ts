@@ -12,6 +12,33 @@ export interface User {
     updatedAt: Date;
   }
   
+  // Authentication Types
+  export interface AuthUser {
+    id: string;
+    email: string;
+    displayName: string;
+    role: 'admin' | 'member';
+    profilePicture?: string;
+  }
+  
+  export interface LoginCredentials {
+    email: string;
+    password: string;
+  }
+  
+  export interface RegisterCredentials {
+    email: string;
+    password: string;
+    displayName: string;
+  }
+  
+  export interface AuthState {
+    user: AuthUser | null;
+    isLoading: boolean;
+    isAuthenticated: boolean;
+    error: string | null;
+  }
+  
   // Event Types
   export interface BookClubEvent {
     id: string;
