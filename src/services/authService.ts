@@ -29,18 +29,23 @@ export const registerUser = async (credentials: RegisterCredentials): Promise<Au
       displayName: credentials.displayName,
     });
 
-    // Create user document in Firestore
-    const userData: Omit<AuthUser, 'id'> & { createdAt: any; updatedAt: any } = {
-      email: credentials.email,
-      displayName: credentials.displayName,
-      role: 'member', // Default role
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    };
+    // Try to create user document in Firestore, but don't fail if offline
+    try {
+      const userData: Omit<AuthUser, 'id'> & { createdAt: any; updatedAt: any } = {
+        email: credentials.email,
+        displayName: credentials.displayName,
+        role: 'member', // Default role
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
 
-    await setDoc(doc(db, 'users', user.uid), userData);
+      await setDoc(doc(db, 'users', user.uid), userData);
+      console.log('User document created in Firestore');
+    } catch (firestoreError) {
+      console.warn('Could not create Firestore document (offline?), but user was created:', firestoreError);
+    }
 
-    // Return the AuthUser object
+    // Return the AuthUser object from Firebase Auth data
     return {
       id: user.uid,
       email: credentials.email,
@@ -66,9 +71,15 @@ export const loginUser = async (credentials: LoginCredentials): Promise<AuthUser
 
     const user = userCredential.user;
 
-    // Get additional user data from Firestore
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-    const userData = userDoc.data();
+    // Try to get additional user data from Firestore, but fall back to Firebase Auth data
+    let userData = null;
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      userData = userDoc.data();
+      console.log('Retrieved user data from Firestore');
+    } catch (firestoreError) {
+      console.warn('Could not fetch from Firestore (offline?), using Firebase Auth data:', firestoreError);
+    }
 
     return {
       id: user.uid,
@@ -103,9 +114,14 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
   if (!user) return null;
 
   try {
-    // Get additional user data from Firestore
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-    const userData = userDoc.data();
+    // Try to get additional user data from Firestore, but fall back to Firebase Auth data
+    let userData = null;
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      userData = userDoc.data();
+    } catch (firestoreError) {
+      console.warn('Could not fetch from Firestore (offline?), using Firebase Auth data');
+    }
 
     return {
       id: user.uid,
@@ -127,9 +143,14 @@ export const onAuthStateChange = (callback: (user: AuthUser | null) => void) => 
   return onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
     if (firebaseUser) {
       try {
-        // Get additional user data from Firestore
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        const userData = userDoc.data();
+        // Try to get additional user data from Firestore, but fall back to Firebase Auth data
+        let userData = null;
+        try {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          userData = userDoc.data();
+        } catch (firestoreError) {
+          console.warn('Could not fetch from Firestore in auth listener (offline?), using Firebase Auth data');
+        }
 
         const authUser: AuthUser = {
           id: firebaseUser.uid,
@@ -142,7 +163,16 @@ export const onAuthStateChange = (callback: (user: AuthUser | null) => void) => 
         callback(authUser);
       } catch (error) {
         console.error('Error in auth state change:', error);
-        callback(null);
+        
+        // Even if Firestore fails, we can still create a basic auth user from Firebase Auth
+        const authUser: AuthUser = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email!,
+          displayName: firebaseUser.displayName || 'User',
+          role: 'member', // Default role when Firestore is unavailable
+        };
+        
+        callback(authUser);
       }
     } else {
       callback(null);
