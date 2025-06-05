@@ -45,9 +45,14 @@ export interface User {
     title: string;
     description: string;
     date: Date;
-    location: string;
+    time: string; // Format: "7:00 PM"
+    address: string;
+    headerPhoto?: string; // URL to header image
+    location: string; // Venue name (e.g., "Central Library")
     maxAttendees?: number;
-    createdBy: string;
+    createdBy: string; // User ID of creator
+    hostName: string; // Display name of host
+    hostProfilePicture?: string;
     createdAt: Date;
     updatedAt: Date;
   }
@@ -56,19 +61,42 @@ export interface User {
     id: string;
     eventId: string;
     userId: string;
-    status: 'attending' | 'maybe' | 'not-attending';
+    userName: string; // Display name for easy access
+    userProfilePicture?: string;
+    status: 'going' | 'maybe' | 'not-going';
     createdAt: Date;
+    updatedAt: Date;
   }
   
   // Comment Types
-  export interface Comment {
+  export interface EventComment {
     id: string;
     eventId: string;
     userId: string;
+    userName: string; // Display name for easy access
+    userProfilePicture?: string;
     content: string;
     parentCommentId?: string; // For replies
+    replies?: EventComment[]; // Nested replies
     createdAt: Date;
     updatedAt: Date;
+  }
+  
+  // Event Statistics (for display)
+  export interface EventStats {
+    totalAttendees: number;
+    goingCount: number;
+    maybeCount: number;
+    notGoingCount: number;
+    commentsCount: number;
+  }
+  
+  // Event with populated data for display
+  export interface PopulatedEvent extends BookClubEvent {
+    rsvps: RSVP[];
+    comments: EventComment[];
+    stats: EventStats;
+    userRsvp?: RSVP; // Current user's RSVP status
   }
   
   // Navigation Types
@@ -77,6 +105,7 @@ export interface User {
     EventDetails: { eventId: string };
     Profile: { userId?: string };
     CreateEvent: undefined;
+    EditEvent: { eventId: string };
     Login: undefined;
     Register: undefined;
   };
@@ -86,4 +115,21 @@ export interface User {
     success: boolean;
     data?: T;
     error?: string;
+  }
+  
+  // Form Types
+  export interface CreateEventFormData {
+    title: string;
+    description: string;
+    date: Date;
+    time: string;
+    location: string;
+    address: string;
+    maxAttendees?: number;
+    headerPhoto?: string;
+  }
+  
+  export interface CreateCommentFormData {
+    content: string;
+    parentCommentId?: string;
   }
