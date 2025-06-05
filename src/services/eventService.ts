@@ -227,12 +227,11 @@ export const getEventRSVPs = async (eventId: string): Promise<RSVP[]> => {
   try {
     const rsvpsQuery = query(
       collection(db, RSVPS_COLLECTION),
-      where('eventId', '==', eventId),
-      orderBy('createdAt', 'desc')
+      where('eventId', '==', eventId)
     );
     const rsvpsSnapshot = await getDocs(rsvpsQuery);
     
-    return rsvpsSnapshot.docs.map(doc => {
+    const rsvps = rsvpsSnapshot.docs.map(doc => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -241,6 +240,9 @@ export const getEventRSVPs = async (eventId: string): Promise<RSVP[]> => {
         updatedAt: data.updatedAt?.toDate() || new Date(),
       } as RSVP;
     });
+    
+    // Sort in JavaScript instead of Firestore
+    return rsvps.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   } catch (error) {
     console.error('Error getting event RSVPs:', error);
     return [];
@@ -306,8 +308,7 @@ export const getEventComments = async (eventId: string): Promise<EventComment[]>
   try {
     const commentsQuery = query(
       collection(db, COMMENTS_COLLECTION),
-      where('eventId', '==', eventId),
-      orderBy('createdAt', 'asc')
+      where('eventId', '==', eventId)
     );
     const commentsSnapshot = await getDocs(commentsQuery);
     
@@ -321,11 +322,14 @@ export const getEventComments = async (eventId: string): Promise<EventComment[]>
       } as EventComment;
     });
     
+    // Sort in JavaScript instead of Firestore
+    const sortedComments = comments.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    
     // Organize comments with replies
     const commentsMap = new Map<string, EventComment>();
     const rootComments: EventComment[] = [];
     
-    comments.forEach(comment => {
+    sortedComments.forEach(comment => {
       comment.replies = [];
       commentsMap.set(comment.id, comment);
       
@@ -335,7 +339,7 @@ export const getEventComments = async (eventId: string): Promise<EventComment[]>
     });
     
     // Add replies to their parent comments
-    comments.forEach(comment => {
+    sortedComments.forEach(comment => {
       if (comment.parentCommentId) {
         const parent = commentsMap.get(comment.parentCommentId);
         if (parent) {
