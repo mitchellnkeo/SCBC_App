@@ -78,8 +78,8 @@ const EventsListScreen: React.FC = () => {
       // Create 5 test events
       const testEvents = [
         {
-          title: "The Seven Husbands of Evelyn Hugo",
-          description: "Join us for an engaging discussion about Taylor Jenkins Reid's captivating novel. We'll explore themes of love, ambition, and the price of fame in Old Hollywood. Bring your favorite quotes and discussion questions!",
+          title: "Katabasis",
+          description: "Join us for a deep dive into RF Kuang's latest dark academia masterpiece. We'll explore themes of power, sacrifice, and the price of knowledge in this haunting tale of a graduate student's descent into academic obsession. Bring your theories and prepare for intense discussion!",
           date: new Date(2024, 2, 15), // March 15, 2024
           time: "7:00 PM",
           location: "Wing Luke Museum",
