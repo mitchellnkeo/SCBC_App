@@ -12,12 +12,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
 import { BookClubEvent, CreateEventFormData } from '../../types';
+import { MainStackParamList } from '../../navigation/MainNavigator';
+
+type NavigationProp = StackNavigationProp<MainStackParamList>;
 
 const EventsListScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const { user } = useAuthStore();
   const { 
     events, 
@@ -53,9 +57,7 @@ const EventsListScreen: React.FC = () => {
   };
 
   const handleEventPress = (eventId: string) => {
-    // TODO: Navigate to event details
-    // navigation.navigate('EventDetails', { eventId });
-    Alert.alert('Event Details', `Navigate to event: ${eventId}`);
+    navigation.navigate('EventDetails', { eventId });
   };
 
   const handleCreateEvent = () => {

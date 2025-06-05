@@ -1,6 +1,8 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import EventsListScreen from '../screens/events/EventsListScreen';
+import EventDetailsScreen from '../screens/events/EventDetailsScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import AdminScreen from '../screens/admin/AdminScreen';
 import { useAuthStore } from '../stores/authStore';
@@ -11,9 +13,15 @@ export type MainTabParamList = {
   Admin: undefined;
 };
 
-const Tab = createBottomTabNavigator<MainTabParamList>();
+export type MainStackParamList = {
+  MainTabs: undefined;
+  EventDetails: { eventId: string };
+};
 
-const MainNavigator: React.FC = () => {
+const Tab = createBottomTabNavigator<MainTabParamList>();
+const Stack = createStackNavigator<MainStackParamList>();
+
+const MainTabs: React.FC = () => {
   const { user } = useAuthStore();
   const userRole = user?.role || 'member';
 
@@ -57,6 +65,22 @@ const MainNavigator: React.FC = () => {
         />
       )}
     </Tab.Navigator>
+  );
+};
+
+const MainNavigator: React.FC = () => {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="MainTabs" component={MainTabs} />
+      <Stack.Screen 
+        name="EventDetails" 
+        component={EventDetailsScreen}
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+    </Stack.Navigator>
   );
 };
 

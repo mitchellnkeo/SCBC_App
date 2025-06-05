@@ -1,0 +1,928 @@
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  TextInput,
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  Dimensions,
+  RefreshControl,
+  Linking
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
+import { useEventStore } from '../../stores/eventStore';
+import { useAuthStore } from '../../stores/authStore';
+import { EventComment, RSVP } from '../../types';
+
+type RouteParams = {
+  EventDetails: {
+    eventId: string;
+  };
+};
+
+const { width: screenWidth } = Dimensions.get('window');
+
+const EventDetailsScreen: React.FC = () => {
+  const route = useRoute<RouteProp<RouteParams, 'EventDetails'>>();
+  const navigation = useNavigation();
+  const { eventId } = route.params;
+  
+  const { user } = useAuthStore();
+  const {
+    currentEvent,
+    isLoading,
+    isRsvping,
+    isCommenting,
+    error,
+    loadEvent,
+    updateRSVP,
+    createComment,
+    deleteComment,
+    deleteEvent,
+    clearError,
+    subscribeToEventDetails
+  } = useEventStore();
+
+  const [newComment, setNewComment] = useState('');
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    if (eventId && user) {
+      loadEvent(eventId, user.id);
+      
+      // Subscribe to real-time updates
+      const unsubscribe = subscribeToEventDetails(eventId, user.id);
+      return unsubscribe;
+    }
+  }, [eventId, user?.id]);
+
+  const handleRefresh = async () => {
+    if (!eventId || !user) return;
+    
+    setIsRefreshing(true);
+    try {
+      await loadEvent(eventId, user.id);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const handleRSVP = async (status: 'going' | 'maybe' | 'not-going') => {
+    if (!user || !currentEvent) return;
+    
+    try {
+      await updateRSVP(
+        currentEvent.id,
+        user.id,
+        user.displayName,
+        status,
+        user.profilePicture
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update RSVP. Please try again.');
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!user || !currentEvent || !newComment.trim()) return;
+    
+    try {
+      await createComment(
+        currentEvent.id,
+        user.id,
+        user.displayName,
+        { content: newComment.trim(), parentCommentId: replyingTo || undefined },
+        user.profilePicture
+      );
+      
+      setNewComment('');
+      setReplyingTo(null);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to add comment. Please try again.');
+    }
+  };
+
+  const handleDeleteComment = (commentId: string) => {
+    Alert.alert(
+      'Delete Comment',
+      'Are you sure you want to delete this comment? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => deleteComment(commentId)
+        }
+      ]
+    );
+  };
+
+  const handleDeleteEvent = () => {
+    if (!currentEvent) return;
+    
+    Alert.alert(
+      'Delete Event',
+      'Are you sure you want to delete this entire event? This will remove all RSVPs and comments. This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Event',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteEvent(currentEvent.id);
+              navigation.goBack();
+              Alert.alert('Success', 'Event deleted successfully.');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete event. Please try again.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleCallHost = () => {
+    // Placeholder for calling host
+    Alert.alert('Call Host', 'Contact feature coming soon!');
+  };
+
+  const handleOpenMap = () => {
+    if (!currentEvent) return;
+    
+    const address = encodeURIComponent(currentEvent.address);
+    const url = `https://maps.apple.com/?q=${address}`;
+    
+    Linking.openURL(url).catch(() => {
+      Alert.alert('Error', 'Could not open maps application.');
+    });
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (time: string) => {
+    return time;
+  };
+
+  const getRSVPButtonStyle = (status: 'going' | 'maybe' | 'not-going') => {
+    const userStatus = currentEvent?.userRsvp?.status;
+    const isSelected = userStatus === status;
+    
+    const baseStyle = [styles.rsvpButton];
+    
+    switch (status) {
+      case 'going':
+        return [...baseStyle, isSelected ? styles.rsvpButtonGoingSelected : styles.rsvpButtonGoing];
+      case 'maybe':
+        return [...baseStyle, isSelected ? styles.rsvpButtonMaybeSelected : styles.rsvpButtonMaybe];
+      case 'not-going':
+        return [...baseStyle, isSelected ? styles.rsvpButtonNotGoingSelected : styles.rsvpButtonNotGoing];
+    }
+  };
+
+  const getRSVPTextStyle = (status: 'going' | 'maybe' | 'not-going') => {
+    const userStatus = currentEvent?.userRsvp?.status;
+    const isSelected = userStatus === status;
+    
+    return [styles.rsvpButtonText, isSelected && styles.rsvpButtonTextSelected];
+  };
+
+  const CommentItem: React.FC<{ 
+    comment: EventComment; 
+    isReply?: boolean;
+  }> = ({ comment, isReply = false }) => {
+    const canDelete = user?.role === 'admin' || user?.id === comment.userId;
+    
+    return (
+      <View style={[styles.commentItem, isReply && styles.replyItem]}>
+        <View style={styles.commentHeader}>
+          {comment.userProfilePicture ? (
+            <Image
+              source={{ uri: comment.userProfilePicture }}
+              style={styles.commentAvatar}
+            />
+          ) : (
+            <View style={styles.commentAvatarPlaceholder}>
+              <Text style={styles.commentAvatarText}>
+                {comment.userName.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          )}
+          
+          <View style={styles.commentMeta}>
+            <Text style={styles.commentAuthor}>{comment.userName}</Text>
+            <Text style={styles.commentTime}>
+              {comment.createdAt.toLocaleDateString()} at {comment.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          </View>
+          
+          {canDelete && (
+            <TouchableOpacity
+              onPress={() => handleDeleteComment(comment.id)}
+              style={styles.deleteCommentButton}
+            >
+              <Text style={styles.deleteCommentText}>×</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        
+        <Text style={styles.commentContent}>{comment.content}</Text>
+        
+        {!isReply && (
+          <TouchableOpacity
+            onPress={() => setReplyingTo(comment.id)}
+            style={styles.replyButton}
+          >
+            <Text style={styles.replyButtonText}>Reply</Text>
+          </TouchableOpacity>
+        )}
+        
+        {/* Render replies */}
+        {comment.replies && comment.replies.map((reply) => (
+          <CommentItem key={reply.id} comment={reply} isReply={true} />
+        ))}
+      </View>
+    );
+  };
+
+  if (isLoading || !currentEvent) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#ec4899" />
+          <Text style={styles.loadingText}>Loading event details...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorEmoji}>😞</Text>
+          <Text style={styles.errorTitle}>Something went wrong</Text>
+          <Text style={styles.errorMessage}>{error}</Text>
+          <TouchableOpacity
+            onPress={() => {
+              clearError();
+              if (eventId && user) {
+                loadEvent(eventId, user.id);
+              }
+            }}
+            style={styles.retryButton}
+          >
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor="#ec4899"
+          />
+        }
+      >
+        {/* Header Image */}
+        <View style={styles.headerContainer}>
+          {currentEvent.headerPhoto ? (
+            <Image
+              source={{ uri: currentEvent.headerPhoto }}
+              style={styles.headerImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.headerPlaceholder}>
+              <Text style={styles.headerEmoji}>📚</Text>
+            </View>
+          )}
+          
+          {/* Header Overlay */}
+          <View style={styles.headerOverlay}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
+            >
+              <Text style={styles.backButtonText}>←</Text>
+            </TouchableOpacity>
+            
+            {user?.role === 'admin' && (
+              <TouchableOpacity
+                onPress={handleDeleteEvent}
+                style={styles.deleteEventButton}
+              >
+                <Text style={styles.deleteEventText}>Delete</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Event Content */}
+        <View style={styles.content}>
+          {/* Title */}
+          <Text style={styles.eventTitle}>{currentEvent.title}</Text>
+          
+          {/* Date & Time */}
+          <View style={styles.infoRow}>
+            <Text style={styles.infoIcon}>📅</Text>
+            <View style={styles.infoContent}>
+              <Text style={styles.infoText}>
+                {formatDate(currentEvent.date)}
+              </Text>
+              <Text style={styles.infoSubtext}>
+                {formatTime(currentEvent.time)}
+              </Text>
+            </View>
+          </View>
+          
+          {/* Location */}
+          <TouchableOpacity onPress={handleOpenMap} style={styles.infoRow}>
+            <Text style={styles.infoIcon}>📍</Text>
+            <View style={styles.infoContent}>
+              <Text style={[styles.infoText, styles.linkText]}>
+                {currentEvent.location}
+              </Text>
+              <Text style={styles.infoSubtext}>
+                {currentEvent.address}
+              </Text>
+            </View>
+          </TouchableOpacity>
+          
+          {/* Host */}
+          <TouchableOpacity onPress={handleCallHost} style={styles.infoRow}>
+            <Text style={styles.infoIcon}>👤</Text>
+            <View style={styles.infoContent}>
+              <Text style={[styles.infoText, styles.linkText]}>
+                Hosted by {currentEvent.hostName}
+              </Text>
+              <Text style={styles.infoSubtext}>
+                Tap to contact
+              </Text>
+            </View>
+          </TouchableOpacity>
+          
+          {/* RSVP Section */}
+          <View style={styles.rsvpSection}>
+            <Text style={styles.sectionTitle}>Will you be attending?</Text>
+            
+            <View style={styles.rsvpButtons}>
+              <TouchableOpacity
+                onPress={() => handleRSVP('going')}
+                disabled={isRsvping}
+                style={getRSVPButtonStyle('going')}
+              >
+                <Text style={getRSVPTextStyle('going')}>
+                  ✓ Going ({currentEvent.stats.goingCount})
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                onPress={() => handleRSVP('maybe')}
+                disabled={isRsvping}
+                style={getRSVPButtonStyle('maybe')}
+              >
+                <Text style={getRSVPTextStyle('maybe')}>
+                  ? Maybe ({currentEvent.stats.maybeCount})
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                onPress={() => handleRSVP('not-going')}
+                disabled={isRsvping}
+                style={getRSVPButtonStyle('not-going')}
+              >
+                <Text style={getRSVPTextStyle('not-going')}>
+                  ✗ Can't Go ({currentEvent.stats.notGoingCount})
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          
+          {/* Attendees Section */}
+          {currentEvent.stats.goingCount > 0 && (
+            <View style={styles.attendeesSection}>
+              <Text style={styles.sectionTitle}>
+                Who's Going ({currentEvent.stats.goingCount})
+              </Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.attendeesList}>
+                  {currentEvent.rsvps
+                    .filter(rsvp => rsvp.status === 'going')
+                    .map((rsvp) => (
+                      <View key={rsvp.id} style={styles.attendeeItem}>
+                        {rsvp.userProfilePicture ? (
+                          <Image
+                            source={{ uri: rsvp.userProfilePicture }}
+                            style={styles.attendeeAvatar}
+                          />
+                        ) : (
+                          <View style={styles.attendeeAvatarPlaceholder}>
+                            <Text style={styles.attendeeAvatarText}>
+                              {rsvp.userName.charAt(0).toUpperCase()}
+                            </Text>
+                          </View>
+                        )}
+                        <Text style={styles.attendeeName} numberOfLines={1}>
+                          {rsvp.userName}
+                        </Text>
+                      </View>
+                    ))}
+                </View>
+              </ScrollView>
+            </View>
+          )}
+          
+          {/* Description */}
+          <View style={styles.descriptionSection}>
+            <Text style={styles.sectionTitle}>About This Event</Text>
+            <Text style={styles.description}>{currentEvent.description}</Text>
+          </View>
+          
+          {/* Comments Section */}
+          <View style={styles.commentsSection}>
+            <Text style={styles.sectionTitle}>
+              Discussion ({currentEvent.stats.commentsCount})
+            </Text>
+            
+            {/* Add Comment */}
+            <View style={styles.addCommentContainer}>
+              {replyingTo && (
+                <View style={styles.replyingToContainer}>
+                  <Text style={styles.replyingToText}>Replying to comment...</Text>
+                  <TouchableOpacity
+                    onPress={() => setReplyingTo(null)}
+                    style={styles.cancelReplyButton}
+                  >
+                    <Text style={styles.cancelReplyText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              
+              <View style={styles.commentInputContainer}>
+                <TextInput
+                  style={styles.commentInput}
+                  placeholder={replyingTo ? "Write a reply..." : "Add a comment..."}
+                  value={newComment}
+                  onChangeText={setNewComment}
+                  multiline
+                  maxLength={500}
+                />
+                <TouchableOpacity
+                  onPress={handleAddComment}
+                  disabled={!newComment.trim() || isCommenting}
+                  style={[
+                    styles.sendCommentButton,
+                    (!newComment.trim() || isCommenting) && styles.sendCommentButtonDisabled
+                  ]}
+                >
+                  {isCommenting ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <Text style={styles.sendCommentText}>Send</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+            
+            {/* Comments List */}
+            <View style={styles.commentsList}>
+              {currentEvent.comments.length === 0 ? (
+                <View style={styles.noCommentsContainer}>
+                  <Text style={styles.noCommentsText}>
+                    No comments yet. Be the first to start the discussion!
+                  </Text>
+                </View>
+              ) : (
+                currentEvent.comments.map((comment) => (
+                  <CommentItem key={comment.id} comment={comment} />
+                ))
+              )}
+            </View>
+          </View>
+        </View>
+        
+        {/* Bottom Spacing */}
+        <View style={styles.bottomSpacing} />
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  errorEmoji: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  retryButton: {
+    backgroundColor: '#ec4899',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  headerContainer: {
+    position: 'relative',
+    height: 250,
+  },
+  headerImage: {
+    width: '100%',
+    height: '100%',
+  },
+  headerPlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#fce7f3',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerEmoji: {
+    fontSize: 64,
+  },
+  headerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  backButton: {
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    fontSize: 24,
+    color: '#111827',
+  },
+  deleteEventButton: {
+    backgroundColor: 'rgba(239,68,68,0.9)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  deleteEventText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  content: {
+    padding: 24,
+  },
+  eventTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 24,
+    lineHeight: 34,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  infoIcon: {
+    fontSize: 20,
+    marginRight: 12,
+    marginTop: 2,
+  },
+  infoContent: {
+    flex: 1,
+  },
+  infoText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 2,
+  },
+  infoSubtext: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  linkText: {
+    color: '#ec4899',
+  },
+  rsvpSection: {
+    marginTop: 32,
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 16,
+  },
+  rsvpButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  rsvpButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 2,
+    alignItems: 'center',
+  },
+  rsvpButtonGoing: {
+    backgroundColor: 'white',
+    borderColor: '#10b981',
+  },
+  rsvpButtonGoingSelected: {
+    backgroundColor: '#10b981',
+    borderColor: '#10b981',
+  },
+  rsvpButtonMaybe: {
+    backgroundColor: 'white',
+    borderColor: '#f59e0b',
+  },
+  rsvpButtonMaybeSelected: {
+    backgroundColor: '#f59e0b',
+    borderColor: '#f59e0b',
+  },
+  rsvpButtonNotGoing: {
+    backgroundColor: 'white',
+    borderColor: '#ef4444',
+  },
+  rsvpButtonNotGoingSelected: {
+    backgroundColor: '#ef4444',
+    borderColor: '#ef4444',
+  },
+  rsvpButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  rsvpButtonTextSelected: {
+    color: 'white',
+  },
+  attendeesSection: {
+    marginBottom: 24,
+  },
+  attendeesList: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+  },
+  attendeeItem: {
+    alignItems: 'center',
+    marginRight: 16,
+    width: 60,
+  },
+  attendeeAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginBottom: 8,
+  },
+  attendeeAvatarPlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#ec4899',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  attendeeAvatarText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  attendeeName: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
+  },
+  descriptionSection: {
+    marginBottom: 32,
+  },
+  description: {
+    fontSize: 16,
+    color: '#374151',
+    lineHeight: 24,
+  },
+  commentsSection: {
+    marginBottom: 24,
+  },
+  addCommentContainer: {
+    marginBottom: 24,
+  },
+  replyingToContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fef3c7',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  replyingToText: {
+    fontSize: 14,
+    color: '#92400e',
+    fontWeight: '500',
+  },
+  cancelReplyButton: {
+    padding: 4,
+  },
+  cancelReplyText: {
+    fontSize: 14,
+    color: '#dc2626',
+    fontWeight: '600',
+  },
+  commentInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    overflow: 'hidden',
+  },
+  commentInput: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    maxHeight: 100,
+    color: '#111827',
+  },
+  sendCommentButton: {
+    backgroundColor: '#ec4899',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 60,
+  },
+  sendCommentButtonDisabled: {
+    backgroundColor: '#d1d5db',
+  },
+  sendCommentText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  commentsList: {
+    gap: 16,
+  },
+  noCommentsContainer: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  noCommentsText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+  },
+  commentItem: {
+    backgroundColor: 'white',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  replyItem: {
+    marginLeft: 32,
+    marginTop: 12,
+    backgroundColor: '#f9fafb',
+  },
+  commentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  commentAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 12,
+  },
+  commentAvatarPlaceholder: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#ec4899',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  commentAvatarText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  commentMeta: {
+    flex: 1,
+  },
+  commentAuthor: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  commentTime: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  deleteCommentButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#ef4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteCommentText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  commentContent: {
+    fontSize: 16,
+    color: '#374151',
+    lineHeight: 22,
+    marginBottom: 8,
+  },
+  replyButton: {
+    alignSelf: 'flex-start',
+  },
+  replyButtonText: {
+    fontSize: 14,
+    color: '#ec4899',
+    fontWeight: '600',
+  },
+  bottomSpacing: {
+    height: 100,
+  },
+});
+
+export default EventDetailsScreen; 
