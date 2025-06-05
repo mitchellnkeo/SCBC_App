@@ -43,8 +43,8 @@ export const createEvent = async (
   try {
     // Admin events are auto-approved, member events need approval
     const status = userRole === 'admin' ? 'approved' : 'pending';
-    const approvedBy = userRole === 'admin' ? userId : undefined;
-    const approvedAt = userRole === 'admin' ? serverTimestamp() : undefined;
+    const approvedBy = userRole === 'admin' ? userId : null;
+    const approvedAt = userRole === 'admin' ? serverTimestamp() : null;
 
     const eventDoc = {
       ...eventData,
@@ -54,6 +54,7 @@ export const createEvent = async (
       status,
       approvedBy,
       approvedAt,
+      rejectionReason: null,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
@@ -145,12 +146,11 @@ export const getAllEvents = async (): Promise<BookClubEvent[]> => {
     // Only get approved events for the main events list
     const eventsQuery = query(
       collection(db, EVENTS_COLLECTION),
-      where('status', '==', 'approved'),
-      orderBy('date', 'asc')
+      where('status', '==', 'approved')
     );
     const eventsSnapshot = await getDocs(eventsQuery);
     
-    return eventsSnapshot.docs.map(doc => {
+    const events = eventsSnapshot.docs.map(doc => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -161,6 +161,9 @@ export const getAllEvents = async (): Promise<BookClubEvent[]> => {
         approvedAt: data.approvedAt?.toDate() || undefined,
       } as BookClubEvent;
     });
+    
+    // Sort by date in JavaScript instead of Firestore
+    return events.sort((a, b) => a.date.getTime() - b.date.getTime());
   } catch (error) {
     console.error('Error getting events:', error);
     throw new Error('Failed to load events. Please try again.');
@@ -407,7 +410,7 @@ export const getPopulatedEvent = async (eventId: string, userId?: string): Promi
 export const subscribeToEvents = (callback: (events: BookClubEvent[]) => void) => {
   const eventsQuery = query(
     collection(db, EVENTS_COLLECTION),
-    orderBy('date', 'asc')
+    where('status', '==', 'approved')
   );
   
   return onSnapshot(eventsQuery, (snapshot) => {
@@ -422,7 +425,9 @@ export const subscribeToEvents = (callback: (events: BookClubEvent[]) => void) =
       } as BookClubEvent;
     });
     
-    callback(events);
+    // Sort by date in JavaScript instead of Firestore
+    const sortedEvents = events.sort((a, b) => a.date.getTime() - b.date.getTime());
+    callback(sortedEvents);
   }, (error) => {
     console.error('Error in events subscription:', error);
   });
@@ -457,12 +462,11 @@ export const getPendingEvents = async (): Promise<BookClubEvent[]> => {
   try {
     const pendingQuery = query(
       collection(db, EVENTS_COLLECTION),
-      where('status', '==', 'pending'),
-      orderBy('createdAt', 'desc')
+      where('status', '==', 'pending')
     );
     const pendingSnapshot = await getDocs(pendingQuery);
     
-    return pendingSnapshot.docs.map(doc => {
+    const events = pendingSnapshot.docs.map(doc => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -473,6 +477,9 @@ export const getPendingEvents = async (): Promise<BookClubEvent[]> => {
         approvedAt: data.approvedAt?.toDate() || undefined,
       } as BookClubEvent;
     });
+    
+    // Sort by createdAt in JavaScript instead of Firestore (newest first)
+    return events.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   } catch (error) {
     console.error('Error getting pending events:', error);
     throw new Error('Failed to load pending events. Please try again.');
@@ -540,8 +547,7 @@ export const getPendingEventStats = async (): Promise<PendingEventStats> => {
 export const subscribeToPendingEvents = (callback: (events: BookClubEvent[]) => void) => {
   const pendingQuery = query(
     collection(db, EVENTS_COLLECTION),
-    where('status', '==', 'pending'),
-    orderBy('createdAt', 'desc')
+    where('status', '==', 'pending')
   );
   
   return onSnapshot(pendingQuery, (snapshot) => {
@@ -557,7 +563,9 @@ export const subscribeToPendingEvents = (callback: (events: BookClubEvent[]) => 
       } as BookClubEvent;
     });
     
-    callback(events);
+    // Sort by createdAt in JavaScript instead of Firestore (newest first)
+    const sortedEvents = events.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    callback(sortedEvents);
   }, (error) => {
     console.error('Error in pending events subscription:', error);
   });

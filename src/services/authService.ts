@@ -6,9 +6,10 @@ import {
   updateProfile,
   User as FirebaseUser,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import { AuthUser, LoginCredentials, RegisterCredentials } from '../types';
+import { isAdminEmail } from '../utils/adminUtils';
 
 /**
  * Register a new user with email and password
@@ -81,6 +82,9 @@ export const loginUser = async (credentials: LoginCredentials): Promise<AuthUser
       console.warn('Could not fetch from Firestore (offline?), using Firebase Auth data:', firestoreError);
     }
 
+    // Ensure admin role is set for admin emails
+    userData = await ensureAdminRole(user, userData);
+
     return {
       id: user.uid,
       email: user.email!,
@@ -123,6 +127,9 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
       console.warn('Could not fetch from Firestore (offline?), using Firebase Auth data');
     }
 
+    // Ensure admin role is set for admin emails
+    userData = await ensureAdminRole(user, userData);
+
     return {
       id: user.uid,
       email: user.email!,
@@ -152,6 +159,9 @@ export const onAuthStateChange = (callback: (user: AuthUser | null) => void) => 
           console.warn('Could not fetch from Firestore in auth listener (offline?), using Firebase Auth data');
         }
 
+        // Ensure admin role is set for admin emails
+        userData = await ensureAdminRole(firebaseUser, userData);
+
         const authUser: AuthUser = {
           id: firebaseUser.uid,
           email: firebaseUser.email!,
@@ -178,4 +188,44 @@ export const onAuthStateChange = (callback: (user: AuthUser | null) => void) => 
       callback(null);
     }
   });
+};
+
+/**
+ * Ensure admin role is set for admin emails
+ */
+const ensureAdminRole = async (user: FirebaseUser, userData: any): Promise<any> => {
+  if (isAdminEmail(user.email!)) {
+    // Check if user already has admin role
+    if (userData?.role !== 'admin') {
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        
+        if (userData) {
+          // User document exists, update it
+          await updateDoc(userRef, {
+            role: 'admin',
+            updatedAt: serverTimestamp(),
+          });
+        } else {
+          // User document doesn't exist, create it
+          const newUserData = {
+            email: user.email!,
+            displayName: user.displayName || 'Admin User',
+            role: 'admin',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          };
+          
+          await setDoc(userRef, newUserData);
+          userData = newUserData;
+        }
+        
+        console.log('Admin role assigned to:', user.email);
+        return { ...userData, role: 'admin' };
+      } catch (error) {
+        console.error('Error setting admin role:', error);
+      }
+    }
+  }
+  return userData;
 }; 
