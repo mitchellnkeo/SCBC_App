@@ -3,26 +3,34 @@ import {
   BookClubEvent, 
   PopulatedEvent, 
   CreateEventFormData, 
-  CreateCommentFormData 
+  CreateCommentFormData,
+  ApprovalFormData,
+  PendingEventStats
 } from '../types';
 import * as eventService from '../services/eventService';
 
 interface EventState {
   // State
   events: BookClubEvent[];
+  pendingEvents: BookClubEvent[];
+  pendingStats: PendingEventStats;
   currentEvent: PopulatedEvent | null;
   isLoading: boolean;
   isCreating: boolean;
   isCommenting: boolean;
   isRsvping: boolean;
+  isApproving: boolean;
   error: string | null;
   
   // Actions
   loadEvents: () => Promise<void>;
+  loadPendingEvents: () => Promise<void>;
+  loadPendingStats: () => Promise<void>;
   loadEvent: (eventId: string, userId?: string) => Promise<void>;
-  createEvent: (eventData: CreateEventFormData, userId: string, userName: string, userProfilePicture?: string) => Promise<string>;
+  createEvent: (eventData: CreateEventFormData, userId: string, userName: string, userRole: 'admin' | 'member', userProfilePicture?: string) => Promise<string>;
   updateEvent: (eventId: string, eventData: Partial<CreateEventFormData>) => Promise<void>;
   deleteEvent: (eventId: string) => Promise<void>;
+  approveEvent: (eventId: string, adminUserId: string, approvalData: ApprovalFormData) => Promise<void>;
   updateRSVP: (eventId: string, userId: string, userName: string, status: 'going' | 'maybe' | 'not-going', userProfilePicture?: string) => Promise<void>;
   createComment: (eventId: string, userId: string, userName: string, commentData: CreateCommentFormData, userProfilePicture?: string) => Promise<void>;
   deleteComment: (commentId: string) => Promise<void>;
@@ -31,20 +39,24 @@ interface EventState {
   
   // Real-time subscriptions
   subscribeToEvents: () => () => void;
+  subscribeToPendingEvents: () => () => void;
   subscribeToEventDetails: (eventId: string, userId?: string) => () => void;
 }
 
 export const useEventStore = create<EventState>((set, get) => ({
   // Initial state
   events: [],
+  pendingEvents: [],
+  pendingStats: { totalPending: 0, newThisWeek: 0 },
   currentEvent: null,
   isLoading: false,
   isCreating: false,
   isCommenting: false,
   isRsvping: false,
+  isApproving: false,
   error: null,
   
-  // Load all events
+  // Load all approved events
   loadEvents: async () => {
     set({ isLoading: true, error: null });
     try {
@@ -53,6 +65,28 @@ export const useEventStore = create<EventState>((set, get) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load events';
       set({ error: errorMessage, isLoading: false });
+    }
+  },
+  
+  // Load pending events (admin only)
+  loadPendingEvents: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const pendingEvents = await eventService.getPendingEvents();
+      set({ pendingEvents, isLoading: false });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load pending events';
+      set({ error: errorMessage, isLoading: false });
+    }
+  },
+  
+  // Load pending event statistics
+  loadPendingStats: async () => {
+    try {
+      const pendingStats = await eventService.getPendingEventStats();
+      set({ pendingStats });
+    } catch (error) {
+      console.error('Failed to load pending stats:', error);
     }
   },
   
@@ -68,20 +102,54 @@ export const useEventStore = create<EventState>((set, get) => ({
     }
   },
   
-  // Create new event
-  createEvent: async (eventData: CreateEventFormData, userId: string, userName: string, userProfilePicture?: string) => {
+  // Create new event (with approval system)
+  createEvent: async (eventData: CreateEventFormData, userId: string, userName: string, userRole: 'admin' | 'member', userProfilePicture?: string) => {
     set({ isCreating: true, error: null });
     try {
-      const eventId = await eventService.createEvent(eventData, userId, userName, userProfilePicture);
+      const eventId = await eventService.createEvent(eventData, userId, userName, userRole, userProfilePicture);
       
-      // Refresh events list
+      // Refresh events list (only shows approved events)
       const events = await eventService.getAllEvents();
-      set({ events, isCreating: false });
+      set({ events });
       
+      // If admin, also refresh pending events to show immediately
+      if (userRole === 'admin') {
+        const pendingEvents = await eventService.getPendingEvents();
+        const pendingStats = await eventService.getPendingEventStats();
+        set({ pendingEvents, pendingStats });
+      }
+      
+      set({ isCreating: false });
       return eventId;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create event';
       set({ error: errorMessage, isCreating: false });
+      throw error;
+    }
+  },
+  
+  // Approve or reject event (admin only)
+  approveEvent: async (eventId: string, adminUserId: string, approvalData: ApprovalFormData) => {
+    set({ isApproving: true, error: null });
+    try {
+      await eventService.approveEvent(eventId, adminUserId, approvalData);
+      
+      // Refresh all relevant lists
+      const [events, pendingEvents, pendingStats] = await Promise.all([
+        eventService.getAllEvents(),
+        eventService.getPendingEvents(),
+        eventService.getPendingEventStats()
+      ]);
+      
+      set({ 
+        events, 
+        pendingEvents, 
+        pendingStats, 
+        isApproving: false 
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process approval';
+      set({ error: errorMessage, isApproving: false });
       throw error;
     }
   },
@@ -116,13 +184,19 @@ export const useEventStore = create<EventState>((set, get) => ({
     try {
       await eventService.deleteEvent(eventId);
       
-      // Remove from events list and clear current event if it was deleted
-      const { events, currentEvent } = get();
+      // Remove from all event lists and clear current event if it was deleted
+      const { events, pendingEvents, currentEvent } = get();
       const updatedEvents = events.filter(event => event.id !== eventId);
+      const updatedPendingEvents = pendingEvents.filter(event => event.id !== eventId);
       const updatedCurrentEvent = currentEvent?.id === eventId ? null : currentEvent;
+      
+      // Refresh pending stats
+      const pendingStats = await eventService.getPendingEventStats();
       
       set({ 
         events: updatedEvents, 
+        pendingEvents: updatedPendingEvents,
+        pendingStats,
         currentEvent: updatedCurrentEvent, 
         isLoading: false 
       });
@@ -204,6 +278,16 @@ export const useEventStore = create<EventState>((set, get) => ({
   subscribeToEvents: () => {
     return eventService.subscribeToEvents((events) => {
       set({ events });
+    });
+  },
+  
+  subscribeToPendingEvents: () => {
+    return eventService.subscribeToPendingEvents((pendingEvents) => {
+      set({ pendingEvents });
+      // Update stats when pending events change
+      eventService.getPendingEventStats().then(pendingStats => {
+        set({ pendingStats });
+      });
     });
   },
   

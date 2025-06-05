@@ -11,17 +11,14 @@ import {
   StyleSheet
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
 import { BookClubEvent, CreateEventFormData } from '../../types';
 import { MainStackParamList } from '../../navigation/MainNavigator';
 
-type NavigationProp = StackNavigationProp<MainStackParamList>;
-
 const EventsListScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp>();
+  const navigation = useNavigation<NavigationProp<MainStackParamList>>();
   const { user } = useAuthStore();
   const { 
     events, 
@@ -34,7 +31,7 @@ const EventsListScreen: React.FC = () => {
   } = useEventStore();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isCreatingTests, setIsCreatingTests] = useState(false);
+  const [isCreatingTest, setIsCreatingTest] = useState(false);
 
   useEffect(() => {
     // Load events initially
@@ -47,7 +44,14 @@ const EventsListScreen: React.FC = () => {
     return unsubscribe;
   }, []);
 
-  const handleRefresh = async () => {
+  useEffect(() => {
+    if (error) {
+      Alert.alert('Error', error);
+      clearError();
+    }
+  }, [error]);
+
+  const onRefresh = async () => {
     setIsRefreshing(true);
     try {
       await loadEvents();
@@ -56,93 +60,93 @@ const EventsListScreen: React.FC = () => {
     }
   };
 
-  const handleEventPress = (eventId: string) => {
+  const navigateToEventDetails = (eventId: string) => {
     navigation.navigate('EventDetails', { eventId });
   };
 
-  const handleCreateEvent = () => {
-    // TODO: Navigate to create event
-    // navigation.navigate('CreateEvent');
-    Alert.alert('Create Event', 'Navigate to create event screen');
+  const navigateToCreateEvent = () => {
+    navigation.navigate('CreateEvent');
   };
 
   // TEMPORARY: Create test events function
   const createTestEvents = async () => {
-    if (!user) {
-      Alert.alert('Error', 'You must be logged in to create events');
-      return;
-    }
-
-    setIsCreatingTests(true);
-    
-    const testEvents: CreateEventFormData[] = [
-      {
-        title: 'Book Discussion: "The Seven Husbands of Evelyn Hugo"',
-        description: 'Join us for an engaging discussion about Taylor Jenkins Reid\'s captivating novel. We\'ll explore themes of love, ambition, and the price of fame in this unforgettable story about a reclusive Hollywood icon finally ready to tell her story.',
-        date: new Date(2024, 2, 15), // March 15, 2024
-        time: '7:00 PM',
-        location: 'Wing Luke Museum',
-        address: '719 S King St, Seattle, WA 98104',
-        headerPhoto: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&q=80'
-      },
-      {
-        title: 'Author Meet & Greet: Local Seattle Writers',
-        description: 'Meet three incredible local authors from the Seattle literary scene! They\'ll share insights about their writing process, discuss their latest works, and answer your questions. Light refreshments will be provided.',
-        date: new Date(2024, 2, 22), // March 22, 2024
-        time: '6:30 PM',
-        location: 'Seattle Central Library',
-        address: '1000 4th Ave, Seattle, WA 98104',
-        headerPhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80'
-      },
-      {
-        title: 'Monthly Poetry Reading & Open Mic',
-        description: 'Share your favorite poems or read your own original work! This is a supportive, welcoming space for poetry lovers of all levels. We\'ll start with featured readings, then open the floor for community participation.',
-        date: new Date(2024, 2, 28), // March 28, 2024
-        time: '7:30 PM',
-        location: 'Chinatown-International District',
-        address: '500 S King St, Seattle, WA 98104',
-        headerPhoto: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80'
-      },
-      {
-        title: 'Book Club Potluck & Game Night',
-        description: 'Let\'s take a break from serious discussions and have some fun! Bring a dish to share and your competitive spirit. We\'ll have literary trivia, word games, and plenty of good food and conversation.',
-        date: new Date(2024, 3, 5), // April 5, 2024
-        time: '6:00 PM',
-        location: 'Community Center',
-        address: '120 6th Ave S, Seattle, WA 98104',
-        headerPhoto: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&q=80'
-      },
-      {
-        title: 'Literary Walking Tour of Seattle',
-        description: 'Explore Seattle through the eyes of famous authors who called our city home. We\'ll visit locations that inspired great works and learn about the rich literary history of the Pacific Northwest.',
-        date: new Date(2024, 3, 12), // April 12, 2024
-        time: '2:00 PM',
-        location: 'Pike Place Market',
-        address: '85 Pike St, Seattle, WA 98101',
-        headerPhoto: 'https://images.unsplash.com/photo-1542223189-67a03fa0f0bd?w=800&q=80'
-      }
-    ];
-
+    setIsCreatingTest(true);
     try {
+      // Create 5 test events
+      const testEvents = [
+        {
+          title: "The Seven Husbands of Evelyn Hugo",
+          description: "Join us for an engaging discussion about Taylor Jenkins Reid's captivating novel. We'll explore themes of love, ambition, and the price of fame in Old Hollywood. Bring your favorite quotes and discussion questions!",
+          date: new Date(2024, 2, 15), // March 15, 2024
+          time: "7:00 PM",
+          location: "Wing Luke Museum",
+          address: "719 S King St, Seattle, WA 98104",
+          maxAttendees: 25,
+          headerPhoto: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800"
+        },
+        {
+          title: "Author Meet & Greet: Local Poetry",
+          description: "Meet acclaimed local poet Sarah Chen as she discusses her latest collection 'Bridges Between Worlds.' Light refreshments will be served, and books will be available for purchase and signing.",
+          date: new Date(2024, 2, 22), // March 22, 2024
+          time: "6:30 PM",
+          location: "Seattle Central Library",
+          address: "1000 4th Ave, Seattle, WA 98104",
+          maxAttendees: 40,
+          headerPhoto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800"
+        },
+        {
+          title: "Poetry Reading & Open Mic Night",
+          description: "Share your favorite poems or read your own original work! This inclusive event welcomes readers of all experience levels. We'll start with featured readings, then open the mic for community participation.",
+          date: new Date(2024, 2, 29), // March 29, 2024
+          time: "7:30 PM",
+          location: "Chinatown-International District",
+          address: "657 S King St, Seattle, WA 98104",
+          maxAttendees: 30,
+          headerPhoto: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800"
+        },
+        {
+          title: "Book Club Potluck & Game Night",
+          description: "Bring a dish to share and join us for literary-themed games and casual conversation. We'll play book trivia, charades with famous authors, and share recommendations for our next reads.",
+          date: new Date(2024, 3, 5), // April 5, 2024
+          time: "6:00 PM",
+          location: "Community Center",
+          address: "719 8th Ave S, Seattle, WA 98104",
+          maxAttendees: 35,
+          headerPhoto: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800"
+        },
+        {
+          title: "Literary Walking Tour of Seattle",
+          description: "Explore Seattle's rich literary history! We'll visit locations featured in local authors' works, discuss the city's influence on literature, and end at a cozy bookshop for coffee and conversation.",
+          date: new Date(2024, 3, 12), // April 12, 2024
+          time: "2:00 PM",
+          location: "Pike Place Market",
+          address: "85 Pike St, Seattle, WA 98101",
+          maxAttendees: 20,
+          headerPhoto: "https://images.unsplash.com/photo-1555116505-38ab61800975?w=800"
+        }
+      ];
+
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Create each test event
       for (const eventData of testEvents) {
         await createEvent(
           eventData, 
           user.id, 
-          user.displayName, 
+          user.displayName || 'Test User',
+          user.role || 'member', // Pass user role
           user.profilePicture
         );
       }
-      
-      Alert.alert(
-        'Success! 🎉', 
-        'Created 5 beautiful test events! Check out the amazing event cards below.',
-        [{ text: 'Awesome!', style: 'default' }]
-      );
+
+      Alert.alert('Success', 'Test events created successfully!');
     } catch (error) {
-      Alert.alert('Error', 'Failed to create test events. Please try again.');
       console.error('Error creating test events:', error);
+      Alert.alert('Error', 'Failed to create test events. Please try again.');
     } finally {
-      setIsCreatingTests(false);
+      setIsCreatingTest(false);
     }
   };
 
@@ -161,7 +165,7 @@ const EventsListScreen: React.FC = () => {
 
   const EventCard: React.FC<{ event: BookClubEvent }> = ({ event }) => (
     <TouchableOpacity
-      onPress={() => handleEventPress(event.id)}
+      onPress={() => navigateToEventDetails(event.id)}
       style={[styles.eventCard]}
       className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 overflow-hidden"
     >
@@ -246,11 +250,11 @@ const EventsListScreen: React.FC = () => {
       {/* Test Events Button */}
       <TouchableOpacity
         onPress={createTestEvents}
-        disabled={isCreatingTests}
-        style={[styles.testButton, isCreatingTests && styles.testButtonDisabled]}
+        disabled={isCreatingTest}
+        style={[styles.testButton, isCreatingTest && styles.testButtonDisabled]}
         className="bg-purple-500 px-8 py-4 rounded-xl mb-4"
       >
-        {isCreatingTests ? (
+        {isCreatingTest ? (
           <View style={styles.loadingRow}>
             <ActivityIndicator size="small" color="white" />
             <Text style={styles.testButtonText} className="text-white font-bold text-lg ml-2">
@@ -265,7 +269,7 @@ const EventsListScreen: React.FC = () => {
       </TouchableOpacity>
       
       <TouchableOpacity
-        onPress={handleCreateEvent}
+        onPress={navigateToCreateEvent}
         style={styles.createButton}
         className="bg-pink-500 px-8 py-4 rounded-xl"
       >
@@ -317,7 +321,7 @@ const EventsListScreen: React.FC = () => {
           </View>
           
           <TouchableOpacity
-            onPress={handleCreateEvent}
+            onPress={navigateToCreateEvent}
             style={styles.newButton}
             className="bg-pink-500 px-4 py-2 rounded-lg flex-row items-center"
           >
@@ -344,7 +348,7 @@ const EventsListScreen: React.FC = () => {
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
-              onRefresh={handleRefresh}
+              onRefresh={onRefresh}
               tintColor="#ec4899"
             />
           }

@@ -53,6 +53,10 @@ export interface User {
     createdBy: string; // User ID of creator
     hostName: string; // Display name of host
     hostProfilePicture?: string;
+    status: 'pending' | 'approved' | 'rejected'; // Admin approval status
+    approvedBy?: string; // Admin user ID who approved/rejected
+    approvedAt?: Date; // When the approval happened
+    rejectionReason?: string; // Optional reason for rejection
     createdAt: Date;
     updatedAt: Date;
   }
@@ -132,4 +136,15 @@ export interface User {
   export interface CreateCommentFormData {
     content: string;
     parentCommentId?: string;
+  }
+  
+  // Admin Approval Types
+  export interface ApprovalFormData {
+    action: 'approve' | 'reject';
+    rejectionReason?: string;
+  }
+  
+  export interface PendingEventStats {
+    totalPending: number;
+    newThisWeek: number;
   }

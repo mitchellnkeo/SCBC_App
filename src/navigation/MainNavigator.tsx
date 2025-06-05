@@ -3,6 +3,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import EventsListScreen from '../screens/events/EventsListScreen';
 import EventDetailsScreen from '../screens/events/EventDetailsScreen';
+import CreateEventScreen from '../screens/events/CreateEventScreen';
+import PendingEventsScreen from '../screens/admin/PendingEventsScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import AdminScreen from '../screens/admin/AdminScreen';
 import { useAuthStore } from '../stores/authStore';
@@ -16,6 +18,8 @@ export type MainTabParamList = {
 export type MainStackParamList = {
   MainTabs: undefined;
   EventDetails: { eventId: string };
+  CreateEvent: undefined;
+  PendingEvents: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -69,6 +73,9 @@ const MainTabs: React.FC = () => {
 };
 
 const MainNavigator: React.FC = () => {
+  const { user } = useAuthStore();
+  const userRole = user?.role || 'member';
+  
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MainTabs" component={MainTabs} />
@@ -80,6 +87,24 @@ const MainNavigator: React.FC = () => {
           presentation: 'card',
         }}
       />
+      <Stack.Screen 
+        name="CreateEvent" 
+        component={CreateEventScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+        }}
+      />
+      {userRole === 'admin' && (
+        <Stack.Screen 
+          name="PendingEvents" 
+          component={PendingEventsScreen}
+          options={{
+            headerShown: false,
+            presentation: 'card',
+          }}
+        />
+      )}
     </Stack.Navigator>
   );
 };

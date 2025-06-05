@@ -22,7 +22,9 @@ import {
   PopulatedEvent, 
   CreateEventFormData, 
   CreateCommentFormData,
-  EventStats 
+  EventStats,
+  ApprovalFormData,
+  PendingEventStats
 } from '../types';
 
 // Collections
@@ -35,20 +37,29 @@ export const createEvent = async (
   eventData: CreateEventFormData, 
   userId: string, 
   userName: string,
+  userRole: 'admin' | 'member',
   userProfilePicture?: string
 ): Promise<string> => {
   try {
+    // Admin events are auto-approved, member events need approval
+    const status = userRole === 'admin' ? 'approved' : 'pending';
+    const approvedBy = userRole === 'admin' ? userId : undefined;
+    const approvedAt = userRole === 'admin' ? serverTimestamp() : undefined;
+
     const eventDoc = {
       ...eventData,
       createdBy: userId,
       hostName: userName,
       hostProfilePicture: userProfilePicture || null,
+      status,
+      approvedBy,
+      approvedAt,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
 
     const docRef = await addDoc(collection(db, EVENTS_COLLECTION), eventDoc);
-    console.log('Event created with ID:', docRef.id);
+    console.log(`Event created with ID: ${docRef.id}, Status: ${status}`);
     return docRef.id;
   } catch (error) {
     console.error('Error creating event:', error);
@@ -131,8 +142,10 @@ export const getEvent = async (eventId: string): Promise<BookClubEvent | null> =
 
 export const getAllEvents = async (): Promise<BookClubEvent[]> => {
   try {
+    // Only get approved events for the main events list
     const eventsQuery = query(
       collection(db, EVENTS_COLLECTION),
+      where('status', '==', 'approved'),
       orderBy('date', 'asc')
     );
     const eventsSnapshot = await getDocs(eventsQuery);
@@ -145,6 +158,7 @@ export const getAllEvents = async (): Promise<BookClubEvent[]> => {
         date: data.date?.toDate() || new Date(),
         createdAt: data.createdAt?.toDate() || new Date(),
         updatedAt: data.updatedAt?.toDate() || new Date(),
+        approvedAt: data.approvedAt?.toDate() || undefined,
       } as BookClubEvent;
     });
   } catch (error) {
@@ -435,5 +449,116 @@ export const subscribeToEventDetails = (
     }
   }, (error) => {
     console.error('Error in event details subscription:', error);
+  });
+};
+
+// Admin Approval Functions
+export const getPendingEvents = async (): Promise<BookClubEvent[]> => {
+  try {
+    const pendingQuery = query(
+      collection(db, EVENTS_COLLECTION),
+      where('status', '==', 'pending'),
+      orderBy('createdAt', 'desc')
+    );
+    const pendingSnapshot = await getDocs(pendingQuery);
+    
+    return pendingSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        date: data.date?.toDate() || new Date(),
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+        approvedAt: data.approvedAt?.toDate() || undefined,
+      } as BookClubEvent;
+    });
+  } catch (error) {
+    console.error('Error getting pending events:', error);
+    throw new Error('Failed to load pending events. Please try again.');
+  }
+};
+
+export const approveEvent = async (
+  eventId: string,
+  adminUserId: string,
+  approvalData: ApprovalFormData
+): Promise<void> => {
+  try {
+    const eventRef = doc(db, EVENTS_COLLECTION, eventId);
+    
+    const updateData: any = {
+      status: approvalData.action === 'approve' ? 'approved' : 'rejected',
+      approvedBy: adminUserId,
+      approvedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+    
+    if (approvalData.action === 'reject' && approvalData.rejectionReason) {
+      updateData.rejectionReason = approvalData.rejectionReason;
+    }
+    
+    await updateDoc(eventRef, updateData);
+    console.log(`Event ${approvalData.action}d:`, eventId);
+  } catch (error) {
+    console.error(`Error ${approvalData.action}ing event:`, error);
+    throw new Error(`Failed to ${approvalData.action} event. Please try again.`);
+  }
+};
+
+export const getPendingEventStats = async (): Promise<PendingEventStats> => {
+  try {
+    const pendingQuery = query(
+      collection(db, EVENTS_COLLECTION),
+      where('status', '==', 'pending')
+    );
+    const pendingSnapshot = await getDocs(pendingQuery);
+    
+    const totalPending = pendingSnapshot.size;
+    
+    // Calculate events from this week
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    
+    const newThisWeek = pendingSnapshot.docs.filter(doc => {
+      const data = doc.data();
+      const createdAt = data.createdAt?.toDate();
+      return createdAt && createdAt >= oneWeekAgo;
+    }).length;
+    
+    return {
+      totalPending,
+      newThisWeek
+    };
+  } catch (error) {
+    console.error('Error getting pending event stats:', error);
+    return { totalPending: 0, newThisWeek: 0 };
+  }
+};
+
+// Real-time listeners for admin
+export const subscribeToPendingEvents = (callback: (events: BookClubEvent[]) => void) => {
+  const pendingQuery = query(
+    collection(db, EVENTS_COLLECTION),
+    where('status', '==', 'pending'),
+    orderBy('createdAt', 'desc')
+  );
+  
+  return onSnapshot(pendingQuery, (snapshot) => {
+    const events = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        date: data.date?.toDate() || new Date(),
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+        approvedAt: data.approvedAt?.toDate() || undefined,
+      } as BookClubEvent;
+    });
+    
+    callback(events);
+  }, (error) => {
+    console.error('Error in pending events subscription:', error);
   });
 }; 
