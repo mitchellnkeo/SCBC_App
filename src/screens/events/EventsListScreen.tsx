@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
-import { BookClubEvent } from '../../types';
+import { BookClubEvent, CreateEventFormData } from '../../types';
 
 const EventsListScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -25,10 +25,12 @@ const EventsListScreen: React.FC = () => {
     error, 
     loadEvents, 
     clearError,
-    subscribeToEvents 
+    subscribeToEvents,
+    createEvent 
   } = useEventStore();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isCreatingTests, setIsCreatingTests] = useState(false);
 
   useEffect(() => {
     // Load events initially
@@ -60,6 +62,86 @@ const EventsListScreen: React.FC = () => {
     // TODO: Navigate to create event
     // navigation.navigate('CreateEvent');
     Alert.alert('Create Event', 'Navigate to create event screen');
+  };
+
+  // TEMPORARY: Create test events function
+  const createTestEvents = async () => {
+    if (!user) {
+      Alert.alert('Error', 'You must be logged in to create events');
+      return;
+    }
+
+    setIsCreatingTests(true);
+    
+    const testEvents: CreateEventFormData[] = [
+      {
+        title: 'Book Discussion: "The Seven Husbands of Evelyn Hugo"',
+        description: 'Join us for an engaging discussion about Taylor Jenkins Reid\'s captivating novel. We\'ll explore themes of love, ambition, and the price of fame in this unforgettable story about a reclusive Hollywood icon finally ready to tell her story.',
+        date: new Date(2024, 2, 15), // March 15, 2024
+        time: '7:00 PM',
+        location: 'Wing Luke Museum',
+        address: '719 S King St, Seattle, WA 98104',
+        headerPhoto: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&q=80'
+      },
+      {
+        title: 'Author Meet & Greet: Local Seattle Writers',
+        description: 'Meet three incredible local authors from the Seattle literary scene! They\'ll share insights about their writing process, discuss their latest works, and answer your questions. Light refreshments will be provided.',
+        date: new Date(2024, 2, 22), // March 22, 2024
+        time: '6:30 PM',
+        location: 'Seattle Central Library',
+        address: '1000 4th Ave, Seattle, WA 98104',
+        headerPhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80'
+      },
+      {
+        title: 'Monthly Poetry Reading & Open Mic',
+        description: 'Share your favorite poems or read your own original work! This is a supportive, welcoming space for poetry lovers of all levels. We\'ll start with featured readings, then open the floor for community participation.',
+        date: new Date(2024, 2, 28), // March 28, 2024
+        time: '7:30 PM',
+        location: 'Chinatown-International District',
+        address: '500 S King St, Seattle, WA 98104',
+        headerPhoto: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80'
+      },
+      {
+        title: 'Book Club Potluck & Game Night',
+        description: 'Let\'s take a break from serious discussions and have some fun! Bring a dish to share and your competitive spirit. We\'ll have literary trivia, word games, and plenty of good food and conversation.',
+        date: new Date(2024, 3, 5), // April 5, 2024
+        time: '6:00 PM',
+        location: 'Community Center',
+        address: '120 6th Ave S, Seattle, WA 98104',
+        headerPhoto: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&q=80'
+      },
+      {
+        title: 'Literary Walking Tour of Seattle',
+        description: 'Explore Seattle through the eyes of famous authors who called our city home. We\'ll visit locations that inspired great works and learn about the rich literary history of the Pacific Northwest.',
+        date: new Date(2024, 3, 12), // April 12, 2024
+        time: '2:00 PM',
+        location: 'Pike Place Market',
+        address: '85 Pike St, Seattle, WA 98101',
+        headerPhoto: 'https://images.unsplash.com/photo-1542223189-67a03fa0f0bd?w=800&q=80'
+      }
+    ];
+
+    try {
+      for (const eventData of testEvents) {
+        await createEvent(
+          eventData, 
+          user.id, 
+          user.displayName, 
+          user.profilePicture
+        );
+      }
+      
+      Alert.alert(
+        'Success! 🎉', 
+        'Created 5 beautiful test events! Check out the amazing event cards below.',
+        [{ text: 'Awesome!', style: 'default' }]
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Failed to create test events. Please try again.');
+      console.error('Error creating test events:', error);
+    } finally {
+      setIsCreatingTests(false);
+    }
   };
 
   const formatDate = (date: Date) => {
@@ -158,6 +240,28 @@ const EventsListScreen: React.FC = () => {
       <Text style={styles.emptySubtitle} className="text-gray-600 text-center mb-8 leading-6">
         Be the first to create an event for the book club! Share reading discussions, meetups, and literary adventures.
       </Text>
+      
+      {/* Test Events Button */}
+      <TouchableOpacity
+        onPress={createTestEvents}
+        disabled={isCreatingTests}
+        style={[styles.testButton, isCreatingTests && styles.testButtonDisabled]}
+        className="bg-purple-500 px-8 py-4 rounded-xl mb-4"
+      >
+        {isCreatingTests ? (
+          <View style={styles.loadingRow}>
+            <ActivityIndicator size="small" color="white" />
+            <Text style={styles.testButtonText} className="text-white font-bold text-lg ml-2">
+              Creating Events...
+            </Text>
+          </View>
+        ) : (
+          <Text style={styles.testButtonText} className="text-white font-bold text-lg">
+            ✨ Create Test Events ✨
+          </Text>
+        )}
+      </TouchableOpacity>
+      
       <TouchableOpacity
         onPress={handleCreateEvent}
         style={styles.createButton}
@@ -415,6 +519,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 32,
     lineHeight: 24,
+  },
+  testButton: {
+    backgroundColor: '#8b5cf6', // purple-500
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  testButtonDisabled: {
+    backgroundColor: '#d1d5db', // gray-300
+  },
+  loadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  testButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 18,
   },
   createButton: {
     backgroundColor: '#ec4899', // pink-500
