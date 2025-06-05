@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useAuthStore } from '../../stores/authStore';
 
 const AuthTest: React.FC = () => {
@@ -68,66 +68,76 @@ const AuthTest: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>🔐 Authentication Test</Text>
-      <Text style={styles.statusText}>
-        {isAuthenticated ? '✅ Authenticated' : '❌ Not authenticated'}
-      </Text>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.keyboardAvoidingView}
+    >
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.container}>
+          <Text style={styles.title}>🔐 Authentication Test</Text>
+          <Text style={styles.statusText}>
+            {isAuthenticated ? '✅ Authenticated' : '❌ Not authenticated'}
+          </Text>
 
-      {error && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity onPress={clearError}>
-            <Text style={styles.clearErrorText}>Clear</Text>
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity onPress={clearError}>
+                <Text style={styles.clearErrorText}>Clear</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+
+          {isRegistering && (
+            <TextInput
+              style={styles.input}
+              placeholder="Display Name"
+              value={displayName}
+              onChangeText={setDisplayName}
+            />
+          )}
+
+          <TouchableOpacity 
+            style={styles.primaryButton} 
+            onPress={isRegistering ? handleRegister : handleLogin}
+            disabled={isLoading}
+          >
+            <Text style={styles.buttonText}>
+              {isLoading ? 'Loading...' : (isRegistering ? 'Register' : 'Login')}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.switchButton}
+            onPress={() => setIsRegistering(!isRegistering)}
+          >
+            <Text style={styles.switchText}>
+              {isRegistering ? 'Switch to Login' : 'Switch to Register'}
+            </Text>
           </TouchableOpacity>
         </View>
-      )}
-
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-
-      {isRegistering && (
-        <TextInput
-          style={styles.input}
-          placeholder="Display Name"
-          value={displayName}
-          onChangeText={setDisplayName}
-        />
-      )}
-
-      <TouchableOpacity 
-        style={styles.primaryButton} 
-        onPress={isRegistering ? handleRegister : handleLogin}
-        disabled={isLoading}
-      >
-        <Text style={styles.buttonText}>
-          {isLoading ? 'Loading...' : (isRegistering ? 'Register' : 'Login')}
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity 
-        style={styles.switchButton}
-        onPress={() => setIsRegistering(!isRegistering)}
-      >
-        <Text style={styles.switchText}>
-          {isRegistering ? 'Switch to Login' : 'Switch to Register'}
-        </Text>
-      </TouchableOpacity>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -209,6 +219,12 @@ const styles = StyleSheet.create({
   clearErrorText: {
     color: '#dc2626',
     fontWeight: '600',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
   },
 });
 

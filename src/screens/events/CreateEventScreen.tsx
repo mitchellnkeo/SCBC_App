@@ -7,6 +7,8 @@ import {
   ScrollView,
   Alert,
   Platform,
+  StyleSheet,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -14,6 +16,36 @@ import { useNavigation } from '@react-navigation/native';
 import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
 import { CreateEventFormData } from '../../types';
+
+// Move InputField outside the main component to prevent re-creation on each render
+const InputField: React.FC<{
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder: string;
+  multiline?: boolean;
+  numberOfLines?: number;
+  error?: string;
+  keyboardType?: 'default' | 'numeric' | 'url';
+}> = ({ label, value, onChangeText, placeholder, multiline, numberOfLines, error, keyboardType = 'default' }) => (
+  <View style={styles.inputContainer} className="mb-4">
+    <Text style={styles.label} className="text-gray-700 font-medium mb-2">{label}</Text>
+    <TextInput
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      multiline={multiline}
+      numberOfLines={numberOfLines}
+      keyboardType={keyboardType}
+      style={[styles.input, error && styles.inputError]}
+      className={`border rounded-lg p-3 text-gray-900 ${
+        error ? 'border-red-500' : 'border-gray-300'
+      }`}
+      textAlignVertical={multiline ? 'top' : 'center'}
+    />
+    {error && <Text style={styles.errorText} className="text-red-500 text-sm mt-1">{error}</Text>}
+  </View>
+);
 
 const CreateEventScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -103,155 +135,252 @@ const CreateEventScreen: React.FC = () => {
     });
   };
 
-  const InputField: React.FC<{
-    label: string;
-    value: string;
-    onChangeText: (text: string) => void;
-    placeholder: string;
-    multiline?: boolean;
-    numberOfLines?: number;
-    error?: string;
-    keyboardType?: 'default' | 'numeric' | 'url';
-  }> = ({ label, value, onChangeText, placeholder, multiline, numberOfLines, error, keyboardType = 'default' }) => (
-    <View className="mb-4">
-      <Text className="text-gray-700 font-medium mb-2">{label}</Text>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        multiline={multiline}
-        numberOfLines={numberOfLines}
-        keyboardType={keyboardType}
-        className={`border rounded-lg p-3 text-gray-900 ${
-          error ? 'border-red-500' : 'border-gray-300'
-        }`}
-        textAlignVertical={multiline ? 'top' : 'center'}
-      />
-      {error && <Text className="text-red-500 text-sm mt-1">{error}</Text>}
-    </View>
-  );
-
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView style={styles.container} className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="bg-white border-b border-gray-200 px-4 py-4 flex-row items-center">
+      <View style={styles.header} className="bg-white border-b border-gray-200 px-4 py-4 flex-row items-center">
         <TouchableOpacity
           onPress={() => navigation.goBack()}
+          style={styles.closeButton}
           className="mr-4 p-2"
         >
-          <Text className="text-pink-500 text-lg">✕</Text>
+          <Text style={styles.closeButtonText} className="text-pink-500 text-lg">✕</Text>
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-900 flex-1">Create Event</Text>
+        <Text style={styles.headerTitle} className="text-xl font-bold text-gray-900 flex-1">Create Event</Text>
         <TouchableOpacity
           onPress={handleSubmit}
           disabled={isCreating}
+          style={[styles.submitButton, isCreating && styles.submitButtonDisabled]}
           className={`px-4 py-2 rounded-lg ${
             isCreating ? 'bg-gray-300' : 'bg-pink-500'
           }`}
         >
-          <Text className="text-white font-semibold">
+          <Text style={styles.submitButtonText} className="text-white font-semibold">
             {isCreating ? 'Submitting...' : 'Submit'}
           </Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView className="flex-1 p-4">
-        <InputField
-          label="Event Title"
-          value={formData.title}
-          onChangeText={(text) => setFormData({ ...formData, title: text })}
-          placeholder="e.g., Book Discussion: Pride and Prejudice"
-          error={errors.title}
-        />
-
-        <InputField
-          label="Description"
-          value={formData.description}
-          onChangeText={(text) => setFormData({ ...formData, description: text })}
-          placeholder="Tell us about your event..."
-          multiline
-          numberOfLines={4}
-          error={errors.description}
-        />
-
-        {/* Date Picker */}
-        <View className="mb-4">
-          <Text className="text-gray-700 font-medium mb-2">Date</Text>
-          <TouchableOpacity
-            onPress={() => setShowDatePicker(true)}
-            className="border border-gray-300 rounded-lg p-3"
-          >
-            <Text className="text-gray-900">{formatDate(formData.date)}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {showDatePicker && (
-          <DateTimePicker
-            value={formData.date}
-            mode="date"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={onDateChange}
-            minimumDate={new Date()}
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoidingView}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView 
+          style={styles.scrollView} 
+          className="flex-1 p-4"
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <InputField
+            label="Event Title"
+            value={formData.title}
+            onChangeText={(text) => setFormData({ ...formData, title: text })}
+            placeholder="e.g., Book Discussion: Pride and Prejudice"
+            error={errors.title}
           />
-        )}
 
-        <InputField
-          label="Time"
-          value={formData.time}
-          onChangeText={(text) => setFormData({ ...formData, time: text })}
-          placeholder="e.g., 7:00 PM"
-          error={errors.time}
-        />
+          <InputField
+            label="Description"
+            value={formData.description}
+            onChangeText={(text) => setFormData({ ...formData, description: text })}
+            placeholder="Tell us about your event..."
+            multiline
+            numberOfLines={4}
+            error={errors.description}
+          />
 
-        <InputField
-          label="Location Name"
-          value={formData.location}
-          onChangeText={(text) => setFormData({ ...formData, location: text })}
-          placeholder="e.g., Central Library"
-          error={errors.location}
-        />
-
-        <InputField
-          label="Address"
-          value={formData.address}
-          onChangeText={(text) => setFormData({ ...formData, address: text })}
-          placeholder="e.g., 1000 4th Ave, Seattle, WA 98104"
-          error={errors.address}
-        />
-
-        <InputField
-          label="Max Attendees (Optional)"
-          value={formData.maxAttendees?.toString() || ''}
-          onChangeText={(text) => setFormData({ 
-            ...formData, 
-            maxAttendees: text ? parseInt(text) : undefined 
-          })}
-          placeholder="e.g., 25"
-          keyboardType="numeric"
-        />
-
-        <InputField
-          label="Header Photo URL (Optional)"
-          value={formData.headerPhoto || ''}
-          onChangeText={(text) => setFormData({ ...formData, headerPhoto: text })}
-          placeholder="https://example.com/image.jpg"
-          keyboardType="url"
-        />
-
-        {/* Approval Notice for Non-Admin Users */}
-        {user?.role !== 'admin' && (
-          <View className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <Text className="text-yellow-800 font-medium mb-1">📋 Admin Approval Required</Text>
-            <Text className="text-yellow-700 text-sm">
-              Your event will be reviewed by our team before being published. You'll receive a notification once it's approved.
-            </Text>
+          {/* Date Picker */}
+          <View style={styles.inputContainer} className="mb-4">
+            <Text style={styles.label} className="text-gray-700 font-medium mb-2">Date</Text>
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              style={styles.dateButton}
+              className="border border-gray-300 rounded-lg p-3"
+            >
+              <Text style={styles.dateText} className="text-gray-900">{formatDate(formData.date)}</Text>
+            </TouchableOpacity>
           </View>
-        )}
 
-        <View className="pb-8" />
-      </ScrollView>
+          {showDatePicker && (
+            <DateTimePicker
+              value={formData.date}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={onDateChange}
+              minimumDate={new Date()}
+            />
+          )}
+
+          <InputField
+            label="Time"
+            value={formData.time}
+            onChangeText={(text) => setFormData({ ...formData, time: text })}
+            placeholder="e.g., 7:00 PM"
+            error={errors.time}
+          />
+
+          <InputField
+            label="Location Name"
+            value={formData.location}
+            onChangeText={(text) => setFormData({ ...formData, location: text })}
+            placeholder="e.g., Central Library"
+            error={errors.location}
+          />
+
+          <InputField
+            label="Address"
+            value={formData.address}
+            onChangeText={(text) => setFormData({ ...formData, address: text })}
+            placeholder="e.g., 1000 4th Ave, Seattle, WA 98104"
+            error={errors.address}
+          />
+
+          <InputField
+            label="Max Attendees (Optional)"
+            value={formData.maxAttendees?.toString() || ''}
+            onChangeText={(text) => setFormData({ 
+              ...formData, 
+              maxAttendees: text ? parseInt(text) : undefined 
+            })}
+            placeholder="e.g., 25"
+            keyboardType="numeric"
+          />
+
+          <InputField
+            label="Header Photo URL (Optional)"
+            value={formData.headerPhoto || ''}
+            onChangeText={(text) => setFormData({ ...formData, headerPhoto: text })}
+            placeholder="https://example.com/image.jpg"
+            keyboardType="url"
+          />
+
+          {/* Approval Notice for Non-Admin Users */}
+          {user?.role !== 'admin' && (
+            <View style={styles.approvalNotice} className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+              <Text style={styles.approvalTitle} className="text-yellow-800 font-medium mb-1">📋 Admin Approval Required</Text>
+              <Text style={styles.approvalText} className="text-yellow-700 text-sm">
+                Your event will be reviewed by our team before being published. You'll receive a notification once it's approved.
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.bottomSpacer} className="pb-8" />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb', // gray-50
+  },
+  header: {
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb', // gray-200
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  closeButton: {
+    marginRight: 16,
+    padding: 8,
+  },
+  closeButtonText: {
+    color: '#ec4899', // pink-500
+    fontSize: 18,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827', // gray-900
+    flex: 1,
+  },
+  submitButton: {
+    backgroundColor: '#ec4899', // pink-500
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#d1d5db', // gray-300
+  },
+  submitButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+    padding: 16,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#374151', // gray-700
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#d1d5db', // gray-300
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#111827', // gray-900
+    backgroundColor: 'white',
+  },
+  inputError: {
+    borderColor: '#ef4444', // red-500
+  },
+  errorText: {
+    color: '#ef4444', // red-500
+    fontSize: 14,
+    marginTop: 4,
+  },
+  dateButton: {
+    borderWidth: 1,
+    borderColor: '#d1d5db', // gray-300
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: 'white',
+  },
+  dateText: {
+    fontSize: 16,
+    color: '#111827', // gray-900
+  },
+  approvalNotice: {
+    backgroundColor: '#fefce8', // yellow-50
+    borderWidth: 1,
+    borderColor: '#fde047', // yellow-200
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 24,
+  },
+  approvalTitle: {
+    color: '#92400e', // yellow-800
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  approvalText: {
+    color: '#a16207', // yellow-700
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  bottomSpacer: {
+    paddingBottom: 32,
+  },
+});
 
 export default CreateEventScreen; 

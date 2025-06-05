@@ -8,7 +8,10 @@ import {
   Alert, 
   TextInput,
   Modal,
-  RefreshControl
+  RefreshControl,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEventStore } from '../../stores/eventStore';
@@ -174,12 +177,12 @@ const PendingEventsScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView style={styles.container} className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="bg-white border-b border-gray-200 px-4 py-4">
-        <Text className="text-2xl font-bold text-gray-900">Pending Events</Text>
+      <View style={styles.header} className="bg-white border-b border-gray-200 px-4 py-4">
+        <Text style={styles.headerTitle} className="text-2xl font-bold text-gray-900">Pending Events</Text>
         <View className="flex-row items-center mt-2">
-          <Text className="text-gray-600">
+          <Text style={styles.headerSubtitle} className="text-gray-600">
             {pendingStats.totalPending} pending • {pendingStats.newThisWeek} new this week
           </Text>
         </View>
@@ -187,6 +190,7 @@ const PendingEventsScreen: React.FC = () => {
 
       {/* Content */}
       <ScrollView 
+        style={styles.scrollView}
         className="flex-1"
         contentContainerStyle={{ padding: 16 }}
         refreshControl={
@@ -211,62 +215,164 @@ const PendingEventsScreen: React.FC = () => {
         animationType="slide"
         onRequestClose={() => setShowApprovalModal(false)}
       >
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-6">
-            <Text className="text-xl font-bold text-gray-900 mb-4">
-              {actionType === 'approve' ? 'Approve Event' : 'Reject Event'}
-            </Text>
-            
-            {selectedEvent && (
-              <Text className="text-gray-700 mb-4">
-                "{selectedEvent.title}" by {selectedEvent.hostName}
+        <View style={styles.modalOverlay} className="flex-1 bg-black/50 justify-end">
+          <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardAvoidingView}
+          >
+            <View style={styles.modalContent} className="bg-white rounded-t-3xl p-6">
+              <Text style={styles.modalTitle} className="text-xl font-bold text-gray-900 mb-4">
+                {actionType === 'approve' ? 'Approve Event' : 'Reject Event'}
               </Text>
-            )}
-
-            {actionType === 'reject' && (
-              <View className="mb-4">
-                <Text className="text-gray-700 font-medium mb-2">
-                  Rejection Reason (optional):
-                </Text>
-                <TextInput
-                  value={rejectionReason}
-                  onChangeText={setRejectionReason}
-                  placeholder="e.g., Inappropriate content, duplicate event, etc."
-                  multiline
-                  numberOfLines={3}
-                  className="border border-gray-300 rounded-lg p-3 text-gray-900"
-                  textAlignVertical="top"
-                />
-              </View>
-            )}
-
-            <View className="flex-row space-x-3">
-              <TouchableOpacity
-                onPress={() => setShowApprovalModal(false)}
-                className="flex-1 border border-gray-300 py-3 rounded-lg items-center"
-                disabled={isApproving}
-              >
-                <Text className="text-gray-700 font-semibold">Cancel</Text>
-              </TouchableOpacity>
               
-              <TouchableOpacity
-                onPress={confirmAction}
-                disabled={isApproving}
-                className={`flex-1 py-3 rounded-lg items-center ${
-                  actionType === 'approve' ? 'bg-green-500' : 'bg-red-500'
-                }`}
-              >
-                <Text className="text-white font-semibold">
-                  {isApproving ? 'Processing...' : 
-                   actionType === 'approve' ? 'Approve' : 'Reject'}
+              {selectedEvent && (
+                <Text style={styles.modalSubtitle} className="text-gray-700 mb-4">
+                  "{selectedEvent.title}" by {selectedEvent.hostName}
                 </Text>
-              </TouchableOpacity>
+              )}
+
+              {actionType === 'reject' && (
+                <View className="mb-4">
+                  <Text style={styles.inputLabel} className="text-gray-700 font-medium mb-2">
+                    Rejection Reason (optional):
+                  </Text>
+                  <TextInput
+                    value={rejectionReason}
+                    onChangeText={setRejectionReason}
+                    placeholder="e.g., Inappropriate content, duplicate event, etc."
+                    multiline
+                    numberOfLines={3}
+                    style={styles.textInput}
+                    className="border border-gray-300 rounded-lg p-3 text-gray-900"
+                    textAlignVertical="top"
+                  />
+                </View>
+              )}
+
+              <View className="flex-row space-x-3">
+                <TouchableOpacity
+                  onPress={() => setShowApprovalModal(false)}
+                  style={styles.cancelButton}
+                  className="flex-1 border border-gray-300 py-3 rounded-lg items-center"
+                  disabled={isApproving}
+                >
+                  <Text style={styles.cancelButtonText} className="text-gray-700 font-semibold">Cancel</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  onPress={confirmAction}
+                  disabled={isApproving}
+                  style={[styles.actionButton, actionType === 'approve' ? styles.approveButton : styles.rejectButton]}
+                  className={`flex-1 py-3 rounded-lg items-center ${
+                    actionType === 'approve' ? 'bg-green-500' : 'bg-red-500'
+                  }`}
+                >
+                  <Text style={styles.actionButtonText} className="text-white font-semibold">
+                    {isApproving ? 'Processing...' : 
+                     actionType === 'approve' ? 'Approve' : 'Reject'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb', // gray-50
+  },
+  header: {
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb', // gray-200
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#111827', // gray-900
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#6b7280', // gray-600
+  },
+  scrollView: {
+    flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827', // gray-900
+    marginBottom: 16,
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    color: '#374151', // gray-700
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#374151', // gray-700
+    marginBottom: 8,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#d1d5db', // gray-300
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#111827', // gray-900
+    backgroundColor: 'white',
+  },
+  cancelButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#d1d5db', // gray-300
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#374151', // gray-700
+    fontWeight: '600',
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  approveButton: {
+    backgroundColor: '#10b981', // green-500
+  },
+  rejectButton: {
+    backgroundColor: '#ef4444', // red-500
+  },
+  actionButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+});
 
 export default PendingEventsScreen; 

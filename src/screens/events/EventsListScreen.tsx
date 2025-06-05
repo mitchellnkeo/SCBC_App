@@ -321,12 +321,6 @@ const EventsListScreen: React.FC = () => {
             <Text style={styles.headerSubtitle} className="text-gray-600 mt-1">
               {events.length > 0 ? `${events.length} upcoming events` : 'No events scheduled'}
             </Text>
-            {/* DEBUG: Show user role */}
-            {user && (
-              <Text className="text-xs text-blue-600 mt-1">
-                DEBUG: {user.email} - Role: {user.role} - ID: {user.id.slice(-6)}
-              </Text>
-            )}
           </View>
           
           <TouchableOpacity
