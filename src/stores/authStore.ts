@@ -14,6 +14,7 @@ interface AuthStore extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
   clearError: () => void;
   setLoading: (loading: boolean) => void;
 }
@@ -140,6 +141,18 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   // Clear error
   clearError: () => {
     set({ error: null });
+  },
+
+  // Refresh current user data
+  refreshUser: async () => {
+    try {
+      const currentUser = await getCurrentUser();
+      if (currentUser) {
+        set({ user: currentUser });
+      }
+    } catch (error: any) {
+      console.error('Error refreshing user:', error);
+    }
   },
 
   // Set loading state

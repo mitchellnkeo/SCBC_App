@@ -1,9 +1,15 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useAuthStore } from '../../stores/authStore';
+import type { MainStackParamList } from '../../navigation/MainNavigator';
+
+type ProfileScreenNavigationProp = StackNavigationProp<MainStackParamList>;
 
 const ProfileScreen: React.FC = () => {
   const { user, logout, isLoading } = useAuthStore();
+  const navigation = useNavigation<ProfileScreenNavigationProp>();
 
   const handleLogout = async () => {
     Alert.alert(
@@ -52,6 +58,42 @@ const ProfileScreen: React.FC = () => {
               </View>
             </View>
             
+            {/* Bio Section */}
+            {user.bio && (
+              <View style={styles.bioSection}>
+                <Text style={styles.bioLabel}>About</Text>
+                <Text style={styles.bioText}>{user.bio}</Text>
+              </View>
+            )}
+            
+            {/* Hobbies Section */}
+            {user.hobbies && user.hobbies.length > 0 && (
+              <View style={styles.interestsSection}>
+                <Text style={styles.interestsLabel}>Hobbies & Interests</Text>
+                <View style={styles.tagsContainer}>
+                  {user.hobbies.map((hobby, index) => (
+                    <View key={index} style={styles.tag}>
+                      <Text style={styles.tagText}>{hobby}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+            
+            {/* Favorite Books Section */}
+            {user.favoriteBooks && user.favoriteBooks.length > 0 && (
+              <View style={styles.interestsSection}>
+                <Text style={styles.interestsLabel}>Favorite Books</Text>
+                <View style={styles.tagsContainer}>
+                  {user.favoriteBooks.map((book, index) => (
+                    <View key={index} style={styles.tag}>
+                      <Text style={styles.tagText}>{book}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
             <View style={styles.userStats}>
               <Text style={styles.userID}>User ID: {user.id}</Text>
             </View>
@@ -74,6 +116,22 @@ const ProfileScreen: React.FC = () => {
         <TouchableOpacity style={styles.actionItem}>
           <Text style={styles.actionText}>📖 My Books</Text>
           <Text style={styles.actionSubtext}>Coming soon...</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.actionItem}
+          onPress={() => navigation.navigate('EditProfile')}
+        >
+          <Text style={styles.actionText}>✏️ Edit Profile</Text>
+          <Text style={styles.actionSubtext}>Update your information</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.actionItem}
+          onPress={() => navigation.navigate('NotificationDemo')}
+        >
+          <Text style={styles.actionText}>🔔 Push Notifications</Text>
+          <Text style={styles.actionSubtext}>Test notification features</Text>
         </TouchableOpacity>
       </View>
       
@@ -219,6 +277,51 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  bioSection: {
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+    paddingTop: 16,
+    marginBottom: 16,
+  },
+  bioLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  bioText: {
+    fontSize: 16,
+    color: '#1f2937',
+    lineHeight: 22,
+  },
+  interestsSection: {
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+    paddingTop: 16,
+    marginBottom: 16,
+  },
+  interestsLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  tag: {
+    backgroundColor: '#f0f9ff',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  tagText: {
+    fontSize: 14,
+    color: '#1e40af',
+    fontWeight: '500',
   },
 });
 

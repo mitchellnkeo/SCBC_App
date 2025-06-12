@@ -7,6 +7,8 @@ import CreateEventScreen from '../screens/events/CreateEventScreen';
 import PendingEventsScreen from '../screens/admin/PendingEventsScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import AdminScreen from '../screens/admin/AdminScreen';
+import { NotificationDemoScreen } from '../screens/NotificationDemoScreen';
+import { EditProfileScreen } from '../screens/profile/EditProfileScreen';
 import { useAuthStore } from '../stores/authStore';
 
 export type MainTabParamList = {
@@ -20,6 +22,8 @@ export type MainStackParamList = {
   EventDetails: { eventId: string };
   CreateEvent: undefined;
   PendingEvents: undefined;
+  NotificationDemo: undefined;
+  EditProfile: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -105,6 +109,23 @@ const MainNavigator: React.FC = () => {
           }}
         />
       )}
+      <Stack.Screen 
+        name="NotificationDemo" 
+        component={NotificationDemoScreen}
+        options={{
+          headerShown: true,
+          title: 'Push Notifications',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen 
+        name="EditProfile" 
+        component={EditProfileScreen}
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
     </Stack.Navigator>
   );
 };

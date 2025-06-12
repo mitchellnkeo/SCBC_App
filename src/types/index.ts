@@ -19,6 +19,9 @@ export interface User {
     displayName: string;
     role: 'admin' | 'member';
     profilePicture?: string;
+    bio?: string;
+    hobbies?: string[];
+    favoriteBooks?: string[];
   }
   
   export interface LoginCredentials {
