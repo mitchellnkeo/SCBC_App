@@ -3,11 +3,6 @@
     "name": "SCBCApp",
     "slug": "SCBCApp",
     "version": "1.0.0",
-    "extra": {
-      "eas": {
-        "projectId": "your-project-id-here"
-      }
-    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -38,6 +33,12 @@
     ],
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a0965c8e-2881-4ad2-b6ba-a4c297f3e5da"
+      }
+    },
+    "owner": "mitchellkeo"
   }
 }
