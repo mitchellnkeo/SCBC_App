@@ -9,14 +9,18 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@expo/cli": "^0.24.13",
+    "@expo/cli": "^0.24.14",
     "@expo/metro-runtime": "~5.0.4",
     "@react-native-async-storage/async-storage": "2.1.2",
+    "@react-native-community/datetimepicker": "8.3.0",
     "@react-navigation/bottom-tabs": "^7.3.14",
     "@react-navigation/native": "^7.1.10",
     "@react-navigation/stack": "^7.3.3",
     "date-fns": "^4.1.0",
-    "expo": "^53.0.10",
+    "expo": "^53.0.11",
+    "expo-constants": "~17.1.6",
+    "expo-device": "~7.1.4",
+    "expo-notifications": "~0.31.3",
     "expo-status-bar": "~2.2.3",
     "firebase": "^11.8.1",
     "nativewind": "^4.1.23",
@@ -27,8 +31,7 @@
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "~4.11.1",
     "react-native-web": "^0.20.0",
-    "zustand": "^5.0.5",
-    "@react-native-community/datetimepicker": "8.3.0"
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
