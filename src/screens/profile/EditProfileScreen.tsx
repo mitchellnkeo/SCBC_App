@@ -31,6 +31,8 @@ export const EditProfileScreen: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUpdatingPicture, setIsUpdatingPicture] = useState(false);
 
+
+
   const {
     control,
     handleSubmit,

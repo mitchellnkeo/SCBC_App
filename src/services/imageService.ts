@@ -3,21 +3,6 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '../config/firebase';
 
-/**
- * Test Firebase Storage connection
- */
-export const testStorageConnection = async (): Promise<boolean> => {
-  try {
-    // Try to create a reference - this will fail if Storage is not enabled
-    const testRef = ref(storage, 'test/connection-test.txt');
-    console.log('Storage reference created successfully:', testRef.fullPath);
-    return true;
-  } catch (error) {
-    console.error('Storage connection test failed:', error);
-    return false;
-  }
-};
-
 export interface ImagePickerResult {
   uri: string;
   canceled: boolean;
