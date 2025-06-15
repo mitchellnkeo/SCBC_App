@@ -54,7 +54,7 @@ export const pickImageFromCamera = async (): Promise<ImagePickerResult> => {
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1], // Square aspect ratio for profile pictures
       quality: 0.8,
@@ -82,7 +82,7 @@ export const pickImageFromGallery = async (): Promise<ImagePickerResult> => {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1], // Square aspect ratio for profile pictures
       quality: 0.8,
@@ -104,16 +104,12 @@ export const pickImageFromGallery = async (): Promise<ImagePickerResult> => {
  */
 export const compressImage = async (uri: string): Promise<string> => {
   try {
-    const manipulatedImage = await ImageManipulator.manipulateAsync(
-      uri,
-      [
-        { resize: { width: 400, height: 400 } }, // Resize to 400x400 for profile pictures
-      ],
-      {
-        compress: 0.7, // 70% quality
-        format: ImageManipulator.SaveFormat.JPEG, // Convert to JPEG for smaller file size
-      }
-    );
+    const manipulatedImage = await ImageManipulator.manipulateAsync(uri, [
+      { resize: { width: 400, height: 400 } }, // Resize to 400x400 for profile pictures
+    ], {
+      compress: 0.7, // 70% quality
+      format: ImageManipulator.SaveFormat.JPEG, // Convert to JPEG for smaller file size
+    });
 
     return manipulatedImage.uri;
   } catch (error) {
