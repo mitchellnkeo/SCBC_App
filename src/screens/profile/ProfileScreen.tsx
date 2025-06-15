@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useAuthStore } from '../../stores/authStore';
 import type { MainStackParamList } from '../../navigation/MainNavigator';
+import ProfilePicture from '../../components/common/ProfilePicture';
 
 type ProfileScreenNavigationProp = StackNavigationProp<MainStackParamList>;
 
@@ -44,11 +45,12 @@ const ProfileScreen: React.FC = () => {
         <View style={styles.userInfoSection}>
           <View style={styles.userCard}>
             <View style={styles.userHeader}>
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarText}>
-                  {user.displayName?.charAt(0).toUpperCase() || 'U'}
-                </Text>
-              </View>
+              <ProfilePicture
+                imageUrl={user.profilePicture}
+                displayName={user.displayName || 'User'}
+                size="large"
+                showBorder
+              />
               <View style={styles.userDetails}>
                 <Text style={styles.userName}>{user.displayName}</Text>
                 <Text style={styles.userEmail}>{user.email}</Text>
@@ -187,22 +189,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  avatarPlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#ec4899',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  avatarText: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
   userDetails: {
     flex: 1,
+    marginLeft: 16,
   },
   userName: {
     fontSize: 20,

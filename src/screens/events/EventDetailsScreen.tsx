@@ -20,6 +20,7 @@ import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
 import { EventComment, RSVP } from '../../types';
+import ProfilePicture from '../../components/common/ProfilePicture';
 
 type RouteParams = {
   EventDetails: {
@@ -211,18 +212,11 @@ const EventDetailsScreen: React.FC = () => {
     return (
       <View style={[styles.commentItem, isReply && styles.replyItem]}>
         <View style={styles.commentHeader}>
-          {comment.userProfilePicture ? (
-            <Image
-              source={{ uri: comment.userProfilePicture }}
-              style={styles.commentAvatar}
-            />
-          ) : (
-            <View style={styles.commentAvatarPlaceholder}>
-              <Text style={styles.commentAvatarText}>
-                {comment.userName.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-          )}
+          <ProfilePicture
+            imageUrl={comment.userProfilePicture}
+            displayName={comment.userName}
+            size="small"
+          />
           
           <View style={styles.commentMeta}>
             <Text style={styles.commentAuthor}>{comment.userName}</Text>
@@ -466,18 +460,11 @@ const EventDetailsScreen: React.FC = () => {
                           .filter(rsvp => rsvp.status === 'going')
                           .map((rsvp) => (
                             <View key={rsvp.id} style={styles.attendeeItem}>
-                              {rsvp.userProfilePicture ? (
-                                <Image
-                                  source={{ uri: rsvp.userProfilePicture }}
-                                  style={styles.attendeeAvatar}
-                                />
-                              ) : (
-                                <View style={styles.attendeeAvatarPlaceholder}>
-                                  <Text style={styles.attendeeAvatarText}>
-                                    {rsvp.userName.charAt(0).toUpperCase()}
-                                  </Text>
-                                </View>
-                              )}
+                              <ProfilePicture
+                                imageUrl={rsvp.userProfilePicture}
+                                displayName={rsvp.userName}
+                                size="medium"
+                              />
                               <Text style={styles.attendeeName} numberOfLines={1}>
                                 {rsvp.userName}
                               </Text>
@@ -782,26 +769,6 @@ const styles = StyleSheet.create({
     marginRight: 16,
     width: 60,
   },
-  attendeeAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginBottom: 8,
-  },
-  attendeeAvatarPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#ec4899',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  attendeeAvatarText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
   attendeeName: {
     fontSize: 12,
     color: '#6b7280',
@@ -904,26 +871,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
-  },
-  commentAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: 12,
-  },
-  commentAvatarPlaceholder: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#ec4899',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  commentAvatarText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 14,
   },
   commentMeta: {
     flex: 1,

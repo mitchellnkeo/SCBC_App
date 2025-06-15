@@ -9,11 +9,14 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
+  ActionSheetIOS,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useForm, Controller } from 'react-hook-form';
 import { useAuthStore } from '../../stores/authStore';
-import { updateUserProfile } from '../../services';
+import { updateUserProfile, updateProfilePicture, removeProfilePicture } from '../../services';
+import ProfilePicture from '../../components/common/ProfilePicture';
 
 interface EditProfileFormData {
   displayName: string;
@@ -26,6 +29,7 @@ export const EditProfileScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user, setLoading, refreshUser } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUpdatingPicture, setIsUpdatingPicture] = useState(false);
 
   const {
     control,
@@ -97,6 +101,85 @@ export const EditProfileScreen: React.FC = () => {
     }
   };
 
+  const handleProfilePicturePress = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Take Photo', 'Choose from Library', 'Remove Photo'],
+          destructiveButtonIndex: 3,
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          switch (buttonIndex) {
+            case 1:
+              handleUpdateProfilePicture('camera');
+              break;
+            case 2:
+              handleUpdateProfilePicture('gallery');
+              break;
+            case 3:
+              handleRemoveProfilePicture();
+              break;
+          }
+        }
+      );
+    } else {
+      // For Android, show a simple alert
+      Alert.alert(
+        'Profile Picture Options',
+        'Choose an option',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Take Photo', onPress: () => handleUpdateProfilePicture('camera') },
+          { text: 'Choose from Library', onPress: () => handleUpdateProfilePicture('gallery') },
+          { text: 'Remove Photo', style: 'destructive', onPress: handleRemoveProfilePicture },
+        ]
+      );
+    }
+  };
+
+  const handleUpdateProfilePicture = async (source: 'camera' | 'gallery') => {
+    if (!user) return;
+
+    try {
+      setIsUpdatingPicture(true);
+      const result = await updateProfilePicture(user.id, source);
+      
+      if (result.success) {
+        await refreshUser();
+        Alert.alert('Success', 'Profile picture updated successfully!');
+      } else {
+        Alert.alert('Error', result.error || 'Failed to update profile picture');
+      }
+    } catch (error: any) {
+      console.error('Error updating profile picture:', error);
+      Alert.alert('Error', error.message || 'Failed to update profile picture');
+    } finally {
+      setIsUpdatingPicture(false);
+    }
+  };
+
+  const handleRemoveProfilePicture = async () => {
+    if (!user) return;
+
+    try {
+      setIsUpdatingPicture(true);
+      const result = await removeProfilePicture(user.id);
+      
+      if (result.success) {
+        await refreshUser();
+        Alert.alert('Success', 'Profile picture removed successfully!');
+      } else {
+        Alert.alert('Error', result.error || 'Failed to remove profile picture');
+      }
+    } catch (error: any) {
+      console.error('Error removing profile picture:', error);
+      Alert.alert('Error', error.message || 'Failed to remove profile picture');
+    } finally {
+      setIsUpdatingPicture(false);
+    }
+  };
+
   return (
     <KeyboardAvoidingView 
       style={styles.container} 
@@ -109,6 +192,33 @@ export const EditProfileScreen: React.FC = () => {
         </View>
 
         <View style={styles.form}>
+          {/* Profile Picture */}
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>Profile Picture</Text>
+            <View style={styles.profilePictureContainer}>
+              <TouchableOpacity 
+                onPress={handleProfilePicturePress}
+                disabled={isUpdatingPicture}
+                style={styles.profilePictureButton}
+              >
+                <ProfilePicture
+                  imageUrl={user?.profilePicture}
+                  displayName={user?.displayName || 'User'}
+                  size="xlarge"
+                  showBorder
+                />
+                {isUpdatingPicture && (
+                  <View style={styles.profilePictureOverlay}>
+                    <ActivityIndicator size="large" color="#ec4899" />
+                  </View>
+                )}
+              </TouchableOpacity>
+              <Text style={styles.profilePictureHint}>
+                Tap to change your profile picture
+              </Text>
+            </View>
+          </View>
+
           {/* Display Name */}
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Display Name *</Text>
@@ -343,5 +453,29 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
+  },
+  profilePictureContainer: {
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  profilePictureButton: {
+    position: 'relative',
+  },
+  profilePictureOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profilePictureHint: {
+    color: '#6b7280',
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: 'center',
   },
 }); 

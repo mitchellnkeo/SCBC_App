@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 import { getAnalytics } from "firebase/analytics";
 
 // Ensure we're using the web Firebase SDK explicitly
@@ -32,8 +33,9 @@ if (getApps().length === 0) {
 // Initialize Firebase services (web SDK only)
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app);
 
-console.log('Firebase Auth and Firestore initialized');
+console.log('Firebase Auth, Firestore, and Storage initialized');
 
 // Analytics only works in web/production builds, not in Expo development
 let analytics;
