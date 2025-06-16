@@ -5,6 +5,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useAuthStore } from '../../stores/authStore';
 import type { MainStackParamList } from '../../navigation/MainNavigator';
 import ProfilePicture from '../../components/common/ProfilePicture';
+import ProfileSkeleton from '../../components/common/ProfileSkeleton';
 
 type ProfileScreenNavigationProp = StackNavigationProp<MainStackParamList>;
 
@@ -32,6 +33,11 @@ const ProfileScreen: React.FC = () => {
       ]
     );
   };
+
+  // Show skeleton while loading or user data is not available
+  if (isLoading || !user) {
+    return <ProfileSkeleton />;
+  }
 
   return (
     <View style={styles.container}>

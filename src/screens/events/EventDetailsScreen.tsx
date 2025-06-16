@@ -21,6 +21,7 @@ import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
 import { EventComment, RSVP } from '../../types';
 import ProfilePicture from '../../components/common/ProfilePicture';
+import EventDetailsSkeleton from '../../components/common/EventDetailsSkeleton';
 
 type RouteParams = {
   EventDetails: {
@@ -257,10 +258,7 @@ const EventDetailsScreen: React.FC = () => {
   if (isLoading || !currentEvent) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ec4899" />
-          <Text style={styles.loadingText}>Loading event details...</Text>
-        </View>
+        <EventDetailsSkeleton />
       </SafeAreaView>
     );
   }

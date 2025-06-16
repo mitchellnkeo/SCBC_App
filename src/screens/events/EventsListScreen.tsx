@@ -10,6 +10,7 @@ import {
   Alert,
   StyleSheet
 } from 'react-native';
+import EventCardSkeleton from '../../components/common/EventCardSkeleton';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useEventStore } from '../../stores/eventStore';
@@ -236,10 +237,17 @@ const EventsListScreen: React.FC = () => {
 
       {/* Content */}
       {isLoading && events.length === 0 ? (
-        <View style={styles.loadingState} className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#ec4899" />
-          <Text style={styles.loadingText} className="text-gray-600 mt-4">Loading events...</Text>
-        </View>
+        <ScrollView
+          style={styles.scrollView}
+          className="flex-1"
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Show skeleton cards while loading */}
+          {[1, 2, 3].map((index) => (
+            <EventCardSkeleton key={index} />
+          ))}
+        </ScrollView>
       ) : events.length === 0 ? (
         <EmptyState />
       ) : (
@@ -395,15 +403,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 24,
     paddingBottom: 100,
-  },
-  loadingState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadingText: {
-    color: '#6b7280', // gray-600
-    marginTop: 16,
   },
   emptyState: {
     flex: 1,
