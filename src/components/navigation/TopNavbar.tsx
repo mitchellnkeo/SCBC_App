@@ -88,15 +88,13 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
     {
       title: 'About SCBC',
       onPress: () => handleMenuItemPress(() => {
-        // TODO: Navigate to About SCBC screen
-        console.log('About SCBC pressed');
+        navigation.navigate('AboutSCBC');
       }),
     },
     {
       title: 'SCBC Contact Info',
       onPress: () => handleMenuItemPress(() => {
-        // TODO: Navigate to Contact Info screen
-        console.log('SCBC Contact Info pressed');
+        navigation.navigate('ContactInfo');
       }),
     },
     {

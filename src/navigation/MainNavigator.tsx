@@ -10,6 +10,8 @@ import AdminScreen from '../screens/admin/AdminScreen';
 import { NotificationDemoScreen } from '../screens/NotificationDemoScreen';
 import { EditProfileScreen } from '../screens/profile/EditProfileScreen';
 import UserProfileScreen from '../screens/profile/UserProfileScreen';
+import AboutSCBCScreen from '../screens/info/AboutSCBCScreen';
+import ContactInfoScreen from '../screens/info/ContactInfoScreen';
 import { useAuthStore } from '../stores/authStore';
 
 export type MainStackParamList = {
@@ -23,6 +25,8 @@ export type MainStackParamList = {
   NotificationDemo: undefined;
   EditProfile: undefined;
   UserProfile: { userId: string };
+  AboutSCBC: undefined;
+  ContactInfo: undefined;
 };
 
 const Stack = createStackNavigator<MainStackParamList>();
@@ -129,6 +133,24 @@ const MainNavigator: React.FC = () => {
         options={{
           headerShown: true,
           title: 'Push Notifications',
+          presentation: 'card',
+        }}
+      />
+      
+      {/* Info Screens */}
+      <Stack.Screen 
+        name="AboutSCBC" 
+        component={AboutSCBCScreen}
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen 
+        name="ContactInfo" 
+        component={ContactInfoScreen}
+        options={{
+          headerShown: false,
           presentation: 'card',
         }}
       />
