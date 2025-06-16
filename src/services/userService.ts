@@ -193,13 +193,12 @@ export const getUserRecentRSVPs = async (userId: string, limitCount: number = 10
     const rsvpsQuery = query(
       collection(db, 'rsvps'),
       where('userId', '==', userId),
-      orderBy('createdAt', 'desc'),
       limit(limitCount)
     );
 
     const rsvpsSnapshot = await getDocs(rsvpsQuery);
     
-    return rsvpsSnapshot.docs.map(doc => {
+    const rsvps = rsvpsSnapshot.docs.map(doc => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -208,6 +207,9 @@ export const getUserRecentRSVPs = async (userId: string, limitCount: number = 10
         updatedAt: data.updatedAt?.toDate() || new Date(),
       } as RSVP;
     });
+
+    // Sort by createdAt on client side to avoid composite index requirement
+    return rsvps.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, limitCount);
   } catch (error) {
     console.error('Error fetching user RSVPs:', error);
     return [];
@@ -222,13 +224,12 @@ export const getUserRecentComments = async (userId: string, limitCount: number =
     const commentsQuery = query(
       collection(db, 'comments'),
       where('userId', '==', userId),
-      orderBy('createdAt', 'desc'),
       limit(limitCount)
     );
 
     const commentsSnapshot = await getDocs(commentsQuery);
     
-    return commentsSnapshot.docs.map(doc => {
+    const comments = commentsSnapshot.docs.map(doc => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -237,6 +238,9 @@ export const getUserRecentComments = async (userId: string, limitCount: number =
         updatedAt: data.updatedAt?.toDate() || new Date(),
       } as EventComment;
     });
+
+    // Sort by createdAt on client side to avoid composite index requirement
+    return comments.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, limitCount);
   } catch (error) {
     console.error('Error fetching user comments:', error);
     return [];

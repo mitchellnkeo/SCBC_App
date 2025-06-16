@@ -105,6 +105,14 @@ const ProfileScreen: React.FC = () => {
             <View style={styles.userStats}>
               <Text style={styles.userID}>User ID: {user.id}</Text>
             </View>
+            
+            {/* View My Profile Button */}
+            <TouchableOpacity 
+              style={styles.viewProfileButton}
+              onPress={() => (navigation as any).navigate('UserProfile', { userId: user.id })}
+            >
+              <Text style={styles.viewProfileButtonText}>View My Profile</Text>
+            </TouchableOpacity>
           </View>
         </View>
       )}
@@ -232,6 +240,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#9ca3af',
     fontFamily: 'monospace',
+  },
+  viewProfileButton: {
+    backgroundColor: '#ec4899',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  viewProfileButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  viewProfileSubtext: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 12,
   },
   actionsSection: {
     flex: 1,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -36,15 +36,28 @@ export const EditProfileScreen: React.FC = () => {
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors, isDirty },
   } = useForm<EditProfileFormData>({
     defaultValues: {
-      displayName: user?.displayName || '',
-      bio: user?.bio || '',
-      hobbies: Array.isArray(user?.hobbies) ? user.hobbies.join(', ') : '',
-      favoriteBooks: Array.isArray(user?.favoriteBooks) ? user.favoriteBooks.join(', ') : '',
+      displayName: '',
+      bio: '',
+      hobbies: '',
+      favoriteBooks: '',
     },
   });
+
+  // Reset form with user data when user loads or changes
+  useEffect(() => {
+    if (user) {
+      reset({
+        displayName: user.displayName || '',
+        bio: user.bio || '',
+        hobbies: Array.isArray(user.hobbies) ? user.hobbies.join(', ') : '',
+        favoriteBooks: Array.isArray(user.favoriteBooks) ? user.favoriteBooks.join(', ') : '',
+      });
+    }
+  }, [user, reset]);
 
   const onSubmit = async (data: EditProfileFormData) => {
     if (!user) return;
