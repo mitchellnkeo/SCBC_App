@@ -10,6 +10,7 @@ import ProfileScreen from '../screens/profile/ProfileScreen';
 import AdminScreen from '../screens/admin/AdminScreen';
 import { NotificationDemoScreen } from '../screens/NotificationDemoScreen';
 import { EditProfileScreen } from '../screens/profile/EditProfileScreen';
+import UserProfileScreen from '../screens/profile/UserProfileScreen';
 import { useAuthStore } from '../stores/authStore';
 
 export type MainTabParamList = {
@@ -26,6 +27,7 @@ export type MainStackParamList = {
   PendingEvents: undefined;
   NotificationDemo: undefined;
   EditProfile: undefined;
+  UserProfile: { userId: string };
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -131,6 +133,14 @@ const MainNavigator: React.FC = () => {
       <Stack.Screen 
         name="EditProfile" 
         component={EditProfileScreen}
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen 
+        name="UserProfile" 
+        component={UserProfileScreen}
         options={{
           headerShown: false,
           presentation: 'card',

@@ -24,6 +24,7 @@ import ProfilePicture from '../../components/common/ProfilePicture';
 import EventDetailsSkeleton from '../../components/common/EventDetailsSkeleton';
 import MentionInput from '../../components/common/MentionInput';
 import MentionText from '../../components/common/MentionText';
+import ClickableUser from '../../components/common/ClickableUser';
 import { handleError } from '../../utils/errorHandler';
 import { getEventParticipantsForMentions } from '../../services/userService';
 
@@ -145,8 +146,8 @@ const EventDetailsScreen: React.FC = () => {
   };
 
   const handleMentionPress = (mention: Mention) => {
-    // Navigate to user profile or show user info
-    Alert.alert('User Mention', `Mentioned: ${mention.displayName}`);
+    // Navigate to user profile
+    (navigation as any).navigate('UserProfile', { userId: mention.userId });
   };
 
   const handleCommentTextChange = (text: string, mentions: Mention[]) => {
@@ -255,14 +256,15 @@ const EventDetailsScreen: React.FC = () => {
     return (
       <View style={[styles.commentItem, isReply && styles.replyItem]}>
         <View style={styles.commentHeader}>
-          <ProfilePicture
-            imageUrl={comment.userProfilePicture}
+          <ClickableUser
+            userId={comment.userId}
             displayName={comment.userName}
-            size="small"
+            profilePicture={comment.userProfilePicture}
+            avatarSize="small"
+            textStyle={styles.commentAuthor}
           />
           
           <View style={styles.commentMeta}>
-            <Text style={styles.commentAuthor}>{comment.userName}</Text>
             <Text style={styles.commentTime}>
               {comment.createdAt.toLocaleDateString()} at {comment.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
@@ -457,17 +459,24 @@ const EventDetailsScreen: React.FC = () => {
                 </TouchableOpacity>
                 
                 {/* Host */}
-                <TouchableOpacity onPress={handleCallHost} style={styles.infoRow}>
+                <View style={styles.infoRow}>
                   <Text style={styles.infoIcon}>👤</Text>
                   <View style={styles.infoContent}>
-                    <Text style={[styles.infoText, styles.linkText]}>
-                      Hosted by {currentEvent.hostName}
-                    </Text>
+                    <View style={styles.hostContainer}>
+                      <Text style={styles.infoText}>Hosted by </Text>
+                      <ClickableUser
+                        userId={currentEvent.createdBy}
+                        displayName={currentEvent.hostName}
+                        profilePicture={currentEvent.hostProfilePicture}
+                        showAvatar={false}
+                        textStyle={[styles.infoText, styles.linkText]}
+                      />
+                    </View>
                     <Text style={styles.infoSubtext}>
-                      Tap to contact
+                      Tap name to view profile
                     </Text>
                   </View>
-                </TouchableOpacity>
+                </View>
                 
                 {/* RSVP Section */}
                 <View style={styles.rsvpSection}>
@@ -518,14 +527,15 @@ const EventDetailsScreen: React.FC = () => {
                           .filter(rsvp => rsvp.status === 'going')
                           .map((rsvp) => (
                             <View key={rsvp.id} style={styles.attendeeItem}>
-                              <ProfilePicture
-                                imageUrl={rsvp.userProfilePicture}
+                              <ClickableUser
+                                userId={rsvp.userId}
                                 displayName={rsvp.userName}
-                                size="medium"
+                                profilePicture={rsvp.userProfilePicture}
+                                avatarSize="medium"
+                                showName={true}
+                                textStyle={styles.attendeeName}
+                                containerStyle={styles.attendeeClickable}
                               />
-                              <Text style={styles.attendeeName} numberOfLines={1}>
-                                {rsvp.userName}
-                              </Text>
                             </View>
                           ))}
                       </View>
@@ -776,6 +786,10 @@ const styles = StyleSheet.create({
   linkText: {
     color: '#ec4899',
   },
+  hostContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   rsvpSection: {
     marginTop: 32,
     marginBottom: 24,
@@ -843,10 +857,15 @@ const styles = StyleSheet.create({
     marginRight: 16,
     width: 60,
   },
+  attendeeClickable: {
+    alignItems: 'center',
+    flexDirection: 'column',
+  },
   attendeeName: {
     fontSize: 12,
     color: '#6b7280',
     textAlign: 'center',
+    marginTop: 4,
   },
   descriptionSection: {
     marginBottom: 32,
