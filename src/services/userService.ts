@@ -9,7 +9,7 @@ import {
   getDoc
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { UserSuggestion, User, RSVP, EventComment } from '../types';
+import { UserSuggestion, User, RSVP, EventComment, BookClubEvent } from '../types';
 
 const USERS_COLLECTION = 'users';
 
@@ -370,5 +370,150 @@ export const getUsersByIds = async (userIds: string[]): Promise<User[]> => {
   } catch (error) {
     console.error('Error fetching users by IDs:', error);
     return [];
+  }
+};
+
+/**
+ * Get events created by a user
+ */
+export const getUserHostedEvents = async (userId: string, limitCount: number = 10): Promise<BookClubEvent[]> => {
+  try {
+    const eventsQuery = query(
+      collection(db, 'events'),
+      where('createdBy', '==', userId),
+      limit(limitCount)
+    );
+
+    const eventsSnapshot = await getDocs(eventsQuery);
+    
+    const events = eventsSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        date: data.date?.toDate() || new Date(),
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+        approvedAt: data.approvedAt?.toDate(),
+      } as BookClubEvent;
+    });
+
+    // Sort by date on client side
+    return events.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, limitCount);
+  } catch (error) {
+    console.error('Error fetching user hosted events:', error);
+    return [];
+  }
+};
+
+/**
+ * Get events a user is attending (based on RSVPs)
+ */
+export const getUserAttendingEvents = async (userId: string, limitCount: number = 10): Promise<BookClubEvent[]> => {
+  try {
+    // First get user's RSVPs where status is 'going'
+    const rsvpsQuery = query(
+      collection(db, 'rsvps'),
+      where('userId', '==', userId),
+      where('status', '==', 'going'),
+      limit(limitCount * 2) // Get more RSVPs to account for deleted events
+    );
+
+    const rsvpsSnapshot = await getDocs(rsvpsQuery);
+    const eventIds = rsvpsSnapshot.docs.map(doc => doc.data().eventId);
+
+    if (eventIds.length === 0) return [];
+
+    // Get the actual events
+    const events: BookClubEvent[] = [];
+    
+    for (const eventId of eventIds) {
+      try {
+        const eventDoc = await getDoc(doc(db, 'events', eventId));
+        if (eventDoc.exists()) {
+          const data = eventDoc.data();
+          events.push({
+            id: eventDoc.id,
+            ...data,
+            date: data.date?.toDate() || new Date(),
+            createdAt: data.createdAt?.toDate() || new Date(),
+            updatedAt: data.updatedAt?.toDate() || new Date(),
+            approvedAt: data.approvedAt?.toDate(),
+          } as BookClubEvent);
+        }
+      } catch (eventError) {
+        console.warn(`Error fetching event ${eventId}:`, eventError);
+      }
+    }
+
+    // Sort by date and limit
+    return events
+      .sort((a, b) => b.date.getTime() - a.date.getTime())
+      .slice(0, limitCount);
+  } catch (error) {
+    console.error('Error fetching user attending events:', error);
+    return [];
+  }
+};
+
+/**
+ * Get upcoming events for a user (both hosting and attending)
+ */
+export const getUserUpcomingEvents = async (userId: string, limitCount: number = 10): Promise<{
+  hosting: BookClubEvent[];
+  attending: BookClubEvent[];
+}> => {
+  try {
+    const now = new Date();
+    
+    // Get hosted events
+    const hostedEvents = await getUserHostedEvents(userId, limitCount);
+    const upcomingHosted = hostedEvents.filter(event => event.date > now);
+
+    // Get attending events
+    const attendingEvents = await getUserAttendingEvents(userId, limitCount);
+    const upcomingAttending = attendingEvents.filter(event => event.date > now);
+
+    return {
+      hosting: upcomingHosted.slice(0, limitCount),
+      attending: upcomingAttending.slice(0, limitCount),
+    };
+  } catch (error) {
+    console.error('Error fetching user upcoming events:', error);
+    return {
+      hosting: [],
+      attending: [],
+    };
+  }
+};
+
+/**
+ * Get past events for a user (both hosting and attending)
+ */
+export const getUserPastEvents = async (userId: string, limitCount: number = 10): Promise<{
+  hosting: BookClubEvent[];
+  attending: BookClubEvent[];
+}> => {
+  try {
+    const now = new Date();
+    
+    // Get hosted events
+    const hostedEvents = await getUserHostedEvents(userId, limitCount * 2);
+    const pastHosted = hostedEvents.filter(event => event.date <= now);
+
+    // Get attending events
+    const attendingEvents = await getUserAttendingEvents(userId, limitCount * 2);
+    const pastAttending = attendingEvents.filter(event => event.date <= now);
+
+    return {
+      hosting: pastHosted.slice(0, limitCount),
+      attending: pastAttending.slice(0, limitCount),
+    };
+  } catch (error) {
+    console.error('Error fetching user past events:', error);
+    return {
+      hosting: [],
+      attending: [],
+    };
   }
 }; 

@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
+import TopNavbar from '../../components/navigation/TopNavbar';
 
 const AdminScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -62,11 +63,13 @@ const AdminScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container} className="flex-1 bg-gray-50">
-      {/* Header */}
-      <View style={styles.header} className="bg-white border-b border-gray-200 px-6 py-6">
-        <Text style={styles.headerTitle} className="text-3xl font-bold text-gray-900">Admin Panel</Text>
-        <Text style={styles.headerSubtitle} className="text-gray-600 mt-2">
+    <View style={styles.container} className="flex-1 bg-gray-50">
+      {/* Top Navigation */}
+      <TopNavbar title="Admin Panel" />
+      
+      {/* Sub Header */}
+      <View style={styles.subHeader} className="bg-white border-b border-gray-200 px-6 py-4">
+        <Text style={styles.headerSubtitle} className="text-gray-600">
           Welcome back, {user?.displayName || 'Admin'}
         </Text>
       </View>
@@ -142,7 +145,7 @@ const AdminScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -151,17 +154,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f9fafb', // gray-50
   },
-  header: {
+  subHeader: {
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb', // gray-200
     paddingHorizontal: 24,
     paddingVertical: 24,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#111827', // gray-900
   },
   headerSubtitle: {
     fontSize: 16,

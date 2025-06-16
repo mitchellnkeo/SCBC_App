@@ -52,6 +52,9 @@ export const registerUser = async (credentials: RegisterCredentials): Promise<Au
       email: credentials.email,
       displayName: credentials.displayName,
       role: 'member',
+      bio: undefined,
+      hobbies: undefined,
+      favoriteBooks: undefined,
     };
   } catch (error: any) {
     console.error('Registration error:', error);
@@ -91,6 +94,9 @@ export const loginUser = async (credentials: LoginCredentials): Promise<AuthUser
       displayName: user.displayName || userData?.displayName || 'User',
       role: userData?.role || 'member',
       profilePicture: userData?.profilePicture,
+      bio: userData?.bio,
+      hobbies: userData?.hobbies,
+      favoriteBooks: userData?.favoriteBooks,
     };
   } catch (error: any) {
     console.error('Login error:', error);
@@ -136,6 +142,9 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
       displayName: user.displayName || userData?.displayName || 'User',
       role: userData?.role || 'member',
       profilePicture: userData?.profilePicture,
+      bio: userData?.bio,
+      hobbies: userData?.hobbies,
+      favoriteBooks: userData?.favoriteBooks,
     };
   } catch (error) {
     console.error('Error getting current user:', error);
@@ -168,6 +177,9 @@ export const onAuthStateChange = (callback: (user: AuthUser | null) => void) => 
           displayName: firebaseUser.displayName || userData?.displayName || 'User',
           role: userData?.role || 'member',
           profilePicture: userData?.profilePicture,
+          bio: userData?.bio,
+          hobbies: userData?.hobbies,
+          favoriteBooks: userData?.favoriteBooks,
         };
 
         callback(authUser);
@@ -180,6 +192,9 @@ export const onAuthStateChange = (callback: (user: AuthUser | null) => void) => 
           email: firebaseUser.email!,
           displayName: firebaseUser.displayName || 'User',
           role: 'member', // Default role when Firestore is unavailable
+          bio: undefined,
+          hobbies: undefined,
+          favoriteBooks: undefined,
         };
         
         callback(authUser);

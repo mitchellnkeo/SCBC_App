@@ -17,6 +17,7 @@ import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
 import { BookClubEvent, CreateEventFormData } from '../../types';
 import { MainStackParamList } from '../../navigation/MainNavigator';
+import TopNavbar from '../../components/navigation/TopNavbar';
 
 const EventsListScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<MainStackParamList>>();
@@ -206,20 +207,23 @@ const EventsListScreen: React.FC = () => {
 
   if (error) {
     return (
-      <SafeAreaView style={styles.container} className="flex-1 bg-gray-50">
+      <View style={styles.container} className="flex-1 bg-gray-50">
+        <TopNavbar title="Events" />
         <ErrorState />
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} className="flex-1 bg-gray-50">
-      {/* Header */}
-      <View style={styles.header} className="px-6 py-4 bg-white border-b border-gray-100">
+    <View style={styles.container} className="flex-1 bg-gray-50">
+      {/* Top Navigation */}
+      <TopNavbar title="Events" />
+      
+      {/* Sub Header */}
+      <View style={styles.subHeader} className="px-6 py-4 bg-white border-b border-gray-100">
         <View style={styles.headerContent} className="flex-row items-center justify-between">
           <View>
-            <Text style={styles.headerTitle} className="text-2xl font-bold text-gray-900">Book Club Events</Text>
-            <Text style={styles.headerSubtitle} className="text-gray-600 mt-1">
+            <Text style={styles.headerSubtitle} className="text-gray-600">
               {events.length > 0 ? `${events.length} upcoming events` : 'No events scheduled'}
             </Text>
           </View>
@@ -269,7 +273,7 @@ const EventsListScreen: React.FC = () => {
           ))}
         </ScrollView>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -279,6 +283,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9fafb', // gray-50
   },
   header: {
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6', // gray-100
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+  },
+  subHeader: {
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#f3f4f6', // gray-100

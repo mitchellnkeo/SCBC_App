@@ -11,28 +11,32 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { User, RSVP, EventComment } from '../../types';
+import { User, BookClubEvent } from '../../types';
 import { MainStackParamList } from '../../navigation/MainNavigator';
 import { useAuthStore } from '../../stores/authStore';
 import { 
-  getUserProfile, 
-  getUserRecentRSVPs, 
-  getUserRecentComments, 
-  getUserEventStats 
-} from '../../services/userService';
+  getUserUpcomingEvents,
+  getUserPastEvents
+} from '../../services';
+import { getUserProfile } from '../../services/userService';
 import ProfilePicture from '../../components/common/ProfilePicture';
 import { handleError } from '../../utils/errorHandler';
+import EventCard from '../../components/common/EventCard';
 
 type UserProfileScreenNavigationProp = StackNavigationProp<MainStackParamList>;
 type UserProfileScreenRouteProp = RouteProp<MainStackParamList, 'UserProfile'>;
 
-interface UserStats {
-  totalRSVPs: number;
-  goingCount: number;
-  maybeCount: number;
-  notGoingCount: number;
-  totalComments: number;
-  eventsCreated: number;
+
+
+interface UserEvents {
+  upcoming: {
+    hosting: BookClubEvent[];
+    attending: BookClubEvent[];
+  };
+  past: {
+    hosting: BookClubEvent[];
+    attending: BookClubEvent[];
+  };
 }
 
 const UserProfileScreen: React.FC = () => {
@@ -42,11 +46,13 @@ const UserProfileScreen: React.FC = () => {
   const { user: currentUser } = useAuthStore();
 
   const [profileUser, setProfileUser] = useState<User | null>(null);
-  const [userStats, setUserStats] = useState<UserStats | null>(null);
-  const [recentRSVPs, setRecentRSVPs] = useState<RSVP[]>([]);
-  const [recentComments, setRecentComments] = useState<EventComment[]>([]);
+  const [userEvents, setUserEvents] = useState<UserEvents>({
+    upcoming: { hosting: [], attending: [] },
+    past: { hosting: [], attending: [] }
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
 
   const isOwnProfile = currentUser?.id === userId;
 
@@ -55,12 +61,11 @@ const UserProfileScreen: React.FC = () => {
       if (showRefresh) setIsRefreshing(true);
       else setIsLoading(true);
 
-      // Load user profile and stats in parallel
-      const [user, stats, rsvps, comments] = await Promise.all([
+      // Load user profile and events in parallel
+      const [user, upcomingEvents, pastEvents] = await Promise.all([
         getUserProfile(userId),
-        getUserEventStats(userId),
-        getUserRecentRSVPs(userId, 5),
-        getUserRecentComments(userId, 5),
+        getUserUpcomingEvents(userId, 5),
+        getUserPastEvents(userId, 5),
       ]);
 
       if (!user) {
@@ -73,9 +78,10 @@ const UserProfileScreen: React.FC = () => {
       }
 
       setProfileUser(user);
-      setUserStats(stats);
-      setRecentRSVPs(rsvps);
-      setRecentComments(comments);
+      setUserEvents({
+        upcoming: upcomingEvents,
+        past: pastEvents,
+      });
     } catch (error) {
       await handleError(error, {
         showAlert: true,
@@ -103,99 +109,82 @@ const UserProfileScreen: React.FC = () => {
     });
   };
 
-  const renderStatsCard = () => {
-    if (!userStats) return null;
+
+
+  const renderEventsSection = () => {
+    const currentEvents = userEvents[activeTab];
+    const hasHostingEvents = currentEvents.hosting.length > 0;
+    const hasAttendingEvents = currentEvents.attending.length > 0;
+    const hasAnyEvents = hasHostingEvents || hasAttendingEvents;
 
     return (
-      <View style={styles.statsCard}>
-        <Text style={styles.statsTitle}>Activity Stats</Text>
-        <View style={styles.statsGrid}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{userStats.eventsCreated}</Text>
-            <Text style={styles.statLabel}>Events Created</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{userStats.goingCount}</Text>
-            <Text style={styles.statLabel}>Events Attended</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{userStats.totalComments}</Text>
-            <Text style={styles.statLabel}>Comments</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{userStats.totalRSVPs}</Text>
-            <Text style={styles.statLabel}>Total RSVPs</Text>
+      <View style={styles.eventsCard}>
+        <View style={styles.eventsHeader}>
+          <Text style={styles.eventsTitle}>Events</Text>
+          <View style={styles.tabContainer}>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'upcoming' && styles.activeTab]}
+              onPress={() => setActiveTab('upcoming')}
+            >
+              <Text style={[styles.tabText, activeTab === 'upcoming' && styles.activeTabText]}>
+                Upcoming
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'past' && styles.activeTab]}
+              onPress={() => setActiveTab('past')}
+            >
+              <Text style={[styles.tabText, activeTab === 'past' && styles.activeTabText]}>
+                Past
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </View>
-    );
-  };
 
-  const renderRecentActivity = () => {
-    const hasActivity = recentRSVPs.length > 0 || recentComments.length > 0;
-    
-    if (!hasActivity) {
-      return (
-        <View style={styles.activityCard}>
-          <Text style={styles.activityTitle}>Recent Activity</Text>
-          <Text style={styles.noActivityText}>No recent activity</Text>
-        </View>
-      );
-    }
-
-    return (
-      <View style={styles.activityCard}>
-        <Text style={styles.activityTitle}>Recent Activity</Text>
-        
-        {recentRSVPs.length > 0 && (
-          <View style={styles.activitySection}>
-            <Text style={styles.activitySectionTitle}>Recent RSVPs</Text>
-            {recentRSVPs.slice(0, 3).map((rsvp) => (
-              <View key={rsvp.id} style={styles.activityItem}>
-                <View style={[styles.statusDot, { backgroundColor: getStatusColor(rsvp.status) }]} />
-                <Text style={styles.activityText}>
-                  {rsvp.status === 'going' ? 'Going to' : 
-                   rsvp.status === 'maybe' ? 'Maybe attending' : 'Not going to'} an event
+        {!hasAnyEvents ? (
+          <Text style={styles.noEventsText}>
+            {activeTab === 'upcoming' 
+              ? 'No upcoming events' 
+              : 'No past events'
+            }
+          </Text>
+        ) : (
+          <View style={styles.eventsContent}>
+            {hasHostingEvents && (
+              <View style={styles.eventSection}>
+                <Text style={styles.eventSectionTitle}>
+                  {activeTab === 'upcoming' ? 'Hosting' : 'Hosted'} ({currentEvents.hosting.length})
                 </Text>
-                <Text style={styles.activityDate}>
-                  {rsvp.createdAt.toLocaleDateString()}
-                </Text>
+                {currentEvents.hosting.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    showHost={false}
+                    compact={true}
+                  />
+                ))}
               </View>
-            ))}
-          </View>
-        )}
+            )}
 
-        {recentComments.length > 0 && (
-          <View style={styles.activitySection}>
-            <Text style={styles.activitySectionTitle}>Recent Comments</Text>
-            {recentComments.slice(0, 3).map((comment) => (
-              <View key={comment.id} style={styles.activityItem}>
-                <View style={[styles.statusDot, { backgroundColor: '#3b82f6' }]} />
-                <Text style={styles.activityText} numberOfLines={2}>
-                  Commented: "{comment.content.substring(0, 50)}..."
+            {hasAttendingEvents && (
+              <View style={styles.eventSection}>
+                <Text style={styles.eventSectionTitle}>
+                  {activeTab === 'upcoming' ? 'Attending' : 'Attended'} ({currentEvents.attending.length})
                 </Text>
-                <Text style={styles.activityDate}>
-                  {comment.createdAt.toLocaleDateString()}
-                </Text>
+                {currentEvents.attending.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    showHost={true}
+                    compact={true}
+                  />
+                ))}
               </View>
-            ))}
+            )}
           </View>
         )}
       </View>
     );
-  };
-
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'going':
-        return '#10b981';
-      case 'maybe':
-        return '#f59e0b';
-      case 'not-going':
-        return '#ef4444';
-      default:
-        return '#6b7280';
-    }
   };
 
   if (isLoading) {
@@ -320,11 +309,10 @@ const UserProfileScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Stats */}
-        {renderStatsCard()}
 
-        {/* Recent Activity */}
-        {renderRecentActivity()}
+
+        {/* Events Section */}
+        {renderEventsSection()}
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -494,7 +482,8 @@ const styles = StyleSheet.create({
     color: '#4b5563',
     fontWeight: '500',
   },
-  statsCard: {
+
+  eventsCard: {
     backgroundColor: 'white',
     borderRadius: 12,
     padding: 20,
@@ -505,86 +494,55 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  statsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 16,
-  },
-  statsGrid: {
+  eventsHeader: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-between',
-  },
-  statItem: {
-    width: '48%',
     alignItems: 'center',
     marginBottom: 16,
   },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#ec4899',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 14,
-    color: '#6b7280',
-    textAlign: 'center',
-  },
-  activityCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  activityTitle: {
+  eventsTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1f2937',
-    marginBottom: 16,
   },
-  noActivityText: {
+  tabContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  tab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+  },
+  activeTab: {
+    backgroundColor: '#ec4899',
+  },
+  tabText: {
+    fontSize: 14,
+    color: '#4b5563',
+    fontWeight: '500',
+  },
+  activeTabText: {
+    color: 'white',
+  },
+  noEventsText: {
     fontSize: 16,
     color: '#9ca3af',
     textAlign: 'center',
     fontStyle: 'italic',
   },
-  activitySection: {
+  eventsContent: {
+    gap: 16,
+  },
+  eventSection: {
     marginBottom: 16,
   },
-  activitySectionTitle: {
+  eventSectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#4b5563',
     marginBottom: 8,
-  },
-  activityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 12,
-  },
-  activityText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#4b5563',
-  },
-  activityDate: {
-    fontSize: 12,
-    color: '#9ca3af',
   },
   bottomSpacer: {
     height: 32,

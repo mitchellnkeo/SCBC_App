@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
   ActionSheetIOS,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useForm, Controller } from 'react-hook-form';
 import { useAuthStore } from '../../stores/authStore';
 import { updateUserProfile, updateProfilePicture, removeProfilePicture } from '../../services';
@@ -48,8 +48,15 @@ export const EditProfileScreen: React.FC = () => {
   });
 
   // Reset form with user data when user loads or changes
-  useEffect(() => {
-    if (user) {
+  const resetFormWithUserData = useCallback(() => {
+    if (user && user.displayName) {
+      console.log('Resetting form with user data:', {
+        displayName: user.displayName,
+        bio: user.bio,
+        hobbies: user.hobbies,
+        favoriteBooks: user.favoriteBooks
+      });
+      
       reset({
         displayName: user.displayName || '',
         bio: user.bio || '',
@@ -58,6 +65,17 @@ export const EditProfileScreen: React.FC = () => {
       });
     }
   }, [user, reset]);
+
+  useEffect(() => {
+    resetFormWithUserData();
+  }, [resetFormWithUserData]);
+
+  // Also reset form when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      resetFormWithUserData();
+    }, [resetFormWithUserData])
+  );
 
   const onSubmit = async (data: EditProfileFormData) => {
     if (!user) return;
