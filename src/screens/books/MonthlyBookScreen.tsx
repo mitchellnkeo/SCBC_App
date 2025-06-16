@@ -282,7 +282,8 @@ const styles = StyleSheet.create({
     width: 160,
     height: 240,
     borderRadius: 8,
-    resizeMode: 'cover',
+    resizeMode: 'contain', // Changed from 'cover' to 'contain' to show full image proportionally
+    backgroundColor: '#f9fafb', // Add background color for letterboxing
   },
   bookCoverPlaceholder: {
     width: 160,

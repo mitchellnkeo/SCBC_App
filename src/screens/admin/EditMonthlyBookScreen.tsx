@@ -473,7 +473,8 @@ const styles = StyleSheet.create({
     width: 160,
     height: 240,
     borderRadius: 8,
-    resizeMode: 'cover',
+    resizeMode: 'contain', // Changed from 'cover' to 'contain' for proportional display
+    backgroundColor: '#f9fafb', // Add background color for letterboxing
   },
   imagePlaceholder: {
     width: 160,
