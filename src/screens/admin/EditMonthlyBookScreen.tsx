@@ -110,9 +110,8 @@ const EditMonthlyBookScreen: React.FC = () => {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [3, 4], // Book cover aspect ratio
+        mediaTypes: ['images'],
+        allowsEditing: false,
         quality: 0.8,
       });
 
