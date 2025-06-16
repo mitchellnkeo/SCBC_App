@@ -3,6 +3,10 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '../config/firebase';
 
+// Rate limiting - track last upload time per user
+const lastUploadTimes = new Map<string, number>();
+const UPLOAD_COOLDOWN_MS = 60000; // 1 minute cooldown between uploads
+
 export interface ImagePickerResult {
   uri: string;
   canceled: boolean;
@@ -194,6 +198,18 @@ export const selectAndUploadProfilePicture = async (
   source: 'camera' | 'gallery' = 'gallery'
 ): Promise<ImageUploadResult> => {
   try {
+    // Rate limiting check
+    const lastUpload = lastUploadTimes.get(userId);
+    const now = Date.now();
+    
+    if (lastUpload && (now - lastUpload) < UPLOAD_COOLDOWN_MS) {
+      const remainingTime = Math.ceil((UPLOAD_COOLDOWN_MS - (now - lastUpload)) / 1000);
+      return {
+        success: false,
+        error: `Please wait ${remainingTime} seconds before uploading another picture`,
+      };
+    }
+    
     // Pick image based on source
     const pickerResult = source === 'camera' 
       ? await pickImageFromCamera()
@@ -202,6 +218,9 @@ export const selectAndUploadProfilePicture = async (
     if (pickerResult.canceled) {
       return { success: false, error: 'Image selection canceled' };
     }
+    
+    // Update rate limiting tracker
+    lastUploadTimes.set(userId, now);
     
     // Upload the selected image
     return await uploadProfilePicture(pickerResult.uri, userId);

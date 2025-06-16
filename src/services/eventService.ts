@@ -9,6 +9,7 @@ import {
   query, 
   where, 
   orderBy, 
+  limit,
   onSnapshot, 
   writeBatch,
   serverTimestamp,
@@ -141,12 +142,13 @@ export const getEvent = async (eventId: string): Promise<BookClubEvent | null> =
   }
 };
 
-export const getAllEvents = async (): Promise<BookClubEvent[]> => {
+export const getAllEvents = async (limitCount: number = 20): Promise<BookClubEvent[]> => {
   try {
-    // Only get approved events for the main events list
+    // Only get approved events for the main events list - with pagination limit
     const eventsQuery = query(
       collection(db, EVENTS_COLLECTION),
-      where('status', '==', 'approved')
+      where('status', '==', 'approved'),
+      limit(limitCount) // Limit to prevent excessive reads
     );
     const eventsSnapshot = await getDocs(eventsQuery);
     

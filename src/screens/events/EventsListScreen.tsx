@@ -31,7 +31,6 @@ const EventsListScreen: React.FC = () => {
   } = useEventStore();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isCreatingTest, setIsCreatingTest] = useState(false);
 
   useEffect(() => {
     // Only load events if user is authenticated
@@ -71,87 +70,7 @@ const EventsListScreen: React.FC = () => {
     navigation.navigate('CreateEvent');
   };
 
-  // TEMPORARY: Create test events function
-  const createTestEvents = async () => {
-    setIsCreatingTest(true);
-    try {
-      // Create 5 test events
-      const testEvents = [
-        {
-          title: "Katabasis",
-          description: "Join us for a deep dive into RF Kuang's latest dark academia masterpiece. We'll explore themes of power, sacrifice, and the price of knowledge in this haunting tale of a graduate student's descent into academic obsession. Bring your theories and prepare for intense discussion!",
-          date: new Date(2024, 2, 15), // March 15, 2024
-          time: "7:00 PM",
-          location: "Wing Luke Museum",
-          address: "719 S King St, Seattle, WA 98104",
-          maxAttendees: 25,
-          headerPhoto: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800"
-        },
-        {
-          title: "Author Meet & Greet: Local Poetry",
-          description: "Meet acclaimed local poet Sarah Chen as she discusses her latest collection 'Bridges Between Worlds.' Light refreshments will be served, and books will be available for purchase and signing.",
-          date: new Date(2024, 2, 22), // March 22, 2024
-          time: "6:30 PM",
-          location: "Seattle Central Library",
-          address: "1000 4th Ave, Seattle, WA 98104",
-          maxAttendees: 40,
-          headerPhoto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800"
-        },
-        {
-          title: "Poetry Reading & Open Mic Night",
-          description: "Share your favorite poems or read your own original work! This inclusive event welcomes readers of all experience levels. We'll start with featured readings, then open the mic for community participation.",
-          date: new Date(2024, 2, 29), // March 29, 2024
-          time: "7:30 PM",
-          location: "Chinatown-International District",
-          address: "657 S King St, Seattle, WA 98104",
-          maxAttendees: 30,
-          headerPhoto: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800"
-        },
-        {
-          title: "Book Club Potluck & Game Night",
-          description: "Bring a dish to share and join us for literary-themed games and casual conversation. We'll play book trivia, charades with famous authors, and share recommendations for our next reads.",
-          date: new Date(2024, 3, 5), // April 5, 2024
-          time: "6:00 PM",
-          location: "Community Center",
-          address: "719 8th Ave S, Seattle, WA 98104",
-          maxAttendees: 35,
-          headerPhoto: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800"
-        },
-        {
-          title: "Literary Walking Tour of Seattle",
-          description: "Explore Seattle's rich literary history! We'll visit locations featured in local authors' works, discuss the city's influence on literature, and end at a cozy bookshop for coffee and conversation.",
-          date: new Date(2024, 3, 12), // April 12, 2024
-          time: "2:00 PM",
-          location: "Pike Place Market",
-          address: "85 Pike St, Seattle, WA 98101",
-          maxAttendees: 20,
-          headerPhoto: "https://images.unsplash.com/photo-1555116505-38ab61800975?w=800"
-        }
-      ];
 
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-
-      // Create each test event
-      for (const eventData of testEvents) {
-        await createEvent(
-          eventData, 
-          user.id, 
-          user.displayName || 'Test User',
-          user.role || 'member', // Pass user role
-          user.profilePicture
-        );
-      }
-
-      Alert.alert('Success', 'Test events created successfully!');
-    } catch (error) {
-      console.error('Error creating test events:', error);
-      Alert.alert('Error', 'Failed to create test events. Please try again.');
-    } finally {
-      setIsCreatingTest(false);
-    }
-  };
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -250,26 +169,7 @@ const EventsListScreen: React.FC = () => {
         Be the first to create an event for the book club! Share reading discussions, meetups, and literary adventures.
       </Text>
       
-      {/* Test Events Button */}
-      <TouchableOpacity
-        onPress={createTestEvents}
-        disabled={isCreatingTest}
-        style={[styles.testButton, isCreatingTest && styles.testButtonDisabled]}
-        className="bg-purple-500 px-8 py-4 rounded-xl mb-4"
-      >
-        {isCreatingTest ? (
-          <View style={styles.loadingRow}>
-            <ActivityIndicator size="small" color="white" />
-            <Text style={styles.testButtonText} className="text-white font-bold text-lg ml-2">
-              Creating Events...
-            </Text>
-          </View>
-        ) : (
-          <Text style={styles.testButtonText} className="text-white font-bold text-lg">
-            ✨ Create Test Events ✨
-          </Text>
-        )}
-      </TouchableOpacity>
+
       
       <TouchableOpacity
         onPress={navigateToCreateEvent}
@@ -529,26 +429,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     lineHeight: 24,
   },
-  testButton: {
-    backgroundColor: '#8b5cf6', // purple-500
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  testButtonDisabled: {
-    backgroundColor: '#d1d5db', // gray-300
-  },
-  loadingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  testButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
+
   createButton: {
     backgroundColor: '#ec4899', // pink-500
     paddingHorizontal: 32,

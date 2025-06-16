@@ -3,8 +3,6 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-nati
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
-import FirebaseTest from '../../components/common/FirebaseTest';
-import AuthTest from '../../components/common/AuthTest';
 
 type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -19,12 +17,6 @@ const LoginScreen: React.FC = () => {
         <Text style={styles.subtitle}>
           Seattle Chinatown Book Club
         </Text>
-
-        {/* Firebase Connection Test */}
-        <FirebaseTest />
-
-        {/* Authentication Test - Remove this after testing */}
-        <AuthTest />
 
         {/* TODO: Add actual login form with React Hook Form */}
         <View style={styles.form}>
