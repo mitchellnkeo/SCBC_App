@@ -123,6 +123,9 @@ export interface User {
     data?: T;
     error?: string;
   }
+
+  // Export error types for easy access
+  export * from './errors';
   
   // Form Types
   export interface CreateEventFormData {

@@ -22,6 +22,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { EventComment, RSVP } from '../../types';
 import ProfilePicture from '../../components/common/ProfilePicture';
 import EventDetailsSkeleton from '../../components/common/EventDetailsSkeleton';
+import { handleError } from '../../utils/errorHandler';
 
 type RouteParams = {
   EventDetails: {
@@ -89,7 +90,12 @@ const EventDetailsScreen: React.FC = () => {
         user.profilePicture
       );
     } catch (error) {
-      Alert.alert('Error', 'Failed to update RSVP. Please try again.');
+      await handleError(error, {
+        showAlert: true,
+        logError: true,
+        autoRetry: true,
+        maxRetries: 2,
+      }, () => handleRSVP(status));
     }
   };
 

@@ -6,6 +6,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { useAuthStore } from '../../stores/authStore';
 import { LoginCredentials } from '../../types';
+import { handleError } from '../../utils/errorHandler';
 
 type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -32,7 +33,11 @@ const LoginScreen: React.FC = () => {
       await login(data);
       // Navigation will happen automatically when auth state changes
     } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'Please check your credentials and try again.');
+      await handleError(error, {
+        showAlert: true,
+        logError: true,
+        autoRetry: false,
+      }, () => onSubmit(data));
     } finally {
       setIsSubmitting(false);
     }
