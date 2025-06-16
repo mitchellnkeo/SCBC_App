@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import EventsListScreen from '../screens/events/EventsListScreen';
 import EventDetailsScreen from '../screens/events/EventDetailsScreen';
 import CreateEventScreen from '../screens/events/CreateEventScreen';
+import EditEventScreen from '../screens/events/EditEventScreen';
 import PendingEventsScreen from '../screens/admin/PendingEventsScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import AdminScreen from '../screens/admin/AdminScreen';
@@ -21,6 +22,7 @@ export type MainStackParamList = {
   MainTabs: undefined;
   EventDetails: { eventId: string };
   CreateEvent: undefined;
+  EditEvent: { eventId: string };
   PendingEvents: undefined;
   NotificationDemo: undefined;
   EditProfile: undefined;
@@ -94,6 +96,14 @@ const MainNavigator: React.FC = () => {
       <Stack.Screen 
         name="CreateEvent" 
         component={CreateEventScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+        }}
+      />
+      <Stack.Screen 
+        name="EditEvent" 
+        component={EditEventScreen}
         options={{
           headerShown: false,
           presentation: 'modal',

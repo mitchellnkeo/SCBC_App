@@ -28,7 +28,7 @@ interface EventState {
   loadPendingStats: () => Promise<void>;
   loadEvent: (eventId: string, userId?: string) => Promise<void>;
   createEvent: (eventData: CreateEventFormData, userId: string, userName: string, userRole: 'admin' | 'member', userProfilePicture?: string) => Promise<string>;
-  updateEvent: (eventId: string, eventData: Partial<CreateEventFormData>) => Promise<void>;
+  updateEvent: (eventId: string, eventData: Partial<CreateEventFormData>, updaterUserId?: string, updaterUserName?: string, updaterProfilePicture?: string) => Promise<void>;
   deleteEvent: (eventId: string) => Promise<void>;
   approveEvent: (eventId: string, adminUserId: string, approvalData: ApprovalFormData) => Promise<void>;
   updateRSVP: (eventId: string, userId: string, userName: string, status: 'going' | 'maybe' | 'not-going', userProfilePicture?: string) => Promise<void>;
@@ -155,10 +155,10 @@ export const useEventStore = create<EventState>((set, get) => ({
   },
   
   // Update event
-  updateEvent: async (eventId: string, eventData: Partial<CreateEventFormData>) => {
+  updateEvent: async (eventId: string, eventData: Partial<CreateEventFormData>, updaterUserId?: string, updaterUserName?: string, updaterProfilePicture?: string) => {
     set({ isLoading: true, error: null });
     try {
-      await eventService.updateEvent(eventId, eventData);
+      await eventService.updateEvent(eventId, eventData, updaterUserId, updaterUserName, updaterProfilePicture);
       
       // Refresh events list and current event if it's the one being updated
       const events = await eventService.getAllEvents();

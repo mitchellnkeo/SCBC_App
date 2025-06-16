@@ -19,10 +19,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
-import { EventComment, RSVP } from '../../types';
+import { EventComment, RSVP, Mention, UserSuggestion } from '../../types';
 import ProfilePicture from '../../components/common/ProfilePicture';
 import EventDetailsSkeleton from '../../components/common/EventDetailsSkeleton';
+import MentionInput from '../../components/common/MentionInput';
+import MentionText from '../../components/common/MentionText';
 import { handleError } from '../../utils/errorHandler';
+import { getEventParticipantsForMentions } from '../../services/userService';
 
 type RouteParams = {
   EventDetails: {
@@ -54,18 +57,36 @@ const EventDetailsScreen: React.FC = () => {
   } = useEventStore();
 
   const [newComment, setNewComment] = useState('');
+  const [commentMentions, setCommentMentions] = useState<Mention[]>([]);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState<UserSuggestion[]>([]);
 
   useEffect(() => {
     if (eventId && user) {
       loadEvent(eventId, user.id);
+      
+      // Load users for mentions
+      loadUsersForMentions();
       
       // Subscribe to real-time updates
       const unsubscribe = subscribeToEventDetails(eventId, user.id);
       return unsubscribe;
     }
   }, [eventId, user?.id]);
+
+  const loadUsersForMentions = async () => {
+    if (!eventId) return;
+    
+    try {
+      const users = await getEventParticipantsForMentions(eventId);
+      setAvailableUsers(users);
+    } catch (error) {
+      console.error('Error loading users for mentions:', error);
+      // Continue without mentions if loading fails
+      setAvailableUsers([]);
+    }
+  };
 
   const handleRefresh = async () => {
     if (!eventId || !user) return;
@@ -107,15 +128,30 @@ const EventDetailsScreen: React.FC = () => {
         currentEvent.id,
         user.id,
         user.displayName,
-        { content: newComment.trim(), parentCommentId: replyingTo || undefined },
+        { 
+          content: newComment.trim(), 
+          parentCommentId: replyingTo || undefined,
+          mentions: commentMentions 
+        },
         user.profilePicture
       );
       
       setNewComment('');
+      setCommentMentions([]);
       setReplyingTo(null);
     } catch (error) {
       Alert.alert('Error', 'Failed to add comment. Please try again.');
     }
+  };
+
+  const handleMentionPress = (mention: Mention) => {
+    // Navigate to user profile or show user info
+    Alert.alert('User Mention', `Mentioned: ${mention.displayName}`);
+  };
+
+  const handleCommentTextChange = (text: string, mentions: Mention[]) => {
+    setNewComment(text);
+    setCommentMentions(mentions);
   };
 
   const handleDeleteComment = (commentId: string) => {
@@ -242,7 +278,12 @@ const EventDetailsScreen: React.FC = () => {
           )}
         </View>
         
-        <Text style={styles.commentContent}>{comment.content}</Text>
+        <MentionText 
+          text={comment.content} 
+          mentions={comment.mentions || []} 
+          style={styles.commentContent}
+          onMentionPress={handleMentionPress}
+        />
         
         {!isReply && (
           <TouchableOpacity
@@ -360,14 +401,27 @@ const EventDetailsScreen: React.FC = () => {
                     <Text style={styles.backButtonText}>←</Text>
                   </TouchableOpacity>
                   
-                  {user?.role === 'admin' && (
-                    <TouchableOpacity
-                      onPress={handleDeleteEvent}
-                      style={styles.deleteEventButton}
-                    >
-                      <Text style={styles.deleteEventText}>Delete</Text>
-                    </TouchableOpacity>
-                  )}
+                  <View style={styles.headerActions}>
+                    {/* Edit button - show for event creator or admin */}
+                    {(user?.id === currentEvent.createdBy || user?.role === 'admin') && (
+                      <TouchableOpacity
+                        onPress={() => (navigation as any).navigate('EditEvent', { eventId: currentEvent.id })}
+                        style={styles.editEventButton}
+                      >
+                        <Text style={styles.editEventText}>Edit</Text>
+                      </TouchableOpacity>
+                    )}
+                    
+                    {/* Delete button - show only for admin */}
+                    {user?.role === 'admin' && (
+                      <TouchableOpacity
+                        onPress={handleDeleteEvent}
+                        style={styles.deleteEventButton}
+                      >
+                        <Text style={styles.deleteEventText}>Delete</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </View>
               </View>
 
@@ -506,13 +560,14 @@ const EventDetailsScreen: React.FC = () => {
                     )}
                     
                     <View style={styles.commentInputContainer}>
-                      <TextInput
-                        style={styles.commentInput}
-                        placeholder={replyingTo ? "Write a reply..." : "Add a comment..."}
+                      <MentionInput
                         value={newComment}
-                        onChangeText={setNewComment}
+                        onChangeText={handleCommentTextChange}
+                        placeholder={replyingTo ? "Write a reply..." : "Add a comment..."}
+                        users={availableUsers}
                         multiline
                         maxLength={500}
+                        style={styles.commentInput}
                       />
                       <TouchableOpacity
                         onPress={handleAddComment}
@@ -658,6 +713,21 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 24,
     color: '#111827',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  editEventButton: {
+    backgroundColor: 'rgba(59, 130, 246, 0.9)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  editEventText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
   },
   deleteEventButton: {
     backgroundColor: 'rgba(239,68,68,0.9)',

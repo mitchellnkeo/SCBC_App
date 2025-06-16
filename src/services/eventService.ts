@@ -71,7 +71,10 @@ export const createEvent = async (
 
 export const updateEvent = async (
   eventId: string, 
-  eventData: Partial<CreateEventFormData>
+  eventData: Partial<CreateEventFormData>,
+  updaterUserId?: string,
+  updaterUserName?: string,
+  updaterProfilePicture?: string
 ): Promise<void> => {
   try {
     const eventRef = doc(db, EVENTS_COLLECTION, eventId);
@@ -80,6 +83,28 @@ export const updateEvent = async (
       updatedAt: serverTimestamp(),
     });
     console.log('Event updated:', eventId);
+    
+    // Create event update notifications for attendees
+    if (updaterUserId && updaterUserName) {
+      try {
+        const event = await getEvent(eventId);
+        if (event) {
+          const changes = Object.keys(eventData);
+          const { createEventUpdateNotification } = await import('./internalNotificationService');
+          await createEventUpdateNotification(
+            eventId,
+            event.title,
+            changes,
+            updaterUserId,
+            updaterUserName,
+            updaterProfilePicture
+          );
+        }
+      } catch (error) {
+        console.error('Error creating event update notifications:', error);
+        // Don't fail update if notifications fail
+      }
+    }
   } catch (error) {
     console.error('Error updating event:', error);
     throw new Error('Failed to update event. Please try again.');
@@ -283,6 +308,7 @@ export const createComment = async (
       userName,
       userProfilePicture: userProfilePicture || null,
       content: commentData.content,
+      mentions: commentData.mentions || [],
       parentCommentId: commentData.parentCommentId || null,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -290,6 +316,30 @@ export const createComment = async (
 
     const docRef = await addDoc(collection(db, COMMENTS_COLLECTION), commentDoc);
     console.log('Comment created with ID:', docRef.id);
+    
+    // Create mention notifications if there are mentions
+    if (commentData.mentions && commentData.mentions.length > 0) {
+      try {
+        // Get event title for notification
+        const event = await getEvent(eventId);
+        if (event) {
+          const { createMentionNotifications } = await import('./internalNotificationService');
+          await createMentionNotifications(
+            commentData.mentions,
+            eventId,
+            event.title,
+            docRef.id,
+            userId,
+            userName,
+            userProfilePicture
+          );
+        }
+      } catch (error) {
+        console.error('Error creating mention notifications:', error);
+        // Don't fail comment creation if notifications fail
+      }
+    }
+    
     return docRef.id;
   } catch (error) {
     console.error('Error creating comment:', error);
@@ -509,6 +559,27 @@ export const approveEvent = async (
     
     await updateDoc(eventRef, updateData);
     console.log(`Event ${approvalData.action}d:`, eventId);
+    
+    // Create event approval/rejection notification
+    try {
+      const event = await getEvent(eventId);
+      if (event) {
+        const { createEventApprovalNotification } = await import('./internalNotificationService');
+        await createEventApprovalNotification(
+          eventId,
+          event.title,
+          event.createdBy,
+          approvalData.action === 'approve' ? 'approved' : 'rejected',
+          adminUserId,
+          'Admin', // Could get admin name from user data
+          undefined, // Admin profile picture
+          approvalData.rejectionReason
+        );
+      }
+    } catch (error) {
+      console.error('Error creating approval notification:', error);
+      // Don't fail approval if notifications fail
+    }
   } catch (error) {
     console.error(`Error ${approvalData.action}ing event:`, error);
     throw new Error(`Failed to ${approvalData.action} event. Please try again.`);

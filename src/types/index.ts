@@ -83,6 +83,7 @@ export interface User {
     userName: string; // Display name for easy access
     userProfilePicture?: string;
     content: string;
+    mentions?: import('./mentions').Mention[];
     parentCommentId?: string; // For replies
     replies?: EventComment[]; // Nested replies
     createdAt: Date;
@@ -127,6 +128,12 @@ export interface User {
   // Export error types for easy access
   export * from './errors';
   
+  // Export mention types
+  export * from './mentions';
+  
+  // Export notification types
+  export * from './notifications';
+  
   // Form Types
   export interface CreateEventFormData {
     title: string;
@@ -142,6 +149,7 @@ export interface User {
   export interface CreateCommentFormData {
     content: string;
     parentCommentId?: string;
+    mentions?: import('./mentions').Mention[];
   }
   
   // Admin Approval Types
