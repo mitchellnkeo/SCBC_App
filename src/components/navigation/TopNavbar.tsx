@@ -71,6 +71,12 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
       }),
     },
     {
+      title: 'Monthly Book',
+      onPress: () => handleMenuItemPress(() => {
+        navigation.navigate('MonthlyBook');
+      }),
+    },
+    {
       title: 'My Profile',
       onPress: () => handleMenuItemPress(() => {
         if (user) {

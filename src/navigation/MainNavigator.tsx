@@ -12,6 +12,8 @@ import { EditProfileScreen } from '../screens/profile/EditProfileScreen';
 import UserProfileScreen from '../screens/profile/UserProfileScreen';
 import AboutSCBCScreen from '../screens/info/AboutSCBCScreen';
 import ContactInfoScreen from '../screens/info/ContactInfoScreen';
+import MonthlyBookScreen from '../screens/books/MonthlyBookScreen';
+import EditMonthlyBookScreen from '../screens/admin/EditMonthlyBookScreen';
 import { useAuthStore } from '../stores/authStore';
 
 export type MainStackParamList = {
@@ -27,6 +29,8 @@ export type MainStackParamList = {
   UserProfile: { userId: string };
   AboutSCBC: undefined;
   ContactInfo: undefined;
+  MonthlyBook: undefined;
+  EditMonthlyBook: { bookId: string };
 };
 
 const Stack = createStackNavigator<MainStackParamList>();
@@ -154,6 +158,28 @@ const MainNavigator: React.FC = () => {
           presentation: 'card',
         }}
       />
+      
+      {/* Book Screens */}
+      <Stack.Screen 
+        name="MonthlyBook" 
+        component={MonthlyBookScreen}
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      
+      {/* Admin Book Management */}
+      {userRole === 'admin' && (
+        <Stack.Screen 
+          name="EditMonthlyBook" 
+          component={EditMonthlyBookScreen}
+          options={{
+            headerShown: false,
+            presentation: 'card',
+          }}
+        />
+      )}
     </Stack.Navigator>
   );
 };

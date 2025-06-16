@@ -107,6 +107,13 @@ const AdminScreen: React.FC = () => {
           />
 
           <AdminCard
+            title="Monthly Book"
+            description="Manage the current monthly book selection"
+            icon="📚"
+            onPress={() => navigation.navigate('MonthlyBook' as never)}
+          />
+
+          <AdminCard
             title="User Management"
             description="Manage user accounts and permissions"
             icon="👥"
