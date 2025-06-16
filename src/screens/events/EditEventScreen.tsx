@@ -24,6 +24,33 @@ type RouteParams = {
   };
 };
 
+// Move InputField outside the main component to prevent re-creation on each render
+const InputField: React.FC<{
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder?: string;
+  multiline?: boolean;
+  numberOfLines?: number;
+  keyboardType?: 'default' | 'numeric' | 'url';
+  error?: string;
+}> = ({ label, value, onChangeText, placeholder, multiline, numberOfLines, keyboardType, error }) => (
+  <View style={styles.inputContainer}>
+    <Text style={styles.label}>{label}</Text>
+    <TextInput
+      style={[styles.input, multiline && styles.textArea, error && styles.inputError]}
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      placeholderTextColor="#9ca3af"
+      multiline={multiline}
+      numberOfLines={numberOfLines}
+      keyboardType={keyboardType}
+    />
+    {error && <Text style={styles.errorText}>{error}</Text>}
+  </View>
+);
+
 const EditEventScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RouteParams, 'EditEvent'>>();
@@ -138,32 +165,6 @@ const EditEventScreen: React.FC = () => {
       setFormData({ ...formData, date: selectedDate });
     }
   };
-
-  const InputField: React.FC<{
-    label: string;
-    value: string;
-    onChangeText: (text: string) => void;
-    placeholder?: string;
-    multiline?: boolean;
-    numberOfLines?: number;
-    keyboardType?: 'default' | 'numeric' | 'url';
-    error?: string;
-  }> = ({ label, value, onChangeText, placeholder, multiline, numberOfLines, keyboardType, error }) => (
-    <View style={styles.inputContainer}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
-        style={[styles.input, multiline && styles.textArea, error && styles.inputError]}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor="#9ca3af"
-        multiline={multiline}
-        numberOfLines={numberOfLines}
-        keyboardType={keyboardType}
-      />
-      {error && <Text style={styles.errorText}>{error}</Text>}
-    </View>
-  );
 
   if (isLoading) {
     return (
