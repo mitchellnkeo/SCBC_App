@@ -3,6 +3,7 @@ import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useTheme } from '../../contexts/ThemeContext';
 import TopNavbar from '../../components/navigation/TopNavbar';
 import AllEventsTab from '../../components/events/AllEventsTab';
 import MyEventsTab from '../../components/events/MyEventsTab';
@@ -12,32 +13,64 @@ const Tab = createMaterialTopTabNavigator();
 
 const EventsListScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<MainStackParamList>>();
+  const { theme } = useTheme();
 
   const navigateToCreateEvent = () => {
     navigation.navigate('CreateEvent');
   };
 
+  const dynamicStyles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    createButtonContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: theme.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.borderLight,
+    },
+    createButton: {
+      backgroundColor: theme.primary,
+      paddingVertical: 14,
+      paddingHorizontal: 24,
+      borderRadius: 12,
+      alignItems: 'center',
+      shadowColor: theme.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    createButtonText: {
+      color: 'white',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+  });
+
   return (
-    <SafeAreaView style={styles.container} className="flex-1 bg-white">
+    <SafeAreaView style={dynamicStyles.container}>
       <TopNavbar />
       
       {/* Create New Event Button */}
-      <View style={styles.createButtonContainer}>
+      <View style={dynamicStyles.createButtonContainer}>
         <TouchableOpacity
-          style={styles.createButton}
+          style={dynamicStyles.createButton}
           onPress={navigateToCreateEvent}
           activeOpacity={0.8}
         >
-          <Text style={styles.createButtonText}>+ Create New Event</Text>
+          <Text style={dynamicStyles.createButtonText}>+ Create New Event</Text>
         </TouchableOpacity>
       </View>
       
       <Tab.Navigator
         screenOptions={{
-          tabBarActiveTintColor: '#ec4899',
-          tabBarInactiveTintColor: '#6b7280',
+          tabBarActiveTintColor: theme.primary,
+          tabBarInactiveTintColor: theme.textSecondary,
           tabBarIndicatorStyle: {
-            backgroundColor: '#ec4899',
+            backgroundColor: theme.primary,
             height: 3,
           },
           tabBarLabelStyle: {
@@ -46,11 +79,11 @@ const EventsListScreen: React.FC = () => {
             textTransform: 'none',
           },
           tabBarStyle: {
-            backgroundColor: 'white',
+            backgroundColor: theme.surface,
             elevation: 0,
             shadowOpacity: 0,
             borderBottomWidth: 1,
-            borderBottomColor: '#e5e7eb',
+            borderBottomColor: theme.border,
           },
         }}
       >
@@ -72,36 +105,5 @@ const EventsListScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
-  createButtonContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
-  createButton: {
-    backgroundColor: '#ec4899',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  createButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-});
 
 export default EventsListScreen; 

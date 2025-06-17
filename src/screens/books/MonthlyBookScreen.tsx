@@ -16,12 +16,14 @@ import { MainStackParamList } from '../../navigation/MainNavigator';
 import TopNavbar from '../../components/navigation/TopNavbar';
 import { monthlyBookService, MonthlyBook } from '../../services/monthlyBookService';
 import { useAuthStore } from '../../stores/authStore';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type NavigationProp = StackNavigationProp<MainStackParamList>;
 
 const MonthlyBookScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuthStore();
+  const { theme } = useTheme();
   const [currentBook, setCurrentBook] = useState<MonthlyBook | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -81,20 +83,330 @@ const MonthlyBookScreen: React.FC = () => {
     }
   };
 
+  const dynamicStyles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: 20,
+    },
+    header: {
+      alignItems: 'center',
+      marginBottom: 24,
+      paddingTop: 20,
+    },
+    monthLabel: {
+      fontSize: 16,
+      color: theme.primary,
+      fontWeight: '600',
+      marginBottom: 8,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+    headerTitle: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: theme.text,
+      textAlign: 'center',
+    },
+    bookCard: {
+      backgroundColor: theme.card,
+      borderRadius: 16,
+      padding: 24,
+      marginBottom: 20,
+      shadowColor: theme.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    bookCoverSection: {
+      alignItems: 'center',
+      marginBottom: 24,
+    },
+    bookCover: {
+      width: 160,
+      height: 240,
+      borderRadius: 8,
+      resizeMode: 'contain',
+      backgroundColor: theme.surface,
+    },
+    bookCoverPlaceholder: {
+      width: 160,
+      height: 240,
+      backgroundColor: theme.surface,
+      borderRadius: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: theme.border,
+      borderStyle: 'dashed',
+    },
+    bookEmoji: {
+      fontSize: 48,
+      marginBottom: 8,
+    },
+    placeholderText: {
+      fontSize: 14,
+      color: theme.textTertiary,
+      fontWeight: '500',
+    },
+    bookDetails: {
+      alignItems: 'center',
+    },
+    bookTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.text,
+      textAlign: 'center',
+      marginBottom: 8,
+      lineHeight: 32,
+    },
+    bookAuthor: {
+      fontSize: 18,
+      color: theme.textSecondary,
+      marginBottom: 16,
+      fontStyle: 'italic',
+    },
+    awardsSection: {
+      marginBottom: 16,
+    },
+    awardBadge: {
+      backgroundColor: theme.warning + '20', // Add transparency
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 20,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: theme.warning + '40',
+    },
+    awardText: {
+      fontSize: 14,
+      color: theme.warning,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    bookDescription: {
+      fontSize: 16,
+      color: theme.textSecondary,
+      lineHeight: 26,
+      textAlign: 'center',
+      marginBottom: 20,
+    },
+    bookInfo: {
+      width: '100%',
+      backgroundColor: theme.surface,
+      borderRadius: 12,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    infoLabel: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      fontWeight: '500',
+    },
+    infoValue: {
+      fontSize: 14,
+      color: theme.text,
+      fontWeight: '600',
+    },
+    selectionCard: {
+      backgroundColor: theme.card,
+      borderRadius: 16,
+      padding: 24,
+      marginBottom: 20,
+      shadowColor: theme.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    selectionTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.text,
+      marginBottom: 12,
+      textAlign: 'center',
+    },
+    selectionText: {
+      fontSize: 16,
+      color: theme.textSecondary,
+      lineHeight: 26,
+      textAlign: 'center',
+    },
+    discussionButton: {
+      backgroundColor: theme.primary,
+      borderRadius: 16,
+      marginBottom: 20,
+      shadowColor: theme.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    discussionButtonContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 20,
+    },
+    discussionButtonIcon: {
+      fontSize: 32,
+      marginRight: 16,
+    },
+    discussionButtonText: {
+      flex: 1,
+    },
+    discussionButtonTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: 'white',
+      marginBottom: 4,
+    },
+    discussionButtonSubtitle: {
+      fontSize: 14,
+      color: 'rgba(255, 255, 255, 0.8)',
+      lineHeight: 20,
+    },
+    discussionButtonChevron: {
+      fontSize: 24,
+      color: 'white',
+      marginLeft: 8,
+    },
+    progressCard: {
+      backgroundColor: theme.card,
+      borderRadius: 16,
+      padding: 24,
+      shadowColor: theme.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    progressTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.text,
+      marginBottom: 12,
+      textAlign: 'center',
+    },
+    progressText: {
+      fontSize: 16,
+      color: theme.textSecondary,
+      lineHeight: 26,
+      textAlign: 'center',
+      marginBottom: 20,
+    },
+    progressTips: {
+      backgroundColor: theme.success + '10', // Light success background
+      borderRadius: 12,
+      padding: 16,
+      borderLeftWidth: 4,
+      borderLeftColor: theme.success,
+    },
+    tipText: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      marginBottom: 8,
+      lineHeight: 20,
+    },
+    bottomSpacer: {
+      height: 32,
+    },
+    // Loading states
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 40,
+    },
+    loadingText: {
+      fontSize: 16,
+      color: theme.textSecondary,
+      marginTop: 16,
+    },
+    // Empty states
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 40,
+    },
+    emptyEmoji: {
+      fontSize: 64,
+      marginBottom: 16,
+    },
+    emptyTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.text,
+      marginBottom: 12,
+      textAlign: 'center',
+    },
+    emptyText: {
+      fontSize: 16,
+      color: theme.textSecondary,
+      textAlign: 'center',
+      lineHeight: 24,
+      marginBottom: 24,
+    },
+    addBookButton: {
+      backgroundColor: theme.primary,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 12,
+    },
+    addBookButtonText: {
+      color: 'white',
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    // Edit button
+    editButton: {
+      backgroundColor: theme.surface,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 8,
+      marginTop: 12,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    editButtonText: {
+      color: theme.textSecondary,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+  });
+
   const InfoRow: React.FC<{ label: string; value: string | number }> = ({ label, value }) => (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}:</Text>
-      <Text style={styles.infoValue}>{value}</Text>
+    <View style={dynamicStyles.infoRow}>
+      <Text style={dynamicStyles.infoLabel}>{label}:</Text>
+      <Text style={dynamicStyles.infoValue}>{value}</Text>
     </View>
   );
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={dynamicStyles.container}>
         <TopNavbar title="Monthly Book" />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ec4899" />
-          <Text style={styles.loadingText}>Loading current book...</Text>
+        <View style={dynamicStyles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={dynamicStyles.loadingText}>Loading current book...</Text>
         </View>
       </View>
     );
@@ -102,21 +414,21 @@ const MonthlyBookScreen: React.FC = () => {
 
   if (!currentBook) {
     return (
-      <View style={styles.container}>
+      <View style={dynamicStyles.container}>
         <TopNavbar title="Monthly Book" />
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyEmoji}>📚</Text>
-          <Text style={styles.emptyTitle}>No Book Selected</Text>
-          <Text style={styles.emptyText}>
+        <View style={dynamicStyles.emptyContainer}>
+          <Text style={dynamicStyles.emptyEmoji}>📚</Text>
+          <Text style={dynamicStyles.emptyTitle}>No Book Selected</Text>
+          <Text style={dynamicStyles.emptyText}>
             No monthly book has been set yet. Check back soon!
           </Text>
           {user?.role === 'admin' && (
             <TouchableOpacity
-              style={styles.addBookButton}
+              style={dynamicStyles.addBookButton}
               onPress={() => navigation.navigate('EditMonthlyBook', { bookId: 'new' })}
               activeOpacity={0.8}
             >
-              <Text style={styles.addBookButtonText}>+ Add Monthly Book</Text>
+              <Text style={dynamicStyles.addBookButtonText}>+ Add Monthly Book</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -125,63 +437,63 @@ const MonthlyBookScreen: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={dynamicStyles.container}>
       {/* Top Navigation */}
       <TopNavbar title="Monthly Book" />
       
       <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        style={dynamicStyles.scrollView}
+        contentContainerStyle={dynamicStyles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.monthLabel}>{currentBook.month}</Text>
-          <Text style={styles.headerTitle}>Book of the Month</Text>
+        <View style={dynamicStyles.header}>
+          <Text style={dynamicStyles.monthLabel}>{currentBook.month}</Text>
+          <Text style={dynamicStyles.headerTitle}>Book of the Month</Text>
           {user?.role === 'admin' && (
             <TouchableOpacity
-              style={styles.editButton}
+              style={dynamicStyles.editButton}
               onPress={handleEditPress}
               activeOpacity={0.8}
             >
-              <Text style={styles.editButtonText}>✏️ Edit</Text>
+              <Text style={dynamicStyles.editButtonText}>✏️ Edit</Text>
             </TouchableOpacity>
           )}
         </View>
 
         {/* Book Card */}
-        <View style={styles.bookCard}>
+        <View style={dynamicStyles.bookCard}>
           {/* Book Cover Placeholder */}
-          <View style={styles.bookCoverSection}>
+          <View style={dynamicStyles.bookCoverSection}>
             {currentBook.coverImageUrl ? (
-              <Image source={{ uri: currentBook.coverImageUrl }} style={styles.bookCover} />
+              <Image source={{ uri: currentBook.coverImageUrl }} style={dynamicStyles.bookCover} />
             ) : (
-              <View style={styles.bookCoverPlaceholder}>
-                <Text style={styles.bookEmoji}>📖</Text>
-                <Text style={styles.placeholderText}>Book Cover</Text>
+              <View style={dynamicStyles.bookCoverPlaceholder}>
+                <Text style={dynamicStyles.bookEmoji}>📖</Text>
+                <Text style={dynamicStyles.placeholderText}>Book Cover</Text>
               </View>
             )}
           </View>
 
           {/* Book Details */}
-          <View style={styles.bookDetails}>
-            <Text style={styles.bookTitle}>{currentBook.title}</Text>
-            <Text style={styles.bookAuthor}>by {currentBook.author}</Text>
+          <View style={dynamicStyles.bookDetails}>
+            <Text style={dynamicStyles.bookTitle}>{currentBook.title}</Text>
+            <Text style={dynamicStyles.bookAuthor}>by {currentBook.author}</Text>
             
             {currentBook.awards && currentBook.awards.length > 0 && (
-              <View style={styles.awardsSection}>
+              <View style={dynamicStyles.awardsSection}>
                 {currentBook.awards.map((award: string, index: number) => (
-                  <View key={index} style={styles.awardBadge}>
-                    <Text style={styles.awardText}>🏆 {award}</Text>
+                  <View key={index} style={dynamicStyles.awardBadge}>
+                    <Text style={dynamicStyles.awardText}>🏆 {award}</Text>
                   </View>
                 ))}
               </View>
             )}
 
-            <Text style={styles.bookDescription}>{currentBook.description}</Text>
+            <Text style={dynamicStyles.bookDescription}>{currentBook.description}</Text>
 
             {/* Book Info */}
-            <View style={styles.bookInfo}>
+            <View style={dynamicStyles.bookInfo}>
               <InfoRow label="Genre" value={currentBook.genre} />
               <InfoRow label="Pages" value={currentBook.pages} />
               <InfoRow label="Published" value={currentBook.publishedYear} />
@@ -190,345 +502,47 @@ const MonthlyBookScreen: React.FC = () => {
         </View>
 
         {/* Why We Selected This Book */}
-        <View style={styles.selectionCard}>
-          <Text style={styles.selectionTitle}>Why We Selected This Book</Text>
-          <Text style={styles.selectionText}>{currentBook.whySelected}</Text>
+        <View style={dynamicStyles.selectionCard}>
+          <Text style={dynamicStyles.selectionTitle}>Why We Selected This Book</Text>
+          <Text style={dynamicStyles.selectionText}>{currentBook.whySelected}</Text>
         </View>
 
         {/* Discussion Sheet Button */}
         <TouchableOpacity
-          style={styles.discussionButton}
+          style={dynamicStyles.discussionButton}
           onPress={handleDiscussionSheetPress}
           activeOpacity={0.8}
         >
-          <View style={styles.discussionButtonContent}>
-            <Text style={styles.discussionButtonIcon}>📝</Text>
-            <View style={styles.discussionButtonText}>
-              <Text style={styles.discussionButtonTitle}>Discussion Sheet</Text>
-              <Text style={styles.discussionButtonSubtitle}>
+          <View style={dynamicStyles.discussionButtonContent}>
+            <Text style={dynamicStyles.discussionButtonIcon}>📝</Text>
+            <View style={dynamicStyles.discussionButtonText}>
+              <Text style={dynamicStyles.discussionButtonTitle}>Discussion Sheet</Text>
+              <Text style={dynamicStyles.discussionButtonSubtitle}>
                 Access our reading guide and discussion questions
               </Text>
             </View>
-            <Text style={styles.discussionButtonChevron}>›</Text>
+            <Text style={dynamicStyles.discussionButtonChevron}>›</Text>
           </View>
         </TouchableOpacity>
 
         {/* Reading Progress */}
-        <View style={styles.progressCard}>
-          <Text style={styles.progressTitle}>Join the Discussion</Text>
-          <Text style={styles.progressText}>
+        <View style={dynamicStyles.progressCard}>
+          <Text style={dynamicStyles.progressTitle}>Join the Discussion</Text>
+          <Text style={dynamicStyles.progressText}>
             We'll be discussing this book at our next meetup. Use the discussion sheet to guide your reading and prepare thoughtful questions for our group conversation.
           </Text>
           
-          <View style={styles.progressTips}>
-            <Text style={styles.tipText}>💡 Take notes while reading</Text>
-            <Text style={styles.tipText}>🤔 Consider the discussion questions</Text>
-            <Text style={styles.tipText}>📚 Share your thoughts with the group</Text>
+          <View style={dynamicStyles.progressTips}>
+            <Text style={dynamicStyles.tipText}>💡 Take notes while reading</Text>
+            <Text style={dynamicStyles.tipText}>🤔 Consider the discussion questions</Text>
+            <Text style={dynamicStyles.tipText}>📚 Share your thoughts with the group</Text>
           </View>
         </View>
 
-        <View style={styles.bottomSpacer} />
+        <View style={dynamicStyles.bottomSpacer} />
       </ScrollView>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 24,
-    paddingTop: 20,
-  },
-  monthLabel: {
-    fontSize: 16,
-    color: '#ec4899',
-    fontWeight: '600',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    textAlign: 'center',
-  },
-  bookCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  bookCoverSection: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  bookCover: {
-    width: 160,
-    height: 240,
-    borderRadius: 8,
-    resizeMode: 'contain', // Changed from 'cover' to 'contain' to show full image proportionally
-    backgroundColor: '#f9fafb', // Add background color for letterboxing
-  },
-  bookCoverPlaceholder: {
-    width: 160,
-    height: 240,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#e5e7eb',
-    borderStyle: 'dashed',
-  },
-  bookEmoji: {
-    fontSize: 48,
-    marginBottom: 8,
-  },
-  placeholderText: {
-    fontSize: 14,
-    color: '#9ca3af',
-    fontWeight: '500',
-  },
-  bookDetails: {
-    alignItems: 'center',
-  },
-  bookTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    textAlign: 'center',
-    marginBottom: 8,
-    lineHeight: 32,
-  },
-  bookAuthor: {
-    fontSize: 18,
-    color: '#6b7280',
-    marginBottom: 16,
-    fontStyle: 'italic',
-  },
-  awardsSection: {
-    marginBottom: 16,
-  },
-  awardBadge: {
-    backgroundColor: '#fef3c7',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginBottom: 8,
-  },
-  awardText: {
-    fontSize: 14,
-    color: '#92400e',
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  bookDescription: {
-    fontSize: 16,
-    color: '#4b5563',
-    lineHeight: 26,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  bookInfo: {
-    width: '100%',
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    padding: 16,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: '#6b7280',
-    fontWeight: '500',
-  },
-  infoValue: {
-    fontSize: 14,
-    color: '#1f2937',
-    fontWeight: '600',
-  },
-  selectionCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  selectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  selectionText: {
-    fontSize: 16,
-    color: '#4b5563',
-    lineHeight: 26,
-    textAlign: 'center',
-  },
-  discussionButton: {
-    backgroundColor: '#ec4899',
-    borderRadius: 16,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  discussionButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-  },
-  discussionButtonIcon: {
-    fontSize: 32,
-    marginRight: 16,
-  },
-  discussionButtonText: {
-    flex: 1,
-  },
-  discussionButtonTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 4,
-  },
-  discussionButtonSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
-    lineHeight: 20,
-  },
-  discussionButtonChevron: {
-    fontSize: 24,
-    color: 'white',
-    marginLeft: 8,
-  },
-  progressCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  progressTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  progressText: {
-    fontSize: 16,
-    color: '#4b5563',
-    lineHeight: 26,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  progressTips: {
-    backgroundColor: '#f0fdf4',
-    borderRadius: 12,
-    padding: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#10b981',
-  },
-  tipText: {
-    fontSize: 14,
-    color: '#374151',
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-  bottomSpacer: {
-    height: 32,
-  },
-  // Loading states
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#6b7280',
-    marginTop: 16,
-  },
-  // Empty states
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  emptyEmoji: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#6b7280',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 24,
-  },
-  addBookButton: {
-    backgroundColor: '#ec4899',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  addBookButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  // Edit button
-  editButton: {
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginTop: 12,
-  },
-  editButtonText: {
-    color: '#374151',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
-
-export default MonthlyBookScreen; 
+export default MonthlyBookScreen;

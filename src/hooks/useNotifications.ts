@@ -29,13 +29,13 @@ export const useNotifications = () => {
 
     // Set up notification listeners
     notificationListener.current = notificationService.addNotificationReceivedListener(
-      (notification) => {
+      (notification: Notifications.Notification) => {
         setNotification(notification);
       }
     );
 
     responseListener.current = notificationService.addNotificationResponseReceivedListener(
-      (response) => {
+      (response: Notifications.NotificationResponse) => {
         // Handle notification tap
         console.log('Notification tapped:', response);
         // You can navigate to specific screens based on notification data here
