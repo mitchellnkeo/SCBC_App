@@ -12,6 +12,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuthStore } from '../../stores/authStore';
+import { useTheme } from '../../contexts/ThemeContext';
 import ProfilePicture from '../common/ProfilePicture';
 import { MainStackParamList } from '../../navigation/MainNavigator';
 
@@ -29,6 +30,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
 }) => {
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuthStore();
+  const { theme } = useTheme();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [slideAnim] = useState(new Animated.Value(-MENU_WIDTH));
 
@@ -96,24 +98,131 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
     },
   ];
 
+  const dynamicStyles = StyleSheet.create({
+    safeArea: {
+      backgroundColor: theme.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    navbar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: theme.surface,
+    },
+    hamburgerLine: {
+      width: 20,
+      height: 2,
+      backgroundColor: theme.textSecondary,
+      marginVertical: 2,
+      borderRadius: 1,
+    },
+    title: {
+      flex: 1,
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.text,
+      textAlign: 'center',
+      marginHorizontal: 12,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: theme.overlay,
+    },
+    backdrop: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: theme.overlay,
+    },
+    menuContainer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      bottom: 0,
+      width: MENU_WIDTH,
+      backgroundColor: theme.surface,
+      shadowColor: theme.shadow,
+      shadowOffset: { width: 2, height: 0 },
+      shadowOpacity: 0.25,
+      shadowRadius: 10,
+      elevation: 10,
+    },
+    menuHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    menuTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.text,
+    },
+    closeButtonText: {
+      fontSize: 18,
+      color: theme.textTertiary,
+      fontWeight: 'bold',
+    },
+    menuItem: {
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.borderLight,
+    },
+    menuItemText: {
+      fontSize: 16,
+      color: theme.textSecondary,
+      fontWeight: '500',
+    },
+    userInfoSection: {
+      borderTopWidth: 1,
+      borderTopColor: theme.border,
+      backgroundColor: theme.background,
+    },
+    userInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+    },
+    userName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.text,
+      marginBottom: 2,
+    },
+    userEmail: {
+      fontSize: 14,
+      color: theme.textTertiary,
+    },
+  });
+
   return (
     <>
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.navbar}>
+      <SafeAreaView style={dynamicStyles.safeArea}>
+        <View style={dynamicStyles.navbar}>
           {/* Hamburger Menu Button */}
           <TouchableOpacity
             style={styles.menuButton}
             onPress={openMenu}
             activeOpacity={0.7}
           >
-            <View style={styles.hamburgerLine} />
-            <View style={styles.hamburgerLine} />
-            <View style={styles.hamburgerLine} />
+            <View style={dynamicStyles.hamburgerLine} />
+            <View style={dynamicStyles.hamburgerLine} />
+            <View style={dynamicStyles.hamburgerLine} />
           </TouchableOpacity>
 
           {/* Title */}
           <Text 
-            style={styles.title} 
+            style={dynamicStyles.title} 
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.7}
@@ -144,10 +253,10 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
         animationType="none"
         onRequestClose={closeMenu}
       >
-        <View style={styles.modalOverlay}>
+        <View style={dynamicStyles.modalOverlay}>
           {/* Backdrop */}
           <TouchableOpacity
-            style={styles.backdrop}
+            style={dynamicStyles.backdrop}
             onPress={closeMenu}
             activeOpacity={1}
           />
@@ -155,7 +264,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
           {/* Menu Content */}
           <Animated.View
             style={[
-              styles.menuContainer,
+              dynamicStyles.menuContainer,
               {
                 transform: [{ translateX: slideAnim }],
               },
@@ -163,14 +272,14 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
           >
             <SafeAreaView style={styles.menuSafeArea}>
               {/* Menu Header */}
-              <View style={styles.menuHeader}>
-                <Text style={styles.menuTitle}>Menu</Text>
+              <View style={dynamicStyles.menuHeader}>
+                <Text style={dynamicStyles.menuTitle}>Menu</Text>
                 <TouchableOpacity
                   style={styles.closeButton}
                   onPress={closeMenu}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.closeButtonText}>✕</Text>
+                  <Text style={dynamicStyles.closeButtonText}>✕</Text>
                 </TouchableOpacity>
               </View>
 
@@ -179,19 +288,19 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
                 {menuItems.map((item, index) => (
                   <TouchableOpacity
                     key={index}
-                    style={styles.menuItem}
+                    style={dynamicStyles.menuItem}
                     onPress={item.onPress}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.menuItemText}>{item.title}</Text>
+                    <Text style={dynamicStyles.menuItemText}>{item.title}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
               {/* User Info at Bottom */}
               {user && (
-                <View style={styles.userInfoSection}>
-                  <View style={styles.userInfo}>
+                <View style={dynamicStyles.userInfoSection}>
+                  <View style={dynamicStyles.userInfo}>
                     <ProfilePicture
                       imageUrl={user.profilePicture}
                       displayName={user.displayName}
@@ -199,8 +308,8 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
                       showBorder
                     />
                     <View style={styles.userDetails}>
-                      <Text style={styles.userName}>{user.displayName}</Text>
-                      <Text style={styles.userEmail}>{user.email}</Text>
+                      <Text style={dynamicStyles.userName}>{user.displayName}</Text>
+                      <Text style={dynamicStyles.userEmail}>{user.email}</Text>
                     </View>
                   </View>
                   
@@ -216,6 +325,16 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
                       activeOpacity={0.7}
                     >
                       <Text style={styles.userActionText}>My Profile</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      style={styles.userActionButton}
+                      onPress={() => handleMenuItemPress(() => {
+                        navigation.navigate('Settings');
+                      })}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.userActionText}>Settings</Text>
                     </TouchableOpacity>
                     
                     {user.role === 'admin' && (
@@ -241,19 +360,6 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  navbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: 'white',
-  },
   menuButton: {
     padding: 8,
     justifyContent: 'center',
@@ -261,65 +367,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
   },
-  hamburgerLine: {
-    width: 20,
-    height: 2,
-    backgroundColor: '#374151',
-    marginVertical: 2,
-    borderRadius: 1,
-  },
-  title: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    textAlign: 'center',
-    marginHorizontal: 12,
-  },
   profileButton: {
     padding: 4,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  backdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  menuContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    width: MENU_WIDTH,
-    backgroundColor: 'white',
-    shadowColor: '#000',
-    shadowOffset: { width: 2, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 10,
-  },
   menuSafeArea: {
     flex: 1,
-  },
-  menuHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  menuTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1f2937',
   },
   closeButton: {
     padding: 8,
@@ -328,67 +380,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  closeButtonText: {
-    fontSize: 18,
-    color: '#6b7280',
-    fontWeight: 'bold',
-  },
   menuItems: {
     flex: 1,
     paddingTop: 8,
-  },
-  menuItem: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
-  menuItemText: {
-    fontSize: 16,
-    color: '#374151',
-    fontWeight: '500',
-  },
-  userInfoSection: {
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    backgroundColor: '#f9fafb',
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
   },
   userDetails: {
     marginLeft: 12,
     flex: 1,
   },
-  userName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 2,
-  },
-  userEmail: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
   userActions: {
     flexDirection: 'row',
     paddingHorizontal: 20,
     paddingBottom: 16,
-    gap: 12,
+    gap: 8,
+    flexWrap: 'wrap',
   },
   userActionButton: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    minWidth: 100,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     backgroundColor: '#ec4899',
     borderRadius: 8,
     alignItems: 'center',
   },
   userActionText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: 'white',
   },
