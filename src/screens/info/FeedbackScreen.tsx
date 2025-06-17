@@ -44,6 +44,21 @@ const FeedbackScreen: React.FC = () => {
           </Text>
         </View>
 
+        {/* Call to Action - Moved to Top */}
+        <View style={styles.ctaSection}>
+          <TouchableOpacity
+            style={styles.feedbackButton}
+            onPress={handleOpenForm}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.feedbackButtonText}>📝 Share Your Feedback</Text>
+          </TouchableOpacity>
+          
+          <Text style={styles.formNote}>
+            Opens in your browser • Takes 2-3 minutes • Anonymous option available
+          </Text>
+        </View>
+
         {/* Main Content */}
         <View style={styles.mainContent}>
           <Text style={styles.description}>
@@ -69,21 +84,6 @@ const FeedbackScreen: React.FC = () => {
               Your input directly shapes the future of our book club community.
             </Text>
           </View>
-        </View>
-
-        {/* Call to Action */}
-        <View style={styles.ctaSection}>
-          <TouchableOpacity
-            style={styles.feedbackButton}
-            onPress={handleOpenForm}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.feedbackButtonText}>📝 Share Your Feedback</Text>
-          </TouchableOpacity>
-          
-          <Text style={styles.formNote}>
-            Opens in your browser • Takes 2-3 minutes • Anonymous option available
-          </Text>
         </View>
 
         {/* Additional Info */}
