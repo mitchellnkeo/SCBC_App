@@ -113,7 +113,12 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
           </TouchableOpacity>
 
           {/* Title */}
-          <Text style={styles.title} numberOfLines={1}>
+          <Text 
+            style={styles.title} 
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+          >
             {title}
           </Text>
 
@@ -270,7 +275,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1f2937',
     textAlign: 'center',
-    marginHorizontal: 16,
+    marginHorizontal: 12,
   },
   profileButton: {
     padding: 4,
