@@ -203,15 +203,6 @@ const AllEventsTab: React.FC = () => {
           {events.map((event) => (
             <EventCard key={event.id} event={event} />
           ))}
-          
-          {/* Create Event Button */}
-          <TouchableOpacity
-            onPress={navigateToCreateEvent}
-            style={styles.createEventButton}
-            className="bg-pink-500 rounded-xl p-4 items-center mb-8 shadow-sm"
-          >
-            <Text style={styles.createEventText} className="text-white font-bold text-lg">+ Create New Event</Text>
-          </TouchableOpacity>
         </ScrollView>
       )}
     </View>
@@ -345,23 +336,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   createButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
-  createEventButton: {
-    backgroundColor: '#ec4899',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  createEventText: {
     color: 'white',
     fontWeight: 'bold',
     fontSize: 18,
