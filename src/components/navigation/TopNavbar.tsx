@@ -65,32 +65,17 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
 
   const menuItems = [
     {
-      title: 'Events',
-      onPress: () => handleMenuItemPress(() => {
-        navigation.navigate('Events');
-      }),
-    },
-    {
       title: 'Monthly Book',
       onPress: () => handleMenuItemPress(() => {
         navigation.navigate('MonthlyBook');
       }),
     },
     {
-      title: 'My Profile',
+      title: 'Events',
       onPress: () => handleMenuItemPress(() => {
-        if (user) {
-          navigation.navigate('UserProfile', { userId: user.id });
-        }
+        navigation.navigate('Events');
       }),
     },
-    // Add admin menu item if user is admin
-    ...(user?.role === 'admin' ? [{
-      title: 'Admin Panel',
-      onPress: () => handleMenuItemPress(() => {
-        navigation.navigate('Admin');
-      }),
-    }] : []),
     {
       title: 'About SCBC',
       onPress: () => handleMenuItemPress(() => {
@@ -201,16 +186,45 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
 
               {/* User Info at Bottom */}
               {user && (
-                <View style={styles.userInfo}>
-                  <ProfilePicture
-                    imageUrl={user.profilePicture}
-                    displayName={user.displayName}
-                    size="medium"
-                    showBorder
-                  />
-                  <View style={styles.userDetails}>
-                    <Text style={styles.userName}>{user.displayName}</Text>
-                    <Text style={styles.userEmail}>{user.email}</Text>
+                <View style={styles.userInfoSection}>
+                  <View style={styles.userInfo}>
+                    <ProfilePicture
+                      imageUrl={user.profilePicture}
+                      displayName={user.displayName}
+                      size="medium"
+                      showBorder
+                    />
+                    <View style={styles.userDetails}>
+                      <Text style={styles.userName}>{user.displayName}</Text>
+                      <Text style={styles.userEmail}>{user.email}</Text>
+                    </View>
+                  </View>
+                  
+                  {/* User Action Buttons */}
+                  <View style={styles.userActions}>
+                    <TouchableOpacity
+                      style={styles.userActionButton}
+                      onPress={() => handleMenuItemPress(() => {
+                        if (user) {
+                          navigation.navigate('UserProfile', { userId: user.id });
+                        }
+                      })}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.userActionText}>My Profile</Text>
+                    </TouchableOpacity>
+                    
+                    {user.role === 'admin' && (
+                      <TouchableOpacity
+                        style={styles.userActionButton}
+                        onPress={() => handleMenuItemPress(() => {
+                          navigation.navigate('Admin');
+                        })}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.userActionText}>Admin Panel</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
               )}
@@ -330,14 +344,16 @@ const styles = StyleSheet.create({
     color: '#374151',
     fontWeight: '500',
   },
+  userInfoSection: {
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    backgroundColor: '#f9fafb',
+  },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    backgroundColor: '#f9fafb',
   },
   userDetails: {
     marginLeft: 12,
@@ -352,6 +368,25 @@ const styles = StyleSheet.create({
   userEmail: {
     fontSize: 14,
     color: '#6b7280',
+  },
+  userActions: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    gap: 12,
+  },
+  userActionButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#ec4899',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  userActionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'white',
   },
 });
 
