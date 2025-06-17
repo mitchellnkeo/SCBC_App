@@ -91,8 +91,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
     {
       title: 'SCBC Feedback',
       onPress: () => handleMenuItemPress(() => {
-        // TODO: Navigate to Feedback screen
-        console.log('SCBC Feedback pressed');
+        navigation.navigate('Feedback');
       }),
     },
   ];
