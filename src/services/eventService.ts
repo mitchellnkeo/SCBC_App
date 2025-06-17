@@ -642,4 +642,122 @@ export const subscribeToPendingEvents = (callback: (events: BookClubEvent[]) => 
   }, (error) => {
     console.error('Error in pending events subscription:', error);
   });
+};
+
+// Get events that a user is attending (RSVP'd as 'going') or hosting
+export const getUserEvents = async (userId: string): Promise<BookClubEvent[]> => {
+  try {
+    // Get all approved events
+    const eventsQuery = query(
+      collection(db, EVENTS_COLLECTION),
+      where('status', '==', 'approved')
+    );
+    const eventsSnapshot = await getDocs(eventsQuery);
+    
+    const allEvents = eventsSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        date: data.date?.toDate() || new Date(),
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+        approvedAt: data.approvedAt?.toDate() || undefined,
+      } as BookClubEvent;
+    });
+
+    // Get user's RSVPs for 'going' status
+    const rsvpsQuery = query(
+      collection(db, RSVPS_COLLECTION),
+      where('userId', '==', userId),
+      where('status', '==', 'going')
+    );
+    const rsvpsSnapshot = await getDocs(rsvpsQuery);
+    const rsvpEventIds = rsvpsSnapshot.docs.map(doc => doc.data().eventId);
+
+    // Filter events to include:
+    // 1. Events the user is hosting (createdBy === userId)
+    // 2. Events the user RSVP'd to as 'going'
+    const userEvents = allEvents.filter(event => 
+      event.createdBy === userId || rsvpEventIds.includes(event.id)
+    );
+
+    // Sort by date
+    return userEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
+  } catch (error) {
+    console.error('Error getting user events:', error);
+    throw new Error('Failed to load your events. Please try again.');
+  }
+};
+
+// Subscribe to user events with real-time updates
+export const subscribeToUserEvents = (
+  userId: string,
+  callback: (events: BookClubEvent[]) => void
+) => {
+  // Subscribe to events where user is the creator
+  const createdEventsQuery = query(
+    collection(db, EVENTS_COLLECTION),
+    where('createdBy', '==', userId),
+    where('status', '==', 'approved')
+  );
+
+  // Subscribe to user's RSVPs
+  const userRsvpsQuery = query(
+    collection(db, RSVPS_COLLECTION),
+    where('userId', '==', userId),
+    where('status', '==', 'going')
+  );
+
+  let createdEvents: BookClubEvent[] = [];
+  let rsvpEventIds: string[] = [];
+  let allEvents: BookClubEvent[] = [];
+
+  const updateUserEvents = () => {
+    const userEvents = allEvents.filter(event => 
+      event.createdBy === userId || rsvpEventIds.includes(event.id)
+    );
+    const sortedEvents = userEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
+    callback(sortedEvents);
+  };
+
+  // Subscribe to all approved events
+  const unsubscribeAllEvents = onSnapshot(
+    query(collection(db, EVENTS_COLLECTION), where('status', '==', 'approved')),
+    (snapshot) => {
+      allEvents = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          date: data.date?.toDate() || new Date(),
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date(),
+          approvedAt: data.approvedAt?.toDate() || undefined,
+        } as BookClubEvent;
+      });
+      updateUserEvents();
+    },
+    (error) => {
+      console.error('Error in user events subscription:', error);
+    }
+  );
+
+  // Subscribe to user's RSVPs
+  const unsubscribeRsvps = onSnapshot(
+    userRsvpsQuery,
+    (snapshot) => {
+      rsvpEventIds = snapshot.docs.map(doc => doc.data().eventId);
+      updateUserEvents();
+    },
+    (error) => {
+      console.error('Error in user RSVPs subscription:', error);
+    }
+  );
+
+  // Return cleanup function
+  return () => {
+    unsubscribeAllEvents();
+    unsubscribeRsvps();
+  };
 }; 
