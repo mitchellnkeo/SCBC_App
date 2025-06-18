@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert, ActivityIndicator, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useForm, Controller } from 'react-hook-form';
@@ -25,6 +25,10 @@ const LoginScreen: React.FC = () => {
       password: '',
     },
   });
+
+  // Add refs for TextInput fields
+  const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
 
   const onSubmit = async (data: LoginCredentials) => {
     try {
@@ -77,6 +81,11 @@ const LoginScreen: React.FC = () => {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
+                  returnKeyType="next"
+                  onSubmitEditing={() => {
+                    passwordRef.current?.focus();
+                  }}
+                  ref={emailRef}
                 />
               )}
             />
@@ -109,6 +118,12 @@ const LoginScreen: React.FC = () => {
                   secureTextEntry
                   autoCapitalize="none"
                   autoCorrect={false}
+                  returnKeyType="done"
+                  onSubmitEditing={() => {
+                    Keyboard.dismiss();
+                    handleSubmit(onSubmit)();
+                  }}
+                  ref={passwordRef}
                 />
               )}
             />

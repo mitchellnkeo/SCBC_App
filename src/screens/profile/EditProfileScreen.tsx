@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
   Platform,
   ActivityIndicator,
   ActionSheetIOS,
+  Image,
+  Keyboard,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useForm, Controller } from 'react-hook-form';
@@ -31,7 +33,11 @@ export const EditProfileScreen: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUpdatingPicture, setIsUpdatingPicture] = useState(false);
 
-
+  // Add refs for TextInput fields
+  const displayNameRef = useRef<TextInput>(null);
+  const bioRef = useRef<TextInput>(null);
+  const hobbiesRef = useRef<TextInput>(null);
+  const favoriteBooksRef = useRef<TextInput>(null);
 
   const {
     control,
@@ -272,6 +278,9 @@ export const EditProfileScreen: React.FC = () => {
                   onBlur={onBlur}
                   autoCapitalize="words"
                   maxLength={50}
+                  ref={displayNameRef}
+                  returnKeyType="next"
+                  onSubmitEditing={() => bioRef.current?.focus()}
                 />
               )}
             />
@@ -300,6 +309,9 @@ export const EditProfileScreen: React.FC = () => {
                   numberOfLines={4}
                   textAlignVertical="top"
                   maxLength={500}
+                  ref={bioRef}
+                  returnKeyType="next"
+                  onSubmitEditing={() => hobbiesRef.current?.focus()}
                 />
               )}
             />
@@ -325,6 +337,9 @@ export const EditProfileScreen: React.FC = () => {
                   onChangeText={onChange}
                   onBlur={onBlur}
                   multiline
+                  ref={hobbiesRef}
+                  returnKeyType="next"
+                  onSubmitEditing={() => favoriteBooksRef.current?.focus()}
                 />
               )}
             />
@@ -347,6 +362,9 @@ export const EditProfileScreen: React.FC = () => {
                   onChangeText={onChange}
                   onBlur={onBlur}
                   multiline
+                  ref={favoriteBooksRef}
+                  returnKeyType="done"
+                  onSubmitEditing={() => Keyboard.dismiss()}
                 />
               )}
             />

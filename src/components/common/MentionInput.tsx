@@ -8,6 +8,9 @@ import {
   StyleSheet,
   Image,
   Dimensions,
+  InputAccessoryView,
+  Platform,
+  Keyboard,
 } from 'react-native';
 import { Mention, UserSuggestion, MentionInputProps } from '../../types/mentions';
 
@@ -175,6 +178,24 @@ const MentionInput: React.FC<MentionInputProps> = ({
     </TouchableOpacity>
   );
 
+  // Keyboard toolbar component
+  const KeyboardToolbar = () => (
+    <InputAccessoryView nativeID="keyboardToolbar">
+      <View style={styles.keyboardToolbar}>
+        <View style={styles.toolbarSpacer} />
+        <TouchableOpacity
+          style={styles.doneButton}
+          onPress={() => {
+            Keyboard.dismiss();
+            inputRef.current?.blur();
+          }}
+        >
+          <Text style={styles.doneButtonText}>Done</Text>
+        </TouchableOpacity>
+      </View>
+    </InputAccessoryView>
+  );
+
   return (
     <View style={styles.container}>
       <TextInput
@@ -188,8 +209,12 @@ const MentionInput: React.FC<MentionInputProps> = ({
         maxLength={maxLength}
         multiline={multiline}
         onSubmitEditing={onSubmit}
-        blurOnSubmit={!multiline}
+        submitBehavior={multiline ? "newline" : "submit"}
+        returnKeyType="default"
+        inputAccessoryViewID={Platform.OS === 'ios' ? "keyboardToolbar" : undefined}
       />
+      
+      {Platform.OS === 'ios' && <KeyboardToolbar />}
       
       {showSuggestions && suggestions.length > 0 && (
         <View style={styles.suggestionsContainer}>
@@ -279,6 +304,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#111827',
     fontWeight: '500',
+  },
+  keyboardToolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minHeight: 44,
+  },
+  toolbarSpacer: {
+    flex: 1,
+  },
+  doneButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#ec4899',
+    borderRadius: 6,
+  },
+  doneButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

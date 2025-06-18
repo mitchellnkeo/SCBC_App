@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Platform,
   StyleSheet,
   KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -27,7 +28,22 @@ const InputField: React.FC<{
   numberOfLines?: number;
   error?: string;
   keyboardType?: 'default' | 'numeric' | 'url';
-}> = ({ label, value, onChangeText, placeholder, multiline, numberOfLines, error, keyboardType = 'default' }) => (
+  returnKeyType?: 'done' | 'next' | 'default';
+  onSubmitEditing?: () => void;
+  inputRef?: React.RefObject<TextInput | null>;
+}> = ({ 
+  label, 
+  value, 
+  onChangeText, 
+  placeholder, 
+  multiline, 
+  numberOfLines, 
+  error, 
+  keyboardType = 'default',
+  returnKeyType = 'default',
+  onSubmitEditing,
+  inputRef
+}) => (
   <View style={styles.inputContainer} className="mb-4">
     <Text style={styles.label} className="text-gray-700 font-medium mb-2">{label}</Text>
     <TextInput
@@ -42,6 +58,9 @@ const InputField: React.FC<{
         error ? 'border-red-500' : 'border-gray-300'
       }`}
       textAlignVertical={multiline ? 'top' : 'center'}
+      returnKeyType={returnKeyType}
+      onSubmitEditing={onSubmitEditing}
+      ref={inputRef}
     />
     {error && <Text style={styles.errorText} className="text-red-500 text-sm mt-1">{error}</Text>}
   </View>
@@ -65,6 +84,14 @@ const CreateEventScreen: React.FC = () => {
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Add refs for form fields
+  const titleRef = useRef<TextInput>(null);
+  const descriptionRef = useRef<TextInput>(null);
+  const timeRef = useRef<TextInput>(null);
+  const locationRef = useRef<TextInput>(null);
+  const addressRef = useRef<TextInput>(null);
+  const maxAttendeesRef = useRef<TextInput>(null);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -178,6 +205,9 @@ const CreateEventScreen: React.FC = () => {
             onChangeText={(text) => setFormData({ ...formData, title: text })}
             placeholder="e.g., Book Discussion: Pride and Prejudice"
             error={errors.title}
+            inputRef={titleRef}
+            returnKeyType="next"
+            onSubmitEditing={() => descriptionRef.current?.focus()}
           />
 
           <InputField
@@ -188,6 +218,9 @@ const CreateEventScreen: React.FC = () => {
             multiline
             numberOfLines={4}
             error={errors.description}
+            inputRef={descriptionRef}
+            returnKeyType="next"
+            onSubmitEditing={() => timeRef.current?.focus()}
           />
 
           {/* Date Picker */}
@@ -218,6 +251,9 @@ const CreateEventScreen: React.FC = () => {
             onChangeText={(text) => setFormData({ ...formData, time: text })}
             placeholder="e.g., 7:00 PM"
             error={errors.time}
+            inputRef={timeRef}
+            returnKeyType="next"
+            onSubmitEditing={() => locationRef.current?.focus()}
           />
 
           <InputField
@@ -226,6 +262,9 @@ const CreateEventScreen: React.FC = () => {
             onChangeText={(text) => setFormData({ ...formData, location: text })}
             placeholder="e.g., Central Library"
             error={errors.location}
+            inputRef={locationRef}
+            returnKeyType="next"
+            onSubmitEditing={() => addressRef.current?.focus()}
           />
 
           <InputField
@@ -234,6 +273,9 @@ const CreateEventScreen: React.FC = () => {
             onChangeText={(text) => setFormData({ ...formData, address: text })}
             placeholder="e.g., 1000 4th Ave, Seattle, WA 98104"
             error={errors.address}
+            inputRef={addressRef}
+            returnKeyType="next"
+            onSubmitEditing={() => maxAttendeesRef.current?.focus()}
           />
 
           <InputField
@@ -245,6 +287,9 @@ const CreateEventScreen: React.FC = () => {
             })}
             placeholder="e.g., 25"
             keyboardType="numeric"
+            inputRef={maxAttendeesRef}
+            returnKeyType="done"
+            onSubmitEditing={() => Keyboard.dismiss()}
           />
 
           <InputField
