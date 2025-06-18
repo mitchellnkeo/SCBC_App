@@ -5,16 +5,20 @@ import { useNavigation } from '@react-navigation/native';
 import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
 import TopNavbar from '../../components/navigation/TopNavbar';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const AdminScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user } = useAuthStore();
+  const { theme } = useTheme();
   const { 
     pendingStats, 
     loadPendingStats,
     error,
     clearError 
   } = useEventStore();
+
+  const styles = createStyles(theme);
 
   useEffect(() => {
     loadPendingStats();
@@ -41,61 +45,63 @@ const AdminScreen: React.FC = () => {
   }> = ({ title, description, icon, badge, onPress, bgColor = 'bg-white' }) => (
     <TouchableOpacity
       onPress={onPress}
-      style={[styles.adminCard, bgColor === 'bg-yellow-50' && styles.adminCardHighlight]}
-      className={`${bgColor} rounded-xl p-6 shadow-sm border border-gray-100 mb-4`}
+      style={[
+        styles.adminCard, 
+        bgColor === 'bg-yellow-50' && styles.adminCardHighlight
+      ]}
     >
-      <View style={styles.cardContent} className="flex-row items-start justify-between">
-        <View style={styles.cardMain} className="flex-1">
-          <View style={styles.cardHeader} className="flex-row items-center mb-2">
-            <Text style={styles.cardIcon} className="text-2xl mr-3">{icon}</Text>
-            <Text style={styles.cardTitle} className="text-lg font-semibold text-gray-900">{title}</Text>
+      <View style={styles.cardContent}>
+        <View style={styles.cardMain}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardIcon}>{icon}</Text>
+            <Text style={styles.cardTitle}>{title}</Text>
             {badge && (
-              <View style={styles.badge} className="bg-red-500 rounded-full px-2 py-1 ml-2">
-                <Text style={styles.badgeText} className="text-white text-xs font-bold">{badge}</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{badge}</Text>
               </View>
             )}
           </View>
-          <Text style={styles.cardDescription} className="text-gray-600">{description}</Text>
+          <Text style={styles.cardDescription}>{description}</Text>
         </View>
-        <Text style={styles.chevron} className="text-gray-400 text-xl">›</Text>
+        <Text style={styles.chevron}>›</Text>
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container} className="flex-1 bg-gray-50">
+    <View style={styles.container}>
       {/* Top Navigation */}
       <TopNavbar title="Admin Panel" />
       
       {/* Sub Header */}
-      <View style={styles.subHeader} className="bg-white border-b border-gray-200 px-6 py-4">
-        <Text style={styles.headerSubtitle} className="text-gray-600">
+      <View style={styles.subHeader}>
+        <Text style={styles.headerSubtitle}>
           Welcome back, {user?.displayName || 'Admin'}
         </Text>
       </View>
 
       {/* Content */}
-      <ScrollView style={styles.scrollView} className="flex-1 p-6">
+      <ScrollView style={styles.scrollView}>
         {/* Stats Overview */}
-        <View style={styles.section} className="mb-6">
-          <Text style={styles.sectionTitle} className="text-xl font-bold text-gray-900 mb-4">Quick Stats</Text>
-          <View style={styles.statsCard} className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl p-6">
-            <Text style={styles.statsLabel} className="text-white text-lg font-semibold mb-2">Event Approvals</Text>
-            <View style={styles.statsRow} className="flex-row items-baseline">
-              <Text style={styles.statsNumber} className="text-white text-3xl font-bold mr-2">
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Stats</Text>
+          <View style={styles.statsCard}>
+            <Text style={styles.statsLabel}>Event Approvals</Text>
+            <View style={styles.statsRow}>
+              <Text style={styles.statsNumber}>
                 {pendingStats.totalPending}
               </Text>
-              <Text style={styles.statsUnit} className="text-pink-100">pending events</Text>
+              <Text style={styles.statsUnit}>pending events</Text>
             </View>
-            <Text style={styles.statsDetail} className="text-pink-100 mt-1">
+            <Text style={styles.statsDetail}>
               {pendingStats.newThisWeek} new this week
             </Text>
           </View>
         </View>
 
         {/* Admin Actions */}
-        <View style={styles.section} className="mb-6">
-          <Text style={styles.sectionTitle} className="text-xl font-bold text-gray-900 mb-4">Admin Actions</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Admin Actions</Text>
           
           <AdminCard
             title="Pending Events"
@@ -143,10 +149,10 @@ const AdminScreen: React.FC = () => {
         </View>
 
         {/* Recent Activity */}
-        <View style={styles.section} className="mb-6">
-          <Text style={styles.sectionTitle} className="text-xl font-bold text-gray-900 mb-4">Recent Activity</Text>
-          <View style={styles.activityCard} className="bg-white rounded-xl p-6 border border-gray-100">
-            <Text style={styles.activityPlaceholder} className="text-gray-600 text-center">
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Recent Activity</Text>
+          <View style={styles.activityCard}>
+            <Text style={styles.activityPlaceholder}>
               📈 Activity feed coming soon...
             </Text>
           </View>
@@ -156,21 +162,21 @@ const AdminScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb', // gray-50
+    backgroundColor: theme.background,
   },
   subHeader: {
-    backgroundColor: 'white',
+    backgroundColor: theme.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb', // gray-200
+    borderBottomColor: theme.border,
     paddingHorizontal: 24,
     paddingVertical: 24,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: '#6b7280', // gray-600
+    color: theme.textSecondary,
     marginTop: 8,
   },
   scrollView: {
@@ -183,11 +189,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#111827', // gray-900
+    color: theme.text,
     marginBottom: 16,
   },
   statsCard: {
-    backgroundColor: '#ec4899', // pink-500 fallback
+    backgroundColor: theme.primary,
     borderRadius: 12,
     padding: 24,
   },
@@ -208,29 +214,30 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   statsUnit: {
-    color: '#fbcfe8', // pink-100
+    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 16,
   },
   statsDetail: {
-    color: '#fbcfe8', // pink-100
+    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 14,
     marginTop: 4,
   },
   adminCard: {
-    backgroundColor: 'white',
+    backgroundColor: theme.card,
     borderRadius: 12,
     padding: 24,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#f3f4f6', // gray-100
-    shadowColor: '#000',
+    borderColor: theme.border,
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
   },
   adminCardHighlight: {
-    backgroundColor: '#fefce8', // yellow-50
+    backgroundColor: theme.warning + '20', // 20% opacity
+    borderColor: theme.warning,
   },
   cardContent: {
     flexDirection: 'row',
@@ -252,10 +259,10 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827', // gray-900
+    color: theme.text,
   },
   badge: {
-    backgroundColor: '#ef4444', // red-500
+    backgroundColor: theme.error,
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -268,23 +275,23 @@ const styles = StyleSheet.create({
   },
   cardDescription: {
     fontSize: 16,
-    color: '#6b7280', // gray-600
+    color: theme.textSecondary,
     lineHeight: 22,
   },
   chevron: {
     fontSize: 20,
-    color: '#9ca3af', // gray-400
+    color: theme.textTertiary,
   },
   activityCard: {
-    backgroundColor: 'white',
+    backgroundColor: theme.card,
     borderRadius: 12,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#f3f4f6', // gray-100
+    borderColor: theme.border,
   },
   activityPlaceholder: {
     fontSize: 16,
-    color: '#6b7280', // gray-600
+    color: theme.textSecondary,
     textAlign: 'center',
   },
 });

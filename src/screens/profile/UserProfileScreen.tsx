@@ -22,6 +22,7 @@ import { getUserProfile } from '../../services/userService';
 import ProfilePicture from '../../components/common/ProfilePicture';
 import { handleError } from '../../utils/errorHandler';
 import EventCard from '../../components/common/EventCard';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type UserProfileScreenNavigationProp = StackNavigationProp<MainStackParamList>;
 type UserProfileScreenRouteProp = RouteProp<MainStackParamList, 'UserProfile'>;
@@ -44,6 +45,7 @@ const UserProfileScreen: React.FC = () => {
   const route = useRoute<UserProfileScreenRouteProp>();
   const { userId } = route.params;
   const { user: currentUser } = useAuthStore();
+  const { theme } = useTheme();
 
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [userEvents, setUserEvents] = useState<UserEvents>({
@@ -187,6 +189,8 @@ const UserProfileScreen: React.FC = () => {
     );
   };
 
+  const styles = createStyles(theme);
+
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -250,7 +254,12 @@ const UserProfileScreen: React.FC = () => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+          <RefreshControl 
+            refreshing={isRefreshing} 
+            onRefresh={handleRefresh}
+            tintColor={theme.primary}
+            colors={[theme.primary]}
+          />
         }
       >
         {/* Profile Header */}
@@ -320,10 +329,10 @@ const UserProfileScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: theme.background,
   },
   header: {
     flexDirection: 'row',
@@ -331,9 +340,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: 'white',
+    backgroundColor: theme.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: theme.border,
   },
   backButton: {
     paddingHorizontal: 8,
@@ -342,18 +351,18 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#ec4899',
+    color: theme.primary,
     fontWeight: '500',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: theme.text,
   },
   editButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#ec4899',
+    backgroundColor: theme.primary,
     borderRadius: 8,
   },
   editButtonText: {
@@ -373,7 +382,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#6b7280',
+    color: theme.textSecondary,
   },
   errorContainer: {
     flex: 1,
@@ -382,34 +391,36 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#ef4444',
+    color: theme.error,
   },
   profileHeader: {
-    backgroundColor: 'white',
+    backgroundColor: theme.card,
     borderRadius: 12,
     padding: 24,
     alignItems: 'center',
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: theme.border,
   },
   displayName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: theme.text,
     marginTop: 16,
     marginBottom: 4,
   },
   email: {
     fontSize: 16,
-    color: '#6b7280',
+    color: theme.textSecondary,
     marginBottom: 12,
   },
   roleBadge: {
-    backgroundColor: '#ec4899',
+    backgroundColor: theme.primary,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
@@ -423,45 +434,49 @@ const styles = StyleSheet.create({
   },
   joinDate: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: theme.textTertiary,
   },
   bioCard: {
-    backgroundColor: 'white',
+    backgroundColor: theme.card,
     borderRadius: 12,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: theme.border,
   },
   bioTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: theme.text,
     marginBottom: 12,
   },
   bioText: {
     fontSize: 16,
-    color: '#4b5563',
+    color: theme.textSecondary,
     lineHeight: 24,
   },
   interestsCard: {
-    backgroundColor: 'white',
+    backgroundColor: theme.card,
     borderRadius: 12,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: theme.border,
   },
   interestsTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: theme.text,
     marginBottom: 12,
   },
   tagsContainer: {
@@ -470,29 +485,30 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tag: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: theme.surface,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: theme.border,
   },
   tagText: {
     fontSize: 14,
-    color: '#4b5563',
+    color: theme.textSecondary,
     fontWeight: '500',
   },
-
   eventsCard: {
-    backgroundColor: 'white',
+    backgroundColor: theme.card,
     borderRadius: 12,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: theme.border,
   },
   eventsHeader: {
     flexDirection: 'row',
@@ -503,7 +519,7 @@ const styles = StyleSheet.create({
   eventsTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: theme.text,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -512,15 +528,18 @@ const styles = StyleSheet.create({
   tab: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: theme.surface,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: theme.border,
   },
   activeTab: {
-    backgroundColor: '#ec4899',
+    backgroundColor: theme.primary,
+    borderColor: theme.primary,
   },
   tabText: {
     fontSize: 14,
-    color: '#4b5563',
+    color: theme.textSecondary,
     fontWeight: '500',
   },
   activeTabText: {
@@ -528,7 +547,7 @@ const styles = StyleSheet.create({
   },
   noEventsText: {
     fontSize: 16,
-    color: '#9ca3af',
+    color: theme.textTertiary,
     textAlign: 'center',
     fontStyle: 'italic',
   },
@@ -541,7 +560,7 @@ const styles = StyleSheet.create({
   eventSectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#4b5563',
+    color: theme.textSecondary,
     marginBottom: 8,
   },
   bottomSpacer: {
