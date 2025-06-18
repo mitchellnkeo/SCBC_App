@@ -27,6 +27,7 @@ const MyEventsTab: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
 
   useEffect(() => {
     if (user) {
@@ -285,7 +286,216 @@ const MyEventsTab: React.FC = () => {
     totalStatNumber: {
       color: theme.primary,
     },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: theme.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.text,
+    },
+    viewToggle: {
+      flexDirection: 'row',
+      backgroundColor: theme.background,
+      borderRadius: 8,
+      padding: 2,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    toggleButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 6,
+      minWidth: 50,
+      alignItems: 'center',
+    },
+    activeToggle: {
+      backgroundColor: theme.primary,
+    },
+    toggleText: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      fontWeight: '500',
+    },
+    activeToggleText: {
+      color: 'white',
+      fontWeight: '600',
+    },
+    listItem: {
+      backgroundColor: theme.card,
+      borderRadius: 8,
+      marginBottom: 8,
+      padding: 12,
+      borderWidth: 1,
+      borderColor: theme.border,
+      shadowColor: theme.shadow,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+      position: 'relative',
+    },
+    listRoleBadge: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 12,
+    },
+    listRoleBadgeText: {
+      color: 'white',
+      fontSize: 10,
+      fontWeight: 'bold',
+    },
+    listHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 8,
+      paddingRight: 60, // Space for role badge
+    },
+    listTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: theme.text,
+      flex: 1,
+      marginRight: 8,
+    },
+    listDate: {
+      fontSize: 12,
+      color: theme.textSecondary,
+      fontWeight: '500',
+    },
+    listDetails: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 4,
+    },
+    listDetailText: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      marginLeft: 4,
+      flex: 1,
+    },
+    listHost: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    hostInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    listHostAvatar: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      marginRight: 6,
+    },
+    listHostText: {
+      fontSize: 12,
+      color: theme.textTertiary,
+    },
+    listStatus: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    listStatusDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: theme.success,
+      marginRight: 4,
+    },
+    listStatusText: {
+      fontSize: 10,
+      color: theme.success,
+      fontWeight: '500',
+    },
   });
+
+  const EventListItem: React.FC<{ event: BookClubEvent }> = ({ event }) => {
+    const role = getEventRole(event);
+    
+    return (
+      <TouchableOpacity
+        onPress={() => navigateToEventDetails(event.id)}
+        style={dynamicStyles.listItem}
+      >
+        {/* Role Badge */}
+        <View 
+          style={[
+            dynamicStyles.listRoleBadge,
+            role === 'hosting' ? dynamicStyles.hostingBadge : dynamicStyles.attendingBadge
+          ]}
+        >
+          <Text style={dynamicStyles.listRoleBadgeText}>
+            {role === 'hosting' ? '🏠' : '✅'}
+          </Text>
+        </View>
+
+        {/* Header with title and date */}
+        <View style={dynamicStyles.listHeader}>
+          <Text style={dynamicStyles.listTitle} numberOfLines={2}>
+            {event.title}
+          </Text>
+          <Text style={dynamicStyles.listDate}>
+            {formatDate(event.date)}
+          </Text>
+        </View>
+        
+        {/* Time and Location */}
+        <View style={dynamicStyles.listDetails}>
+          <Text style={dynamicStyles.emoji}>🕐</Text>
+          <Text style={dynamicStyles.listDetailText} numberOfLines={1}>
+            {formatTime(event.time)}
+          </Text>
+        </View>
+        
+        <View style={dynamicStyles.listDetails}>
+          <Text style={dynamicStyles.emoji}>📍</Text>
+          <Text style={dynamicStyles.listDetailText} numberOfLines={1}>
+            {event.location}
+          </Text>
+        </View>
+        
+        {/* Host and Status */}
+        <View style={dynamicStyles.listHost}>
+          <View style={dynamicStyles.hostInfo}>
+            {event.hostProfilePicture ? (
+              <Image
+                source={{ uri: event.hostProfilePicture }}
+                style={dynamicStyles.listHostAvatar}
+              />
+            ) : (
+              <View style={[dynamicStyles.listHostAvatar, dynamicStyles.hostAvatarPlaceholder]}>
+                <Text style={[dynamicStyles.hostInitial, { fontSize: 10 }]}>
+                  {event.hostName.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            )}
+            <Text style={dynamicStyles.listHostText}>
+              {role === 'hosting' ? 'You' : event.hostName}
+            </Text>
+          </View>
+          
+          <View style={dynamicStyles.listStatus}>
+            <View style={dynamicStyles.listStatusDot} />
+            <Text style={dynamicStyles.listStatusText}>Active</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const EventCard: React.FC<{ event: BookClubEvent }> = ({ event }) => {
     const role = getEventRole(event);
@@ -412,47 +622,89 @@ const MyEventsTab: React.FC = () => {
       {userEvents.length === 0 ? (
         <EmptyState />
       ) : (
-        <ScrollView 
-          style={dynamicStyles.scrollView}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={onRefresh}
-              colors={[theme.primary]}
-              tintColor={theme.primary}
-            />
-          }
-          showsVerticalScrollIndicator={false}
-        >
-          {userEvents.map((event) => (
-            <EventCard key={event.id} event={event} />
-          ))}
-          
-          {/* Summary Stats */}
-          <View style={dynamicStyles.statsContainer}>
-            <Text style={dynamicStyles.statsTitle}>Your Event Summary</Text>
-            <View style={dynamicStyles.statsRow}>
-              <View style={dynamicStyles.statItem}>
-                <Text style={[dynamicStyles.statNumber, dynamicStyles.hostingStatNumber]}>
-                  {userEvents.filter(event => event.createdBy === user?.id).length}
+        <>
+          {/* Header with View Toggle */}
+          <View style={dynamicStyles.header}>
+            <Text style={dynamicStyles.headerTitle}>My Events</Text>
+            <View style={dynamicStyles.viewToggle}>
+              <TouchableOpacity
+                style={[
+                  dynamicStyles.toggleButton,
+                  viewMode === 'card' && dynamicStyles.activeToggle
+                ]}
+                onPress={() => setViewMode('card')}
+              >
+                <Text style={[
+                  dynamicStyles.toggleText,
+                  viewMode === 'card' && dynamicStyles.activeToggleText
+                ]}>
+                  📋
                 </Text>
-                <Text style={dynamicStyles.statLabel}>Hosting</Text>
-              </View>
-              <View style={dynamicStyles.statItem}>
-                <Text style={[dynamicStyles.statNumber, dynamicStyles.attendingStatNumber]}>
-                  {userEvents.filter(event => event.createdBy !== user?.id).length}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  dynamicStyles.toggleButton,
+                  viewMode === 'list' && dynamicStyles.activeToggle
+                ]}
+                onPress={() => setViewMode('list')}
+              >
+                <Text style={[
+                  dynamicStyles.toggleText,
+                  viewMode === 'list' && dynamicStyles.activeToggleText
+                ]}>
+                  📄
                 </Text>
-                <Text style={dynamicStyles.statLabel}>Attending</Text>
-              </View>
-              <View style={dynamicStyles.statItem}>
-                <Text style={[dynamicStyles.statNumber, dynamicStyles.totalStatNumber]}>
-                  {userEvents.length}
-                </Text>
-                <Text style={dynamicStyles.statLabel}>Total</Text>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
-        </ScrollView>
+
+          {/* Events Content */}
+          <ScrollView 
+            style={dynamicStyles.scrollView}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={onRefresh}
+                colors={[theme.primary]}
+                tintColor={theme.primary}
+              />
+            }
+            showsVerticalScrollIndicator={false}
+          >
+            {userEvents.map((event) => 
+              viewMode === 'card' ? (
+                <EventCard key={event.id} event={event} />
+              ) : (
+                <EventListItem key={event.id} event={event} />
+              )
+            )}
+            
+            {/* Summary Stats */}
+            <View style={dynamicStyles.statsContainer}>
+              <Text style={dynamicStyles.statsTitle}>Your Event Summary</Text>
+              <View style={dynamicStyles.statsRow}>
+                <View style={dynamicStyles.statItem}>
+                  <Text style={[dynamicStyles.statNumber, dynamicStyles.hostingStatNumber]}>
+                    {userEvents.filter(event => event.createdBy === user?.id).length}
+                  </Text>
+                  <Text style={dynamicStyles.statLabel}>Hosting</Text>
+                </View>
+                <View style={dynamicStyles.statItem}>
+                  <Text style={[dynamicStyles.statNumber, dynamicStyles.attendingStatNumber]}>
+                    {userEvents.filter(event => event.createdBy !== user?.id).length}
+                  </Text>
+                  <Text style={dynamicStyles.statLabel}>Attending</Text>
+                </View>
+                <View style={dynamicStyles.statItem}>
+                  <Text style={[dynamicStyles.statNumber, dynamicStyles.totalStatNumber]}>
+                    {userEvents.length}
+                  </Text>
+                  <Text style={dynamicStyles.statLabel}>Total</Text>
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+        </>
       )}
     </View>
   );
