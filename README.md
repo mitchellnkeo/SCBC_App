@@ -52,6 +52,10 @@ The Seattle Chinatown Book Club App is a production-ready React Native applicati
 - **Content Moderation** - Admin oversight of community content
 
 ### 🎨 **User Experience**
+- **Dark/Light Mode** - Complete theme system with automatic system detection
+- **Theme Persistence** - User preferences saved and restored across sessions
+- **Settings Management** - Comprehensive settings screen with theme, text size, and privacy controls
+- **List/Card View Toggle** - Flexible event viewing options for different user preferences
 - **Modern UI** - Clean, intuitive design with consistent styling
 - **Responsive Design** - Optimized for all screen sizes
 - **Loading States** - Smooth loading indicators throughout
@@ -68,6 +72,14 @@ The Seattle Chinatown Book Club App is a production-ready React Native applicati
 - **Zustand** - Lightweight state management
 - **React Navigation** - Navigation and routing
 - **React Hook Form** - Form handling and validation
+
+### **UI/UX Features**
+- **Theme System** - Complete dark/light mode with React Context
+- **Settings Store** - Persistent user preferences with AsyncStorage
+- **Dynamic Styling** - Theme-aware components with real-time switching
+- **Keyboard Optimization** - Enhanced TextInput handling with proper navigation
+- **View Toggles** - Flexible list/card views for content browsing
+- **Responsive Components** - Adaptive layouts for all screen sizes
 
 ### **Backend & Services**
 - **Firebase Firestore** - Real-time NoSQL database
@@ -225,7 +237,10 @@ src/
 │   ├── books/               # Monthly book screens
 │   ├── events/              # Event management screens
 │   ├── info/                # Information screens
-│   └── profile/             # User profile screens
+│   ├── profile/             # User profile screens
+│   └── settings/            # Settings and preferences screens
+├── contexts/
+│   └── ThemeContext.tsx     # Theme system and dark/light mode
 ├── services/
 │   ├── authService.ts       # Authentication logic
 │   ├── eventService.ts      # Event management
@@ -234,11 +249,15 @@ src/
 │   └── userService.ts       # User operations
 ├── stores/
 │   ├── authStore.ts         # Authentication state
-│   └── eventStore.ts        # Event state
+│   ├── eventStore.ts        # Event state
+│   └── settingsStore.ts     # User preferences and settings
+├── types/
+│   ├── index.ts             # Core type definitions
+│   ├── mentions.ts          # @mention system types
+│   └── settings.ts          # Settings and preferences types
 ├── navigation/              # Navigation configuration
 ├── hooks/                   # Custom React hooks
 ├── utils/                   # Utility functions
-├── types/                   # TypeScript definitions
 └── config/                  # App configuration
 ```
 
@@ -249,6 +268,12 @@ src/
 - `src/config/firebase.ts` - Firebase initialization
 - `app.json` - Expo configuration
 - `eas.json` - Build configuration
+
+### **Development & Documentation Files**
+- `BUGS_TO_FIX.md` - Bug tracking and issue management
+- `DEVELOPMENT_NOTES.md` - Development context and decisions
+- `PRODUCTION_CHECKLIST.md` - Pre-deployment checklist
+- `FEATURES_DEMO.md` - Feature demonstrations and guides
 
 ### **Environment Variables**
 All sensitive configuration is managed through environment variables. See `.env.example` for required variables.
