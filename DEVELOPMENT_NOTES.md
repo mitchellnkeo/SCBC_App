@@ -9,6 +9,324 @@
 
 ---
 
+## 👨‍💻 **Developer Onboarding**
+
+### **🎯 Quick Start for New Developers**
+
+**Essential Reading Order:**
+1. This section (Developer Onboarding)
+2. Technical Decisions Made (below)
+3. Architecture Decisions (below)
+4. Key Files & Structure (below)
+
+### **🏗️ Code Patterns & Conventions**
+
+#### **Theme Usage Pattern**
+```typescript
+// Every screen/component should use theme
+import { useTheme } from '../contexts/ThemeContext';
+
+const MyComponent: React.FC = () => {
+  const { theme, isDark } = useTheme();
+  
+  // Create dynamic styles based on theme
+  const dynamicStyles = StyleSheet.create({
+    container: {
+      backgroundColor: theme.background, // NOT hardcoded colors
+      borderColor: theme.border,
+    },
+    text: {
+      color: theme.text, // Use hierarchy: text -> textSecondary -> textTertiary
+    },
+    button: {
+      backgroundColor: theme.primary,
+      color: '#ffffff', // White text on primary background
+    },
+  });
+  
+  return <View style={dynamicStyles.container}>...</View>;
+};
+```
+
+#### **State Management Pattern (Zustand)**
+```typescript
+// Store structure: src/stores/[feature]Store.ts
+import { create } from 'zustand';
+
+interface MyStore {
+  // State
+  data: MyData[];
+  isLoading: boolean;
+  error: string | null;
+  
+  // Actions (always async for API calls)
+  fetchData: () => Promise<void>;
+  updateData: (id: string, updates: Partial<MyData>) => Promise<void>;
+  clearError: () => void;
+}
+
+export const useMyStore = create<MyStore>((set, get) => ({
+  // Initial state
+  data: [],
+  isLoading: false,
+  error: null,
+  
+  // Actions
+  fetchData: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      const data = await myService.fetchData();
+      set({ data, isLoading: false });
+    } catch (error: any) {
+      set({ error: error.message, isLoading: false });
+    }
+  },
+  
+  clearError: () => set({ error: null }),
+}));
+```
+
+#### **Component Structure Pattern**
+```typescript
+// Standard component template
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
+import { useMyStore } from '../stores/myStore';
+
+interface MyComponentProps {
+  // Always define props interface
+  id: string;
+  onAction?: () => void;
+}
+
+const MyComponent: React.FC<MyComponentProps> = ({ id, onAction }) => {
+  const { theme } = useTheme();
+  const { data, isLoading, fetchData } = useMyStore();
+  
+  // Local state (if needed)
+  const [localState, setLocalState] = useState('');
+  
+  // Effects
+  useEffect(() => {
+    fetchData();
+  }, []);
+  
+  // Dynamic styles (always theme-based)
+  const dynamicStyles = StyleSheet.create({
+    container: {
+      backgroundColor: theme.surface,
+      borderColor: theme.border,
+    },
+  });
+  
+  return (
+    <View style={[styles.container, dynamicStyles.container]}>
+      {/* Component content */}
+    </View>
+  );
+};
+
+// Static styles (non-theme dependent)
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+});
+
+export default MyComponent;
+```
+
+### **📁 File Location Guide**
+
+#### **When Adding New Features:**
+```
+src/
+├── screens/[feature]/           # New feature screens
+│   ├── FeatureListScreen.tsx
+│   ├── FeatureDetailsScreen.tsx
+│   └── CreateFeatureScreen.tsx
+├── components/[feature]/        # Feature-specific components
+├── services/[feature]Service.ts # Firebase/API logic
+├── stores/[feature]Store.ts     # State management
+└── types/[feature].ts          # TypeScript definitions
+```
+
+#### **Common File Locations:**
+- **New Screen:** `src/screens/[category]/ScreenName.tsx`
+- **Reusable Component:** `src/components/common/ComponentName.tsx`
+- **Feature Component:** `src/components/[feature]/ComponentName.tsx`
+- **Service (Firebase):** `src/services/featureService.ts`
+- **State Store:** `src/stores/featureStore.ts`
+- **Types:** `src/types/index.ts` (shared) or `src/types/feature.ts`
+- **Navigation:** Add to `src/navigation/MainNavigator.tsx`
+
+### **🔧 Key Hooks & Utilities**
+
+#### **Essential Hooks:**
+```typescript
+// Theme (required for ALL components)
+import { useTheme } from '../contexts/ThemeContext';
+const { theme, isDark } = useTheme();
+
+// Authentication
+import { useAuthStore } from '../stores/authStore';
+const { user, isAuthenticated, login, logout } = useAuthStore();
+
+// Navigation
+import { useNavigation } from '@react-navigation/native';
+const navigation = useNavigation<NavigationProp>();
+
+// Settings
+import { useSettingsStore } from '../stores/settingsStore';
+const { settings, updateSettings } = useSettingsStore();
+```
+
+#### **Common Utilities:**
+```typescript
+// Error handling
+import { AppError, handleServiceError } from '../types/errors';
+
+// Image handling
+import { uploadImage, deleteImage } from '../services/imageService';
+
+// User utilities
+import { getUsersForMentions } from '../services/userService';
+
+// Notifications
+import { sendInternalNotification } from '../services/internalNotificationService';
+```
+
+### **🔥 Firebase Collection Structure**
+
+#### **Main Collections:**
+```
+firestore/
+├── users/                    # User profiles and auth data
+│   ├── {userId}/
+│   │   ├── displayName: string
+│   │   ├── email: string
+│   │   ├── role: 'admin' | 'member'
+│   │   ├── profilePicture?: string
+│   │   ├── bio?: string
+│   │   └── createdAt: timestamp
+│   └── ...
+├── events/                   # Event management
+│   ├── {eventId}/
+│   │   ├── title: string
+│   │   ├── description: string
+│   │   ├── hostId: string
+│   │   ├── dateTime: timestamp
+│   │   ├── location: string
+│   │   ├── status: 'pending' | 'approved' | 'rejected'
+│   │   ├── attendees: string[]
+│   │   ├── maxAttendees?: number
+│   │   └── createdAt: timestamp
+│   └── ...
+├── eventComments/           # Event comments with mentions
+│   ├── {commentId}/
+│   │   ├── eventId: string
+│   │   ├── userId: string
+│   │   ├── content: string
+│   │   ├── mentions: Mention[]
+│   │   ├── parentId?: string (for replies)
+│   │   └── createdAt: timestamp
+│   └── ...
+├── monthlyBooks/           # Book club selections
+│   ├── {bookId}/
+│   │   ├── title: string
+│   │   ├── author: string
+│   │   ├── month: string
+│   │   ├── year: number
+│   │   ├── coverImageUrl?: string
+│   │   ├── discussionSheetUrl?: string
+│   │   └── awards?: string[]
+│   └── ...
+├── internalNotifications/ # In-app notifications
+│   ├── {notificationId}/
+│   │   ├── userId: string
+│   │   ├── type: string
+│   │   ├── title: string
+│   │   ├── message: string
+│   │   ├── read: boolean
+│   │   ├── data?: object
+│   │   └── createdAt: timestamp
+│   └── ...
+└── settings/              # App-wide settings (admin only)
+    └── general/
+        ├── maintenanceMode: boolean
+        └── announcements?: string[]
+```
+
+#### **Firebase Security Rules Pattern:**
+```javascript
+// Users can read their own data and public profiles
+// Admins can read/write all user data
+// Events require approval system (admin-only for approval)
+// Comments allow mentions and replies
+// Notifications are user-specific
+```
+
+### **🎨 Component Development Guidelines**
+
+#### **Reusable Components (src/components/common/):**
+- Must support theme system
+- Include proper TypeScript props interface
+- Handle loading and error states
+- Follow accessibility guidelines
+- Include JSDoc comments for complex components
+
+#### **Screen Components (src/screens/):**
+- Always wrap in theme-aware container
+- Handle navigation properly
+- Include proper error boundaries
+- Implement pull-to-refresh where appropriate
+- Use skeleton loading components
+
+#### **Service Layer (src/services/):**
+- All Firebase operations go here
+- Proper error handling with typed errors
+- Return typed data
+- Include retry logic for network operations
+- Export functions through src/services/index.ts
+
+### **🚨 Common Gotchas & Best Practices**
+
+#### **Theme System:**
+- ❌ Never use hardcoded colors: `color: '#ffffff'`
+- ✅ Always use theme: `color: theme.text`
+- ❌ Don't create styles outside component: `const styles = StyleSheet.create({...})`
+- ✅ Create dynamic styles inside component with theme
+
+#### **State Management:**
+- ❌ Don't put UI state in global stores
+- ✅ Use local useState for component-specific state
+- ❌ Don't call store actions directly in render
+- ✅ Use useEffect for side effects
+
+#### **Navigation:**
+- ❌ Don't forget to add new screens to MainNavigator.tsx
+- ✅ Always type navigation params in MainStackParamList
+- ❌ Don't navigate without proper error handling
+- ✅ Use navigation.navigate() with proper params
+
+#### **Firebase:**
+- ❌ Don't query Firebase directly in components
+- ✅ Always use service layer functions
+- ❌ Don't forget error handling in service calls
+- ✅ Use proper TypeScript types for Firestore data
+
+### **🧪 Testing Approach**
+- Manual testing on iOS/Android devices
+- Use development-only screens (like KeyboardTest) for debugging
+- Test theme switching extensively
+- Verify offline behavior
+- Test with different user roles (admin vs member)
+
+---
+
 ## 🏗️ **Technical Decisions Made**
 
 ### **Why React Native + Expo?**

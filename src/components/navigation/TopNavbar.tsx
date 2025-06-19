@@ -96,6 +96,15 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
         navigation.navigate('Feedback');
       }),
     },
+    // Development/Debug menu items
+    ...(__DEV__ ? [
+      {
+        title: '🔧 Keyboard Test',
+        onPress: () => handleMenuItemPress(() => {
+          navigation.navigate('KeyboardTest');
+        }),
+      },
+    ] : []),
   ];
 
   const dynamicStyles = StyleSheet.create({

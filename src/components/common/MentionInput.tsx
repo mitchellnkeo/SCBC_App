@@ -8,11 +8,10 @@ import {
   StyleSheet,
   Image,
   Dimensions,
-  InputAccessoryView,
   Platform,
-  Keyboard,
 } from 'react-native';
 import { Mention, UserSuggestion, MentionInputProps } from '../../types/mentions';
+import KeyboardToolbar from './KeyboardToolbar';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -34,6 +33,7 @@ const MentionInput: React.FC<MentionInputProps> = ({
   const [cursorPosition, setCursorPosition] = useState(0);
   
   const inputRef = useRef<TextInput>(null);
+  const keyboardToolbarID = `mentionInput_${Math.random().toString(36).substr(2, 9)}`;
 
   // Parse mentions from text
   const parseMentions = (text: string): Mention[] => {
@@ -159,6 +159,12 @@ const MentionInput: React.FC<MentionInputProps> = ({
     }, 100);
   };
 
+  // Handle keyboard toolbar done button
+  const handleKeyboardDone = () => {
+    inputRef.current?.blur();
+    onSubmit?.();
+  };
+
   // Render suggestion item
   const renderSuggestionItem = ({ item }: { item: UserSuggestion }) => (
     <TouchableOpacity
@@ -178,24 +184,6 @@ const MentionInput: React.FC<MentionInputProps> = ({
     </TouchableOpacity>
   );
 
-  // Keyboard toolbar component
-  const KeyboardToolbar = () => (
-    <InputAccessoryView nativeID="keyboardToolbar">
-      <View style={styles.keyboardToolbar}>
-        <View style={styles.toolbarSpacer} />
-        <TouchableOpacity
-          style={styles.doneButton}
-          onPress={() => {
-            Keyboard.dismiss();
-            inputRef.current?.blur();
-          }}
-        >
-          <Text style={styles.doneButtonText}>Done</Text>
-        </TouchableOpacity>
-      </View>
-    </InputAccessoryView>
-  );
-
   return (
     <View style={styles.container}>
       <TextInput
@@ -210,11 +198,16 @@ const MentionInput: React.FC<MentionInputProps> = ({
         multiline={multiline}
         onSubmitEditing={onSubmit}
         submitBehavior={multiline ? "newline" : "submit"}
-        returnKeyType="default"
-        inputAccessoryViewID={Platform.OS === 'ios' ? "keyboardToolbar" : undefined}
+        returnKeyType={multiline ? "default" : "done"}
+        inputAccessoryViewID={Platform.OS === 'ios' ? keyboardToolbarID : undefined}
       />
       
-      {Platform.OS === 'ios' && <KeyboardToolbar />}
+      {Platform.OS === 'ios' && (
+        <KeyboardToolbar 
+          nativeID={keyboardToolbarID}
+          onDone={handleKeyboardDone}
+        />
+      )}
       
       {showSuggestions && suggestions.length > 0 && (
         <View style={styles.suggestionsContainer}>
@@ -304,30 +297,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#111827',
     fontWeight: '500',
-  },
-  keyboardToolbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    minHeight: 44,
-  },
-  toolbarSpacer: {
-    flex: 1,
-  },
-  doneButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#ec4899',
-    borderRadius: 6,
-  },
-  doneButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
 
