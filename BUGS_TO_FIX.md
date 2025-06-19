@@ -54,6 +54,15 @@ When adding new bugs, please include:
 
 ## 📝 Fixed Issues
 
+### ✅ Date Picker Auto-Selection Issue
+**Fixed:** Current Session  
+**Issue:** Date picker automatically selected dates while user was scrolling/browsing, making it difficult to choose specific dates  
+**Solution:** 
+- Added temporary date state for browsing on iOS
+- Implemented manual confirmation buttons (Cancel/Confirm) for iOS
+- Maintained Android default behavior while improving iOS UX
+- Users can now scroll through dates freely and confirm their selection manually
+
 ### ✅ Keyboard returnKeyType Implementation
 **Fixed:** Current  
 **Issue:** TextInput fields didn't have proper "Done" buttons for keyboard dismissal  
@@ -67,4 +76,54 @@ When adding new bugs, please include:
 ---
 
 *Last Updated: [Current Date]*  
-*Maintainer: Development Team* 
+*Maintainer: Development Team*
+
+---
+
+## 🆕 Recently Fixed Issues
+
+### ✅ Date Picker Auto-Selection Issue
+**Fixed:** Current Session  
+**Issue:** Date picker automatically selected dates while user was scrolling/browsing, making it difficult to choose specific dates  
+**Solution:** 
+- Added temporary date state for browsing on iOS
+- Implemented manual confirmation buttons (Cancel/Confirm) for iOS  
+- Maintained Android default behavior while improving iOS UX
+- Users can now scroll through dates freely and confirm their selection manually
+- Updated both CreateEventScreen and EditEventScreen 
+
+## Recently Fixed Issues ✅
+
+### ~~Date Picker Auto-Selection Issue~~ ✅ FIXED
+**Priority**: Medium  
+**Status**: ✅ Fixed - January 2025  
+
+**Problem Description**:
+- ~~The date picker had poor UX with a two-step process: tap form → dialog → tap again for calendar~~
+- ~~Users found the indirect calendar access confusing and cumbersome~~
+
+**Impact**:
+- ~~Frustrating event creation/editing experience~~
+- ~~Extra unnecessary taps to select dates~~
+
+**Solution Implemented**:
+- ✅ **Streamlined to direct calendar access**: Single tap on date form now opens calendar immediately
+- ✅ **Enhanced visual design**: Added calendar icon (📅) for clarity
+- ✅ **Platform-optimized behavior**:
+  - **Android**: Direct selection with auto-close
+  - **iOS**: Browse freely with manual Cancel/Confirm buttons
+- ✅ **Modal overlay interface**: Clean bottom-up modal on iOS
+- ✅ **Improved date formatting**: Shows "Wednesday, January 15, 2025" format
+- ✅ **Applied to both Create and Edit Event screens**
+
+**Technical Details**:
+- Removed intermediate dialog step
+- Implemented `openDatePicker()` function that directly shows DateTimePicker
+- Added `datePickerOverlay` and `datePickerModal` styling for better UX
+- Enhanced cross-platform date picker experience
+
+**Files Modified**:
+- `src/screens/events/CreateEventScreen.tsx`
+- `src/screens/events/EditEventScreen.tsx`
+
+**Result**: Much more intuitive and efficient date selection process for all users. 

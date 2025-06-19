@@ -84,6 +84,7 @@ const CreateEventScreen: React.FC = () => {
   });
 
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tempDate, setTempDate] = useState(new Date()); // Temporary date for browsing
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Add refs for form fields
@@ -148,10 +149,31 @@ const CreateEventScreen: React.FC = () => {
   };
 
   const onDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      setFormData({ ...formData, date: selectedDate });
+    // On Android, auto-close on selection. On iOS, keep open for browsing
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+      if (selectedDate) {
+        setFormData({ ...formData, date: selectedDate });
+      }
+    } else if (selectedDate) {
+      // On iOS, just update the temp date for browsing
+      setTempDate(selectedDate);
     }
+  };
+
+  const confirmDateSelection = () => {
+    setFormData({ ...formData, date: tempDate });
+    setShowDatePicker(false);
+  };
+
+  const cancelDateSelection = () => {
+    setTempDate(formData.date); // Reset to original date
+    setShowDatePicker(false);
+  };
+
+  const openDatePicker = () => {
+    setTempDate(formData.date); // Initialize temp date with current form date
+    setShowDatePicker(true);
   };
 
   const formatDate = (date: Date): string => {
@@ -233,27 +255,57 @@ const CreateEventScreen: React.FC = () => {
             onSubmitEditing={() => timeRef.current?.focus()}
           />
 
-          {/* Date Picker */}
+          {/* Date Picker - Direct Calendar Selection */}
           <View style={styles.inputContainer} className="mb-4">
             <Text style={styles.label} className="text-gray-700 font-medium mb-2">Date</Text>
             <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
+              onPress={openDatePicker}
               style={styles.dateButton}
               className="border border-gray-300 rounded-lg p-3"
             >
-              <Text style={styles.dateText} className="text-gray-900">{formatDate(formData.date)}</Text>
+              <View style={styles.dateButtonContent}>
+                <Text style={styles.dateText} className="text-gray-900">{formatDate(formData.date)}</Text>
+                <Text style={styles.calendarIcon}>📅</Text>
+              </View>
             </TouchableOpacity>
+            
+            {/* Calendar Picker - Shows directly when tapped */}
+            {showDatePicker && (
+              <View style={styles.datePickerOverlay}>
+                <View style={styles.datePickerModal}>
+                  <View style={styles.datePickerHeader}>
+                    <Text style={styles.datePickerTitle}>Select Event Date</Text>
+                  </View>
+                  
+                  <DateTimePicker
+                    value={tempDate}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                    onChange={onDateChange}
+                    minimumDate={new Date()}
+                    style={styles.datePicker}
+                  />
+                  
+                  {Platform.OS === 'ios' && (
+                    <View style={styles.datePickerButtons}>
+                      <TouchableOpacity 
+                        style={[styles.dateActionButton, styles.cancelButton]}
+                        onPress={cancelDateSelection}
+                      >
+                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={[styles.dateActionButton, styles.confirmButton]}
+                        onPress={confirmDateSelection}
+                      >
+                        <Text style={styles.confirmButtonText}>Confirm</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
           </View>
-
-          {showDatePicker && (
-            <DateTimePicker
-              value={formData.date}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={onDateChange}
-              minimumDate={new Date()}
-            />
-          )}
 
           <InputField
             label="Time"
@@ -427,6 +479,77 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     paddingBottom: 32,
+  },
+  datePickerContainer: {
+    position: 'relative',
+  },
+  datePickerButtons: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  cancelButton: {
+    backgroundColor: '#ef4444', // red-500
+  },
+  confirmButton: {
+    backgroundColor: '#2563eb', // blue-500
+  },
+  cancelButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  dateButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  calendarIcon: {
+    marginLeft: 8,
+  },
+  datePickerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  datePickerModal: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'white',
+    padding: 16,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  datePickerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111827', // gray-900
+  },
+  datePicker: {
+    width: '100%',
+    height: 200,
+  },
+  dateActionButton: {
+    flex: 1,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#d1d5db', // gray-300
+    borderRadius: 8,
   },
 });
 

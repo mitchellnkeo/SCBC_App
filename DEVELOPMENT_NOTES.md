@@ -9,6 +9,118 @@
 
 ---
 
+## 🆕 **Recent Updates & Improvements (Latest Session)**
+
+### **📍 PST Timezone Handling Implementation**
+**Date:** Current Session  
+**Impact:** Critical timezone accuracy for all events
+
+#### **What Was Done:**
+- ✅ **Simplified Timezone Utility** (`src/utils/timezone.ts`)
+  - Replaced complex manual calculations with `date-fns-tz` package
+  - Reduced code from 132 lines to 57 lines (57% reduction)
+  - Added automatic DST (Daylight Saving Time) handling
+  - Implemented PST/PDT awareness for all event operations
+
+#### **Key Functions Added:**
+```typescript
+// Core timezone functions
+export const getCurrentPSTTime = (): Date => toZonedTime(new Date(), PST_TIMEZONE);
+export const toPSTTime = (date: Date): Date => toZonedTime(date, PST_TIMEZONE);
+export const hasEventEnded = (eventDate: Date, duration = 4): boolean;
+export const isEventCurrentOrUpcoming = (eventDate: Date, duration = 4): boolean;
+export const formatPSTDate = (date: Date): string;
+export const formatPSTTime = (date: Date): string;
+export const getEventStatus = (eventDate: Date): { status: string; description: string };
+```
+
+#### **Services Updated:**
+- ✅ **Event Service** (`src/services/eventService.ts`)
+  - All event filtering now uses PST-aware functions
+  - `getAllEvents()` - filters current/upcoming events using PST
+  - `getPastEvents()` - filters past events using PST
+  - Real-time subscriptions use PST filtering
+- ✅ **Event Components**
+  - `AllEventsTab.tsx` - PST-aware date/time formatting
+  - `PastEventsTab.tsx` - PST-aware date/time formatting
+
+#### **User Experience Impact:**
+- Events now properly show/hide based on Pacific Time (not UTC)
+- Consistent timezone display across entire app
+- Automatic DST transitions without manual intervention
+- Event status accurately reflects PST time
+
+---
+
+### **📸 Enhanced Image Upload for Events**
+**Date:** Current Session  
+**Impact:** Significantly improved event creation UX
+
+#### **What Was Done:**
+- ✅ **Advanced ImagePicker Component** (`src/components/common/ImagePicker.tsx`)
+  - Native camera integration with permission handling
+  - Photo library access with automatic permission requests
+  - Built-in image editing with 16:9 aspect ratio cropping
+  - Beautiful UI with overlay controls and placeholders
+  - Error handling and loading states
+
+#### **Component Features:**
+```typescript
+interface ImagePickerProps {
+  value?: string;
+  onImageSelected: (uri: string) => void;
+  onImageRemoved: () => void;
+  label?: string;
+  placeholder?: string;
+}
+```
+
+#### **UI/UX Improvements:**
+- **Visual-First Experience:** ImagePicker moved to top of both create/edit forms
+- **Intuitive Controls:** 
+  - Dashed border placeholder when no image
+  - Large camera+ icon with clear call-to-action
+  - Image overlay with "Change" and "Remove" buttons
+- **Cross-Platform:** Works on both iOS and Android
+- **Performance:** Optimized image quality (0.8) for balance
+
+#### **Integration:**
+- ✅ **Create Event Screen** - Photo selection as first step
+- ✅ **Edit Event Screen** - Photo management at top of form
+- ✅ **Event Cards** - Display uploaded photos in event lists
+- ✅ **Event Details** - Show header photos in event details
+
+#### **Technical Stack:**
+```typescript
+// Dependencies added
+import * as ImagePickerExpo from 'expo-image-picker';
+import { date-fns-tz } from 'date-fns-tz';
+
+// Form flow updated
+📸 Event Photo (Optional) ← MOVED TO TOP!
+📝 Event Title
+📄 Description  
+📅 Date (PST-aware)
+🕐 Time (PST-aware)
+📍 Location Name
+🗺️ Address
+👥 Max Attendees (Optional)
+```
+
+---
+
+### **🎯 UI/UX Improvements**
+**Date:** Current Session  
+**Impact:** Clearer user navigation and better labeling
+
+#### **Changes Made:**
+- ✅ **Events Tab Labels** (`src/screens/events/EventsListScreen.tsx`)
+  - Changed "Current/Upcoming" → "Upcoming Events"
+  - More descriptive and user-friendly
+  - Clearer expectations for tab content
+
+---
+
 ## 👨‍💻 **Developer Onboarding**
 
 ### **🎯 Quick Start for New Developers**

@@ -72,6 +72,7 @@ const EditEventScreen: React.FC = () => {
   });
 
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tempDate, setTempDate] = useState(new Date()); // Temporary date for browsing
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -96,7 +97,7 @@ const EditEventScreen: React.FC = () => {
         return;
       }
 
-      setFormData({
+      const newFormData = {
         title: currentEvent.title,
         description: currentEvent.description,
         date: currentEvent.date,
@@ -105,7 +106,10 @@ const EditEventScreen: React.FC = () => {
         address: currentEvent.address,
         maxAttendees: currentEvent.maxAttendees,
         headerPhoto: currentEvent.headerPhoto || '',
-      });
+      };
+      
+      setFormData(newFormData);
+      setTempDate(currentEvent.date); // Initialize tempDate with event date
     }
   }, [currentEvent, user, navigation]);
 
@@ -160,11 +164,41 @@ const EditEventScreen: React.FC = () => {
     }
   };
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      setFormData({ ...formData, date: selectedDate });
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    // On Android, auto-close on selection. On iOS, keep open for browsing
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+      if (selectedDate) {
+        setFormData({ ...formData, date: selectedDate });
+      }
+    } else if (selectedDate) {
+      // On iOS, just update the temp date for browsing
+      setTempDate(selectedDate);
     }
+  };
+
+  const confirmDateSelection = () => {
+    setFormData({ ...formData, date: tempDate });
+    setShowDatePicker(false);
+  };
+
+  const cancelDateSelection = () => {
+    setTempDate(formData.date); // Reset to original date
+    setShowDatePicker(false);
+  };
+
+  const openDatePicker = () => {
+    setTempDate(formData.date); // Initialize temp date with current form date
+    setShowDatePicker(true);
+  };
+
+  const formatDate = (date: Date): string => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   if (isLoading) {
@@ -253,33 +287,57 @@ const EditEventScreen: React.FC = () => {
             error={errors.description}
           />
 
-          {/* Date Picker */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Date</Text>
+          {/* Date Picker - Direct Calendar Selection */}
+          <View style={styles.inputContainer} className="mb-4">
+            <Text style={styles.label} className="text-gray-700 font-medium mb-2">Date</Text>
             <TouchableOpacity
+              onPress={openDatePicker}
               style={styles.dateButton}
-              onPress={() => setShowDatePicker(true)}
+              className="border border-gray-300 rounded-lg p-3"
             >
-              <Text style={styles.dateButtonText}>
-                {formData.date.toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </Text>
+              <View style={styles.dateButtonContent}>
+                <Text style={styles.dateText} className="text-gray-900">{formatDate(formData.date)}</Text>
+                <Text style={styles.calendarIcon}>📅</Text>
+              </View>
             </TouchableOpacity>
+            
+            {/* Calendar Picker - Shows directly when tapped */}
+            {showDatePicker && (
+              <View style={styles.datePickerOverlay}>
+                <View style={styles.datePickerModal}>
+                  <View style={styles.datePickerHeader}>
+                    <Text style={styles.datePickerTitle}>Select Event Date</Text>
+                  </View>
+                  
+                  <DateTimePicker
+                    value={tempDate}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                    onChange={onDateChange}
+                    minimumDate={new Date()}
+                    style={styles.datePicker}
+                  />
+                  
+                  {Platform.OS === 'ios' && (
+                    <View style={styles.datePickerButtons}>
+                      <TouchableOpacity 
+                        style={[styles.dateActionButton, styles.cancelButton]}
+                        onPress={cancelDateSelection}
+                      >
+                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={[styles.dateActionButton, styles.confirmButton]}
+                        onPress={confirmDateSelection}
+                      >
+                        <Text style={styles.confirmButtonText}>Confirm</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
           </View>
-
-          {showDatePicker && (
-            <DateTimePicker
-              value={formData.date}
-              mode="date"
-              display="default"
-              onChange={handleDateChange}
-              minimumDate={new Date()}
-            />
-          )}
 
           <InputField
             label="Time"
@@ -468,6 +526,83 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  datePickerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#ef4444',
+  },
+  confirmButton: {
+    backgroundColor: '#3b82f6',
+  },
+  cancelButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  dateButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dateText: {
+    fontSize: 16,
+    color: '#1f2937',
+  },
+  calendarIcon: {
+    fontSize: 16,
+    color: '#1f2937',
+    marginLeft: 8,
+  },
+  datePickerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  datePickerModal: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'white',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 24,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  datePickerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  datePicker: {
+    width: '100%',
+    height: 300,
+  },
+  datePickerButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  dateActionButton: {
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
   },
 });
 
