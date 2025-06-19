@@ -73,6 +73,44 @@ When adding new bugs, please include:
 **Issue:** React Native warning about deprecated `blurOnSubmit` prop  
 **Solution:** Replaced with `submitBehavior` prop
 
+### ~~Time Input UX Enhancement~~ ✅ FIXED  
+**Priority**: Medium  
+**Status**: ✅ Fixed - January 2025
+
+**Problem Description**:
+- ~~Single time input field was insufficient for events with clear start/end times~~
+- ~~Users had to manually type time strings without validation~~
+- ~~No clear indication of event duration for attendees~~
+- ~~Inconsistent time formatting across the app~~
+
+**Impact**:
+- ~~Unclear event duration for attendees making it hard to plan~~
+- ~~Potential for time input errors and inconsistent formatting~~
+- ~~Poor user experience when creating/editing events~~
+
+**Solution Implemented**:
+- ✅ **Replaced single time input with start/end time picker component**
+- ✅ **Native time picker integration**: iOS spinner and Android clock interfaces
+- ✅ **Smart time validation**: Prevents end time before start time
+- ✅ **Auto-suggestion**: 2-hour duration suggested when start time is selected
+- ✅ **Visual time range display**: Shows "7:00 PM - 9:00 PM" format throughout app
+- ✅ **Platform-optimized UX**: iOS modal with Cancel/Confirm, Android direct selection
+- ✅ **Backward compatibility**: Seamless migration from old single time field
+- ✅ **Comprehensive time formatting**: Consistent display across all components
+
+**Technical Details**:
+- Created new `TimePicker` component with full time management capabilities
+- Updated data structure from `time: string` to `startTime: string, endTime: string`
+- Implemented backward compatibility for existing events with legacy time field
+- Updated all display components to handle both old and new time formats
+
+**Files Modified**:
+- `src/components/common/TimePicker.tsx` (NEW)
+- `src/types/index.ts` (data structure updates)
+- All event screens and components updated for new time structure
+
+**Result**: Professional time range display with intuitive native time selection, making events much clearer for both organizers and attendees.
+
 ---
 
 *Last Updated: [Current Date]*  
@@ -82,6 +120,15 @@ When adding new bugs, please include:
 
 ## 🆕 Recently Fixed Issues
 
+### ✅ Event Card Time Display Issue
+**Fixed:** Current Session  
+**Issue:** Event cards were displaying incorrect single times (e.g., "9:47pm") instead of proper time ranges (e.g., "11:00am-12:00pm")  
+**Solution:** 
+- Fixed `formatTime` functions in `PastEventsTab.tsx` and `AllEventsTab.tsx` to use new `startTime` and `endTime` fields
+- Updated time display calls from `formatTime(event.date)` to `formatTime(event.startTime, event.endTime)`
+- Cleaned up unused `formatPSTTime` imports
+- Now correctly shows time ranges like "11:00 AM - 1:00 PM" throughout the app
+
 ### ✅ Date Picker Auto-Selection Issue
 **Fixed:** Current Session  
 **Issue:** Date picker automatically selected dates while user was scrolling/browsing, making it difficult to choose specific dates  
@@ -90,7 +137,7 @@ When adding new bugs, please include:
 - Implemented manual confirmation buttons (Cancel/Confirm) for iOS  
 - Maintained Android default behavior while improving iOS UX
 - Users can now scroll through dates freely and confirm their selection manually
-- Updated both CreateEventScreen and EditEventScreen 
+- Updated both CreateEventScreen and EditEventScreen
 
 ## Recently Fixed Issues ✅
 

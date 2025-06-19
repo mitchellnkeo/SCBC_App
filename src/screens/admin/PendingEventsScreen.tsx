@@ -130,7 +130,11 @@ const PendingEventsScreen: React.FC = () => {
         {/* Event Details */}
         <View className="space-y-2 mb-4">
           <Text className="text-gray-600">
-            📅 {format(event.date, 'EEEE, MMMM d, yyyy')} at {event.time}
+            📅 {format(event.date, 'EEEE, MMMM d, yyyy')} at {
+              event.startTime && event.endTime 
+                ? `${event.startTime} - ${event.endTime}`
+                : event.startTime || 'Time TBD'
+            }
           </Text>
           <Text className="text-gray-600">📍 {event.location}</Text>
           <Text className="text-gray-600 text-sm">{event.address}</Text>

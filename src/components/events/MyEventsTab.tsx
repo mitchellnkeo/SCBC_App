@@ -78,8 +78,15 @@ const MyEventsTab: React.FC = () => {
     });
   };
 
-  const formatTime = (time: string) => {
-    return time;
+  const formatTime = (startTime?: string, endTime?: string): string => {
+    // Format with start and end times
+    if (startTime && endTime) {
+      return `${startTime} - ${endTime}`;
+    } else if (startTime) {
+      return startTime;
+    }
+    
+    return 'Time TBD';
   };
 
   const getEventRole = (event: BookClubEvent): 'hosting' | 'attending' => {
@@ -457,7 +464,7 @@ const MyEventsTab: React.FC = () => {
         <View style={dynamicStyles.listDetails}>
           <Text style={dynamicStyles.emoji}>🕐</Text>
           <Text style={dynamicStyles.listDetailText} numberOfLines={1}>
-            {formatTime(event.time)}
+            {formatTime(event.startTime, event.endTime)}
           </Text>
         </View>
         
@@ -543,7 +550,7 @@ const MyEventsTab: React.FC = () => {
           <View style={dynamicStyles.row}>
             <Text style={dynamicStyles.emoji}>📅</Text>
             <Text style={dynamicStyles.eventDetail}>
-              {formatDate(event.date)} at {formatTime(event.time)}
+              {formatDate(event.date)} at {formatTime(event.startTime, event.endTime)}
             </Text>
           </View>
           

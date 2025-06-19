@@ -38,8 +38,15 @@ const EventCard: React.FC<EventCardProps> = ({
     });
   };
 
-  const formatTime = (time: string): string => {
-    return time;
+  const formatTime = (startTime?: string, endTime?: string): string => {
+    // Format with start and end times
+    if (startTime && endTime) {
+      return `${startTime} - ${endTime}`;
+    } else if (startTime) {
+      return startTime;
+    }
+    
+    return 'Time TBD';
   };
 
   const getStatusColor = (status: string): string => {
@@ -95,7 +102,7 @@ const EventCard: React.FC<EventCardProps> = ({
             {formatDate(event.date)}
           </Text>
           <Text style={[styles.time, isPastEvent && styles.pastTime]}>
-            {formatTime(event.time)}
+            {formatTime(event.startTime, event.endTime)}
           </Text>
         </View>
 

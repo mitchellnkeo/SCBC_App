@@ -18,6 +18,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { CreateEventFormData } from '../../types';
 import { handleError } from '../../utils/errorHandler';
 import ImagePicker from '../../components/common/ImagePicker';
+import TimePicker from '../../components/common/TimePicker';
 
 type RouteParams = {
   EditEvent: {
@@ -64,7 +65,8 @@ const EditEventScreen: React.FC = () => {
     title: '',
     description: '',
     date: new Date(),
-    time: '',
+    startTime: '',
+    endTime: '',
     location: '',
     address: '',
     maxAttendees: undefined,
@@ -101,7 +103,8 @@ const EditEventScreen: React.FC = () => {
         title: currentEvent.title,
         description: currentEvent.description,
         date: currentEvent.date,
-        time: currentEvent.time,
+        startTime: currentEvent.startTime,
+        endTime: currentEvent.endTime,
         location: currentEvent.location,
         address: currentEvent.address,
         maxAttendees: currentEvent.maxAttendees,
@@ -122,8 +125,11 @@ const EditEventScreen: React.FC = () => {
     if (!formData.description.trim()) {
       newErrors.description = 'Description is required';
     }
-    if (!formData.time.trim()) {
-      newErrors.time = 'Time is required';
+    if (!formData.startTime.trim()) {
+      newErrors.startTime = 'Start time is required';
+    }
+    if (!formData.endTime.trim()) {
+      newErrors.endTime = 'End time is required';
     }
     if (!formData.location.trim()) {
       newErrors.location = 'Location is required';
@@ -339,12 +345,12 @@ const EditEventScreen: React.FC = () => {
             )}
           </View>
 
-          <InputField
-            label="Time"
-            value={formData.time}
-            onChangeText={(text) => setFormData({ ...formData, time: text })}
-            placeholder="e.g., 7:00 PM"
-            error={errors.time}
+          <TimePicker
+            startTime={formData.startTime}
+            endTime={formData.endTime}
+            onStartTimeChange={(time) => setFormData({ ...formData, startTime: time })}
+            onEndTimeChange={(time) => setFormData({ ...formData, endTime: time })}
+            error={errors.startTime || errors.endTime}
           />
 
           <InputField

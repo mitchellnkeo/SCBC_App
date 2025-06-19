@@ -515,6 +515,45 @@ firestore/
 - ✅ Reset to defaults option with confirmation
 - ✅ Theme-aware design
 
+### **Enhanced Start/End Time Picker ⏰ (January 2025)**
+**Feature**: Replaced single time input with interactive start/end time picker component
+
+**What Changed**:
+- **New Data Structure**: Events now have `startTime` and `endTime` fields instead of single `time` field
+- **Interactive Time Picker**: Created new `TimePicker` component with native time picker integration
+- **Smart Time Validation**: Automatically ensures end time is after start time
+- **Auto-suggestion**: When selecting start time, end time auto-suggests 2 hours later
+- **Backward Compatibility**: Full migration support for existing events with old time field
+
+**User Experience Improvements**:
+- ✅ **Direct Time Selection**: Tap to open native time pickers (iOS spinner, Android clock)
+- ✅ **Visual Time Range**: Shows time as "7:00 PM - 9:00 PM" format
+- ✅ **Platform Optimized**: 
+  - iOS: Modal with Cancel/Confirm buttons for deliberate selection
+  - Android: Direct selection with auto-close
+- ✅ **Error Prevention**: Prevents invalid time ranges with real-time validation
+- ✅ **Smart Defaults**: Suggests reasonable 2-hour duration when start time is selected
+
+**Technical Implementation**:
+- **New Component**: `src/components/common/TimePicker.tsx` with full time management
+- **Type Safety**: Updated `BookClubEvent` and `CreateEventFormData` interfaces
+- **Clean Data Structure**: All legacy code removed for `time` field
+- **Format Consistency**: All time displays use start/end format
+
+**Files Modified**:
+- `src/components/common/TimePicker.tsx` (NEW)
+- `src/types/index.ts` (data structure updates)
+- `src/screens/events/CreateEventScreen.tsx`
+- `src/screens/events/EditEventScreen.tsx`
+- `src/components/common/EventCard.tsx`
+- `src/components/events/MyEventsTab.tsx` 
+- `src/screens/events/EventDetailsScreen.tsx`
+- `src/screens/admin/PendingEventsScreen.tsx`
+
+**Result**: Much clearer event timing with professional start/end time display, making it easier for attendees to plan their schedules and understand event duration. All legacy code has been removed for a clean, modern implementation.
+
+### **Enhanced Image Upload System 📸 (January 2025)**
+
 ---
 
 ## 🏛️ **Architecture Decisions**

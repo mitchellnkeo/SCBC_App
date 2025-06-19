@@ -220,8 +220,15 @@ const EventDetailsScreen: React.FC = () => {
     });
   };
 
-  const formatTime = (time: string) => {
-    return time;
+  const formatTime = (startTime?: string, endTime?: string): string => {
+    // Format with start and end times
+    if (startTime && endTime) {
+      return `${startTime} - ${endTime}`;
+    } else if (startTime) {
+      return startTime;
+    }
+    
+    return 'Time TBD';
   };
 
   const getRSVPButtonStyle = (status: 'going' | 'maybe' | 'not-going') => {
@@ -440,7 +447,7 @@ const EventDetailsScreen: React.FC = () => {
                       {formatDate(currentEvent.date)}
                     </Text>
                     <Text style={styles.infoSubtext}>
-                      {formatTime(currentEvent.time)}
+                      {formatTime(currentEvent.startTime, currentEvent.endTime)}
                     </Text>
                   </View>
                 </View>

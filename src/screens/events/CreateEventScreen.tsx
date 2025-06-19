@@ -18,6 +18,7 @@ import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
 import { CreateEventFormData } from '../../types';
 import ImagePicker from '../../components/common/ImagePicker';
+import TimePicker from '../../components/common/TimePicker';
 
 // Move InputField outside the main component to prevent re-creation on each render
 const InputField: React.FC<{
@@ -76,7 +77,8 @@ const CreateEventScreen: React.FC = () => {
     title: '',
     description: '',
     date: new Date(),
-    time: '',
+    startTime: '',
+    endTime: '',
     location: '',
     address: '',
     maxAttendees: undefined,
@@ -90,7 +92,6 @@ const CreateEventScreen: React.FC = () => {
   // Add refs for form fields
   const titleRef = useRef<TextInput>(null);
   const descriptionRef = useRef<TextInput>(null);
-  const timeRef = useRef<TextInput>(null);
   const locationRef = useRef<TextInput>(null);
   const addressRef = useRef<TextInput>(null);
   const maxAttendeesRef = useRef<TextInput>(null);
@@ -104,8 +105,11 @@ const CreateEventScreen: React.FC = () => {
     if (!formData.description.trim()) {
       newErrors.description = 'Description is required';
     }
-    if (!formData.time.trim()) {
-      newErrors.time = 'Time is required';
+    if (!formData.startTime.trim()) {
+      newErrors.startTime = 'Start time is required';
+    }
+    if (!formData.endTime.trim()) {
+      newErrors.endTime = 'End time is required';
     }
     if (!formData.location.trim()) {
       newErrors.location = 'Location is required';
@@ -252,7 +256,7 @@ const CreateEventScreen: React.FC = () => {
             error={errors.description}
             inputRef={descriptionRef}
             returnKeyType="next"
-            onSubmitEditing={() => timeRef.current?.focus()}
+            onSubmitEditing={() => locationRef.current?.focus()}
           />
 
           {/* Date Picker - Direct Calendar Selection */}
@@ -307,15 +311,12 @@ const CreateEventScreen: React.FC = () => {
             )}
           </View>
 
-          <InputField
-            label="Time"
-            value={formData.time}
-            onChangeText={(text) => setFormData({ ...formData, time: text })}
-            placeholder="e.g., 7:00 PM"
-            error={errors.time}
-            inputRef={timeRef}
-            returnKeyType="next"
-            onSubmitEditing={() => locationRef.current?.focus()}
+          <TimePicker
+            startTime={formData.startTime}
+            endTime={formData.endTime}
+            onStartTimeChange={(time) => setFormData({ ...formData, startTime: time })}
+            onEndTimeChange={(time) => setFormData({ ...formData, endTime: time })}
+            error={errors.startTime || errors.endTime}
           />
 
           <InputField

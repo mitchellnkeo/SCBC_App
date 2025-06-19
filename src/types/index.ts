@@ -48,7 +48,8 @@ export interface User {
     title: string;
     description: string;
     date: Date;
-    time: string; // Format: "7:00 PM"
+    startTime: string; // Format: "7:00 PM"
+    endTime: string; // Format: "9:00 PM"
     address: string;
     headerPhoto?: string; // URL to header image
     location: string; // Venue name (e.g., "Central Library")
@@ -139,7 +140,8 @@ export interface User {
     title: string;
     description: string;
     date: Date;
-    time: string;
+    startTime: string;
+    endTime: string;
     location: string;
     address: string;
     maxAttendees?: number;

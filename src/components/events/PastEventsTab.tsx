@@ -17,7 +17,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { useTheme } from '../../contexts/ThemeContext';
 import { BookClubEvent } from '../../types';
 import { MainStackParamList } from '../../navigation/MainNavigator';
-import { formatPSTDate, formatPSTTime, getEventStatus } from '../../utils/timezone';
+import { formatPSTDate, getEventStatus } from '../../utils/timezone';
 
 const PastEventsTab: React.FC = () => {
   const navigation = useNavigation<NavigationProp<MainStackParamList>>();
@@ -68,8 +68,15 @@ const PastEventsTab: React.FC = () => {
     return formatPSTDate(date);
   };
 
-  const formatTime = (date: Date) => {
-    return formatPSTTime(date);
+  const formatTime = (startTime?: string, endTime?: string): string => {
+    // Format with start and end times
+    if (startTime && endTime) {
+      return `${startTime} - ${endTime}`;
+    } else if (startTime) {
+      return startTime;
+    }
+    
+    return 'Time TBD';
   };
 
   // Get event status with PST awareness
@@ -306,7 +313,7 @@ const PastEventsTab: React.FC = () => {
           <View style={dynamicStyles.row}>
             <Text style={dynamicStyles.smallEmoji}>📅</Text>
             <Text style={dynamicStyles.listDetail}>
-              {formatDate(event.date)} • {formatTime(event.date)}
+              {formatDate(event.date)} • {formatTime(event.startTime, event.endTime)}
             </Text>
           </View>
           <View style={dynamicStyles.row}>
@@ -359,7 +366,7 @@ const PastEventsTab: React.FC = () => {
         <View style={[dynamicStyles.row, { marginBottom: 8 }]}>
           <Text style={dynamicStyles.emoji}>📅</Text>
           <Text style={dynamicStyles.eventDetail}>
-            {formatDate(event.date)} • {formatTime(event.date)}
+            {formatDate(event.date)} • {formatTime(event.startTime, event.endTime)}
           </Text>
         </View>
 
