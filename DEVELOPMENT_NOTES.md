@@ -376,8 +376,16 @@ firestore/
 **List/Card View Toggle:**
 - ✅ AllEventsTab - Switchable between detailed cards and compact list
 - ✅ MyEventsTab - Same functionality with role indicators
+- ✅ PastEventsTab - Same functionality for past events with visual distinction
 - ✅ 50% space savings in list view for quick scanning
 - ✅ Maintains all functionality in both views
+
+**Past Events Tab:**
+- ✅ Separate tab for events that have already occurred
+- ✅ Automatic filtering (events older than 4 hours are considered "past")
+- ✅ Visual distinction with muted styling and "Past Event" labels
+- ✅ Real-time updates with dedicated subscription
+- ✅ Same card/list view toggle functionality as other tabs
 
 **Keyboard Improvements:**
 - ✅ Added "Done" buttons to all major forms

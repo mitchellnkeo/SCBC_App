@@ -12,18 +12,22 @@ import * as eventService from '../services/eventService';
 interface EventState {
   // State
   events: BookClubEvent[];
+  pastEvents: BookClubEvent[];
   pendingEvents: BookClubEvent[];
   pendingStats: PendingEventStats;
   currentEvent: PopulatedEvent | null;
   isLoading: boolean;
+  isPastLoading: boolean;
   isCreating: boolean;
   isCommenting: boolean;
   isRsvping: boolean;
   isApproving: boolean;
   error: string | null;
+  pastError: string | null;
   
   // Actions
   loadEvents: () => Promise<void>;
+  loadPastEvents: () => Promise<void>;
   loadPendingEvents: () => Promise<void>;
   loadPendingStats: () => Promise<void>;
   loadEvent: (eventId: string, userId?: string) => Promise<void>;
@@ -35,10 +39,12 @@ interface EventState {
   createComment: (eventId: string, userId: string, userName: string, commentData: CreateCommentFormData, userProfilePicture?: string) => Promise<void>;
   deleteComment: (commentId: string) => Promise<void>;
   clearError: () => void;
+  clearPastError: () => void;
   clearCurrentEvent: () => void;
   
   // Real-time subscriptions
   subscribeToEvents: () => () => void;
+  subscribeToPastEvents: () => () => void;
   subscribeToPendingEvents: () => () => void;
   subscribeToEventDetails: (eventId: string, userId?: string) => () => void;
 }
@@ -46,15 +52,18 @@ interface EventState {
 export const useEventStore = create<EventState>((set, get) => ({
   // Initial state
   events: [],
+  pastEvents: [],
   pendingEvents: [],
   pendingStats: { totalPending: 0, newThisWeek: 0 },
   currentEvent: null,
   isLoading: false,
+  isPastLoading: false,
   isCreating: false,
   isCommenting: false,
   isRsvping: false,
   isApproving: false,
   error: null,
+  pastError: null,
   
   // Load all approved events
   loadEvents: async () => {
@@ -65,6 +74,18 @@ export const useEventStore = create<EventState>((set, get) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load events';
       set({ error: errorMessage, isLoading: false });
+    }
+  },
+  
+  // Load past events
+  loadPastEvents: async () => {
+    set({ isPastLoading: true, error: null });
+    try {
+      const pastEvents = await eventService.getPastEvents();
+      set({ pastEvents, isPastLoading: false });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load past events';
+      set({ error: errorMessage, isPastLoading: false });
     }
   },
   
@@ -272,12 +293,19 @@ export const useEventStore = create<EventState>((set, get) => ({
   
   // Utility actions
   clearError: () => set({ error: null }),
+  clearPastError: () => set({ pastError: null }),
   clearCurrentEvent: () => set({ currentEvent: null }),
   
   // Real-time subscriptions
   subscribeToEvents: () => {
     return eventService.subscribeToEvents((events) => {
       set({ events });
+    });
+  },
+  
+  subscribeToPastEvents: () => {
+    return eventService.subscribeToPastEvents((pastEvents) => {
+      set({ pastEvents });
     });
   },
   

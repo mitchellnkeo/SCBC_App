@@ -7,6 +7,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import TopNavbar from '../../components/navigation/TopNavbar';
 import AllEventsTab from '../../components/events/AllEventsTab';
 import MyEventsTab from '../../components/events/MyEventsTab';
+import PastEventsTab from '../../components/events/PastEventsTab';
 import { MainStackParamList } from '../../navigation/MainNavigator';
 
 const Tab = createMaterialTopTabNavigator();
@@ -74,7 +75,7 @@ const EventsListScreen: React.FC = () => {
             height: 3,
           },
           tabBarLabelStyle: {
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: 'bold',
             textTransform: 'none',
           },
@@ -85,6 +86,7 @@ const EventsListScreen: React.FC = () => {
             borderBottomWidth: 1,
             borderBottomColor: theme.border,
           },
+          tabBarScrollEnabled: true,
         }}
       >
         <Tab.Screen 
@@ -99,6 +101,13 @@ const EventsListScreen: React.FC = () => {
           component={MyEventsTab}
           options={{
             tabBarLabel: 'My Events',
+          }}
+        />
+        <Tab.Screen 
+          name="PastEvents" 
+          component={PastEventsTab}
+          options={{
+            tabBarLabel: 'Past Events',
           }}
         />
       </Tab.Navigator>

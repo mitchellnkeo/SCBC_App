@@ -169,11 +169,13 @@ export const getEvent = async (eventId: string): Promise<BookClubEvent | null> =
 
 export const getAllEvents = async (limitCount: number = 20): Promise<BookClubEvent[]> => {
   try {
+    const now = new Date();
+    
     // Only get approved events for the main events list - with pagination limit
     const eventsQuery = query(
       collection(db, EVENTS_COLLECTION),
       where('status', '==', 'approved'),
-      limit(limitCount) // Limit to prevent excessive reads
+      limit(limitCount * 2) // Get more events to account for filtering
     );
     const eventsSnapshot = await getDocs(eventsQuery);
     
@@ -189,11 +191,63 @@ export const getAllEvents = async (limitCount: number = 20): Promise<BookClubEve
       } as BookClubEvent;
     });
     
-    // Sort by date in JavaScript instead of Firestore
-    return events.sort((a, b) => a.date.getTime() - b.date.getTime());
+    // Filter to show only current and upcoming events (not past events)
+    const upcomingEvents = events.filter(event => {
+      // Consider an event "current" if it's within 4 hours of end time
+      const eventEndTime = new Date(event.date.getTime() + (4 * 60 * 60 * 1000)); // +4 hours
+      return eventEndTime >= now;
+    });
+    
+    // Sort by date in JavaScript (upcoming events first)
+    return upcomingEvents
+      .sort((a, b) => a.date.getTime() - b.date.getTime())
+      .slice(0, limitCount);
   } catch (error) {
     console.error('Error getting events:', error);
     throw new Error('Failed to load events. Please try again.');
+  }
+};
+
+export const getPastEvents = async (limitCount: number = 20): Promise<BookClubEvent[]> => {
+  try {
+    const now = new Date();
+    
+    // Get approved events (we'll filter by date in JavaScript since Firestore
+    // has limitations with timestamp queries and we need proper date comparison)
+    const eventsQuery = query(
+      collection(db, EVENTS_COLLECTION),
+      where('status', '==', 'approved'),
+      limit(limitCount * 2) // Get more events to account for filtering
+    );
+    const eventsSnapshot = await getDocs(eventsQuery);
+    
+    const events = eventsSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        date: data.date?.toDate() || new Date(),
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+        approvedAt: data.approvedAt?.toDate() || undefined,
+      } as BookClubEvent;
+    });
+    
+    // Filter past events (events that have already ended)
+    const pastEvents = events.filter(event => {
+      // Consider an event "past" if it was more than 4 hours ago
+      // (to account for events that might run a few hours)
+      const eventEndTime = new Date(event.date.getTime() + (4 * 60 * 60 * 1000)); // +4 hours
+      return eventEndTime < now;
+    });
+    
+    // Sort by date in reverse chronological order (most recent first)
+    return pastEvents
+      .sort((a, b) => b.date.getTime() - a.date.getTime())
+      .slice(0, limitCount);
+  } catch (error) {
+    console.error('Error getting past events:', error);
+    throw new Error('Failed to load past events. Please try again.');
   }
 };
 
@@ -465,24 +519,78 @@ export const subscribeToEvents = (callback: (events: BookClubEvent[]) => void) =
     where('status', '==', 'approved')
   );
   
-  return onSnapshot(eventsQuery, (snapshot) => {
-    const events = snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        date: data.date?.toDate() || new Date(),
-        createdAt: data.createdAt?.toDate() || new Date(),
-        updatedAt: data.updatedAt?.toDate() || new Date(),
-      } as BookClubEvent;
-    });
-    
-    // Sort by date in JavaScript instead of Firestore
-    const sortedEvents = events.sort((a, b) => a.date.getTime() - b.date.getTime());
-    callback(sortedEvents);
-  }, (error) => {
-    console.error('Error in events subscription:', error);
-  });
+  const unsubscribe = onSnapshot(eventsQuery, 
+    (snapshot) => {
+      const now = new Date();
+      const events = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          date: data.date?.toDate() || new Date(),
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date(),
+          approvedAt: data.approvedAt?.toDate() || undefined,
+        } as BookClubEvent;
+      });
+      
+      // Filter to show only current and upcoming events (not past events)
+      const upcomingEvents = events.filter(event => {
+        // Consider an event "current" if it's within 4 hours of end time
+        const eventEndTime = new Date(event.date.getTime() + (4 * 60 * 60 * 1000)); // +4 hours
+        return eventEndTime >= now;
+      });
+      
+      // Sort by date in JavaScript (upcoming events first)
+      const sortedEvents = upcomingEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
+      callback(sortedEvents);
+    },
+    (error) => {
+      console.error('Error in events subscription:', error);
+    }
+  );
+  
+  return unsubscribe;
+};
+
+export const subscribeToPastEvents = (callback: (pastEvents: BookClubEvent[]) => void) => {
+  const eventsQuery = query(
+    collection(db, EVENTS_COLLECTION),
+    where('status', '==', 'approved')
+  );
+  
+  const unsubscribe = onSnapshot(eventsQuery, 
+    (snapshot) => {
+      const now = new Date();
+      const events = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          date: data.date?.toDate() || new Date(),
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date(),
+          approvedAt: data.approvedAt?.toDate() || undefined,
+        } as BookClubEvent;
+      });
+      
+      // Filter past events (events that have already ended)
+      const pastEvents = events.filter(event => {
+        // Consider an event "past" if it was more than 4 hours ago
+        const eventEndTime = new Date(event.date.getTime() + (4 * 60 * 60 * 1000)); // +4 hours
+        return eventEndTime < now;
+      });
+      
+      // Sort by date in reverse chronological order (most recent first)
+      const sortedPastEvents = pastEvents.sort((a, b) => b.date.getTime() - a.date.getTime());
+      callback(sortedPastEvents);
+    },
+    (error) => {
+      console.error('Error in past events subscription:', error);
+    }
+  );
+  
+  return unsubscribe;
 };
 
 export const subscribeToEventDetails = (
