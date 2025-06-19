@@ -98,6 +98,7 @@ const CreateEventScreen: React.FC = () => {
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
+    const now = new Date();
 
     if (!formData.title.trim()) {
       newErrors.title = 'Title is required';
@@ -118,8 +119,43 @@ const CreateEventScreen: React.FC = () => {
       newErrors.address = 'Address is required';
     }
 
+    // Validate that event date/time is not in the past
+    if (formData.startTime && formData.endTime) {
+      const isToday = formData.date.toDateString() === now.toDateString();
+      
+      if (isToday) {
+        // For today's events, check if start time is in the past
+        const startDateTime = createDateTime(formData.date, formData.startTime);
+        const endDateTime = createDateTime(formData.date, formData.endTime);
+        
+        if (startDateTime <= now) {
+          newErrors.startTime = 'Start time cannot be in the past';
+        }
+        if (endDateTime <= now) {
+          newErrors.endTime = 'End time cannot be in the past';
+        }
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // Helper function to combine date and time into a single DateTime
+  const createDateTime = (date: Date, timeString: string): Date => {
+    const [time, period] = timeString.split(' ');
+    const [hours, minutes] = time.split(':').map(Number);
+    
+    let hour24 = hours;
+    if (period === 'PM' && hours !== 12) {
+      hour24 += 12;
+    } else if (period === 'AM' && hours === 12) {
+      hour24 = 0;
+    }
+    
+    const dateTime = new Date(date);
+    dateTime.setHours(hour24, minutes, 0, 0);
+    return dateTime;
   };
 
   const handleSubmit = async () => {
@@ -317,6 +353,7 @@ const CreateEventScreen: React.FC = () => {
             onStartTimeChange={(time) => setFormData({ ...formData, startTime: time })}
             onEndTimeChange={(time) => setFormData({ ...formData, endTime: time })}
             error={errors.startTime || errors.endTime}
+            eventDate={formData.date}
           />
 
           <InputField

@@ -14,6 +14,7 @@ interface TimePickerProps {
   onStartTimeChange: (time: string) => void;
   onEndTimeChange: (time: string) => void;
   error?: string;
+  eventDate?: Date;
 }
 
 const TimePicker: React.FC<TimePickerProps> = ({
@@ -22,6 +23,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
   onStartTimeChange,
   onEndTimeChange,
   error,
+  eventDate,
 }) => {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
@@ -74,6 +76,42 @@ const TimePicker: React.FC<TimePickerProps> = ({
     const newDate = new Date(date);
     newDate.setHours(newDate.getHours() + hoursToAdd);
     return dateToTimeString(newDate);
+  };
+
+  // Helper function to check if a time is in the past for the event date
+  const isTimeInPast = (timeStr: string): boolean => {
+    if (!eventDate) return false;
+    
+    const now = new Date();
+    const isToday = eventDate.toDateString() === now.toDateString();
+    
+    if (!isToday) return false; // Only check for today's events
+    
+    const timeDate = timeStringToDate(timeStr);
+    const eventDateTime = new Date(eventDate);
+    eventDateTime.setHours(timeDate.getHours(), timeDate.getMinutes(), 0, 0);
+    
+    return eventDateTime <= now;
+  };
+
+  // Get minimum time for today's events
+  const getMinimumTime = (): Date => {
+    if (!eventDate) return new Date();
+    
+    const now = new Date();
+    const isToday = eventDate.toDateString() === now.toDateString();
+    
+    if (isToday) {
+      // For today's events, minimum time is current time + 15 minutes buffer
+      const minTime = new Date(now);
+      minTime.setMinutes(now.getMinutes() + 15);
+      return minTime;
+    }
+    
+    // For future dates, any time is allowed
+    const futureTime = new Date();
+    futureTime.setHours(0, 0, 0, 0);
+    return futureTime;
   };
 
   // Validate that end time is after start time

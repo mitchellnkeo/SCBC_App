@@ -120,6 +120,18 @@ When adding new bugs, please include:
 
 ## 🆕 Recently Fixed Issues
 
+### ✅ Past Date/Time Validation
+**Fixed:** Current Session  
+**Issue:** Users could create or edit events with dates/times that had already passed, leading to invalid events  
+**Solution:** 
+- Added comprehensive validation to prevent past date/time selection
+- Date pickers already had `minimumDate={new Date()}` to prevent past dates
+- Enhanced form validation to check same-day events with past start/end times
+- Added `eventDate` prop to TimePicker component for context-aware validation
+- Shows specific error messages: "Start time cannot be in the past" and "End time cannot be in the past"
+- Applied to both CreateEventScreen and EditEventScreen
+- Example: If it's September 9th, 2025 11am, users cannot create events starting before 11am that same day
+
 ### ✅ Event Card Time Layout Overflow
 **Fixed:** Current Session  
 **Issue:** Date and time text was overflowing in event cards when displayed in card view, making text unreadable  
