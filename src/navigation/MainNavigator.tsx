@@ -16,7 +16,6 @@ import FeedbackScreen from '../screens/info/FeedbackScreen';
 import SettingsScreen from '../screens/settings/SettingsScreen';
 import MonthlyBookScreen from '../screens/books/MonthlyBookScreen';
 import EditMonthlyBookScreen from '../screens/admin/EditMonthlyBookScreen';
-import KeyboardTestScreen from '../screens/KeyboardTestScreen';
 import { useAuthStore } from '../stores/authStore';
 
 export type MainStackParamList = {
@@ -36,7 +35,6 @@ export type MainStackParamList = {
   Settings: undefined;
   MonthlyBook: undefined;
   EditMonthlyBook: { bookId: string };
-  KeyboardTest: undefined;
 };
 
 const Stack = createStackNavigator<MainStackParamList>();
@@ -196,18 +194,6 @@ const MainNavigator: React.FC = () => {
         <Stack.Screen 
           name="EditMonthlyBook" 
           component={EditMonthlyBookScreen}
-          options={{
-            headerShown: false,
-            presentation: 'card',
-          }}
-        />
-      )}
-      
-      {/* Development/Debug Screens */}
-      {__DEV__ && (
-        <Stack.Screen 
-          name="KeyboardTest" 
-          component={KeyboardTestScreen}
           options={{
             headerShown: false,
             presentation: 'card',

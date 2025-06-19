@@ -11,7 +11,6 @@ import {
   Platform,
 } from 'react-native';
 import { Mention, UserSuggestion, MentionInputProps } from '../../types/mentions';
-import KeyboardToolbar from './KeyboardToolbar';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -33,7 +32,6 @@ const MentionInput: React.FC<MentionInputProps> = ({
   const [cursorPosition, setCursorPosition] = useState(0);
   
   const inputRef = useRef<TextInput>(null);
-  const keyboardToolbarID = `mentionInput_${Math.random().toString(36).substr(2, 9)}`;
 
   // Parse mentions from text
   const parseMentions = (text: string): Mention[] => {
@@ -159,12 +157,6 @@ const MentionInput: React.FC<MentionInputProps> = ({
     }, 100);
   };
 
-  // Handle keyboard toolbar done button
-  const handleKeyboardDone = () => {
-    inputRef.current?.blur();
-    onSubmit?.();
-  };
-
   // Render suggestion item
   const renderSuggestionItem = ({ item }: { item: UserSuggestion }) => (
     <TouchableOpacity
@@ -199,15 +191,7 @@ const MentionInput: React.FC<MentionInputProps> = ({
         onSubmitEditing={onSubmit}
         submitBehavior={multiline ? "newline" : "submit"}
         returnKeyType={multiline ? "default" : "done"}
-        inputAccessoryViewID={Platform.OS === 'ios' ? keyboardToolbarID : undefined}
       />
-      
-      {Platform.OS === 'ios' && (
-        <KeyboardToolbar 
-          nativeID={keyboardToolbarID}
-          onDone={handleKeyboardDone}
-        />
-      )}
       
       {showSuggestions && suggestions.length > 0 && (
         <View style={styles.suggestionsContainer}>
