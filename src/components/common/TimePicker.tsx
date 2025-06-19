@@ -25,8 +25,6 @@ const TimePicker: React.FC<TimePickerProps> = ({
   error,
   eventDate,
 }) => {
-  console.log('TimePicker rendered with startTime:', JSON.stringify(startTime), 'endTime:', JSON.stringify(endTime));
-  
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [tempStartTime, setTempStartTime] = useState(new Date());
@@ -34,28 +32,27 @@ const TimePicker: React.FC<TimePickerProps> = ({
 
   // Create a proper Date object for time picker
   const createTimeDate = (timeStr: string): Date => {
-    console.log('createTimeDate called with:', JSON.stringify(timeStr));
-    
     const now = new Date();
     
     if (!timeStr || timeStr.trim() === '' || timeStr === 'Select time') {
-      console.log('Using current time as default');
       return now;
     }
     
     try {
       const trimmed = timeStr.trim();
-      const [time, period] = trimmed.split(' ');
+      
+      // Use regex to split on any whitespace character (space, non-breaking space, etc.)
+      const splitResult = trimmed.split(/\s+/);
+      
+      const [time, period] = splitResult;
       
       if (!time || !period) {
-        console.log('Invalid time format, missing time or period');
         return now;
       }
       
       const [hoursStr, minutesStr] = time.split(':');
       
       if (!hoursStr || !minutesStr) {
-        console.log('Invalid time format, missing hours or minutes');
         return now;
       }
       
@@ -63,7 +60,6 @@ const TimePicker: React.FC<TimePickerProps> = ({
       const minutes = parseInt(minutesStr, 10);
       
       if (isNaN(hours) || isNaN(minutes)) {
-        console.log('Invalid numbers in time, hours:', hours, 'minutes:', minutes);
         return now;
       }
       
@@ -77,26 +73,19 @@ const TimePicker: React.FC<TimePickerProps> = ({
       
       const result = new Date();
       result.setHours(hours, minutes, 0, 0);
-      console.log('Successfully created time date:', result);
       return result;
     } catch (error) {
-      console.log('Error parsing time:', JSON.stringify(timeStr), error);
       return now;
     }
   };
 
   // Format Date object to time string
   const formatTimeString = (date: Date): string => {
-    console.log('formatTimeString called with date:', date);
-    
-    const result = date.toLocaleTimeString('en-US', {
+    return date.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
     });
-    
-    console.log('formatTimeString result:', result);
-    return result;
   };
 
   // Check if end time is after start time
@@ -105,105 +94,61 @@ const TimePicker: React.FC<TimePickerProps> = ({
     try {
       const startDate = createTimeDate(start);
       const endDate = createTimeDate(end);
-      console.log('isValidTimeRange - comparing:');
-      console.log('  start:', JSON.stringify(start), '→', startDate);
-      console.log('  end:', JSON.stringify(end), '→', endDate);
-      console.log('  endDate > startDate:', endDate > startDate);
-      console.log('  endDate.getTime():', endDate.getTime(), 'startDate.getTime():', startDate.getTime());
       return endDate > startDate;
     } catch (error) {
-      console.log('isValidTimeRange error:', error);
       return true;
     }
   };
 
   const openStartPicker = () => {
-    console.log('openStartPicker called');
-    console.log('current startTime:', startTime);
-    
     const initialTime = createTimeDate(startTime);
-    console.log('setting tempStartTime to:', initialTime);
-    
     setTempStartTime(initialTime);
     setShowStartPicker(true);
   };
 
   const openEndPicker = () => {
-    console.log('openEndPicker called');
-    console.log('current endTime:', endTime);
-    
     const initialTime = createTimeDate(endTime);
-    console.log('setting tempEndTime to:', initialTime);
-    
     setTempEndTime(initialTime);
     setShowEndPicker(true);
   };
 
   const handleStartTimeChange = (event: any, selectedTime?: Date) => {
-    console.log('handleStartTimeChange called');
-    console.log('Platform:', Platform.OS);
-    console.log('selectedTime:', selectedTime);
-    
     if (Platform.OS === 'android') {
       // Android: Auto-confirm selection
       setShowStartPicker(false);
       if (selectedTime) {
         const newStartTime = formatTimeString(selectedTime);
-        console.log('Android - setting start time to:', newStartTime);
         onStartTimeChange(newStartTime);
       }
     } else if (selectedTime) {
       // iOS: Just update temp time, don't auto-confirm
-      console.log('iOS - updating tempStartTime to:', selectedTime);
       setTempStartTime(selectedTime);
     }
   };
 
   const handleEndTimeChange = (event: any, selectedTime?: Date) => {
-    console.log('handleEndTimeChange called');
-    console.log('Platform:', Platform.OS);
-    console.log('selectedTime:', selectedTime);
-    
     if (Platform.OS === 'android') {
       // Android: Auto-confirm selection
       setShowEndPicker(false);
       if (selectedTime) {
         const newEndTime = formatTimeString(selectedTime);
-        console.log('Android - setting end time to:', newEndTime);
         onEndTimeChange(newEndTime);
       }
     } else if (selectedTime) {
       // iOS: Just update temp time, don't auto-confirm
-      console.log('iOS - updating tempEndTime to:', selectedTime);
       setTempEndTime(selectedTime);
     }
   };
 
   const confirmStartTime = () => {
-    console.log('confirmStartTime called');
-    console.log('tempStartTime:', tempStartTime);
-    
     const newStartTime = formatTimeString(tempStartTime);
-    console.log('newStartTime formatted:', newStartTime);
-    console.log('About to call onStartTimeChange with:', newStartTime);
-    
-    // Set the start time
     onStartTimeChange(newStartTime);
-    console.log('onStartTimeChange called - start time should now be set');
-    
     setShowStartPicker(false);
   };
 
   const confirmEndTime = () => {
-    console.log('confirmEndTime called');
-    console.log('tempEndTime:', tempEndTime);
-    
     const newEndTime = formatTimeString(tempEndTime);
-    console.log('newEndTime formatted:', newEndTime);
-    
     onEndTimeChange(newEndTime);
-    console.log('End time set to:', newEndTime);
-    
     setShowEndPicker(false);
   };
 
@@ -232,11 +177,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
             style={[styles.timeButton, hasTimeError && styles.timeButtonError]}
           >
             <Text style={[styles.timeText, !startTime && styles.placeholderText]}>
-              {(() => {
-                const displayText = startTime || 'Select time';
-                console.log('Rendering start time UI with:', JSON.stringify(displayText), 'from startTime prop:', JSON.stringify(startTime));
-                return displayText;
-              })()}
+              {startTime || 'Select time'}
             </Text>
             <Text style={styles.clockIcon}>🕐</Text>
           </TouchableOpacity>

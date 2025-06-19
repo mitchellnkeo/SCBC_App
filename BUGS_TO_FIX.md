@@ -143,6 +143,17 @@ When adding new bugs, please include:
 - **Clean validation**: Fixed time range validation to properly handle "9:30 AM to 11:00 AM" format
 - **Result**: TimePicker now works perfectly with reliable time setting, no auto-suggestion, and proper validation
 
+### ✅ TimePicker Unicode Whitespace Parsing Bug
+**Fixed:** Current Session  
+**Issue:** Time validation was failing with "End time must be after start time" error even for valid ranges like "4:00 PM to 6:00 PM"  
+**Root Cause:** The `toLocaleTimeString` function was producing time strings with Unicode whitespace characters (like non-breaking space U+00A0) instead of regular ASCII spaces, causing `split(' ')` to fail  
+**Solution:** 
+- **Fixed parsing regex**: Changed from `split(' ')` to `split(/\s+/)` to handle any Unicode whitespace characters
+- **Robust time parsing**: Now correctly splits "4:00 PM" into ["4:00", "PM"] regardless of whitespace type
+- **Eliminated false validation errors**: Time range validation now works correctly for all time formats
+- **Platform compatibility**: Handles different locale formatting across iOS/Android devices
+- **Result**: No more false "End time must be after start time" errors, reliable time validation for all Unicode whitespace variants
+
 ### ✅ Past Date/Time Validation
 **Fixed:** Current Session  
 **Issue:** Users could create or edit events with dates/times that had already passed, leading to invalid events  
