@@ -120,6 +120,29 @@ When adding new bugs, please include:
 
 ## 🆕 Recently Fixed Issues
 
+### ✅ TimePicker UX Improvements
+**Fixed:** Current Session  
+**Issue:** TimePicker had poor user experience with auto-selection on scroll and unreliable time setting  
+**Solution:** 
+- **iOS**: Restored modal with Cancel/Confirm buttons to prevent auto-selection while scrolling
+- **Android**: Maintained native behavior with immediate selection 
+- **Direct picker access**: Time picker opens immediately when input field is tapped (no intermediate dialogs)
+- **Reliable time setting**: Eliminated buggy temp state management that caused blank fields
+- **Platform-optimized behavior**: iOS spinner with manual confirmation, Android clock with auto-confirm
+- **Smart auto-suggestion**: End time suggestion only when needed, doesn't interfere with manual selection
+
+### ✅ TimePicker Final Fixes - Complete Resolution
+**Fixed:** Current Session  
+**Issue:** Final bugs with TimePicker including start time not displaying in UI and unwanted auto-suggestion  
+**Solution:** 
+- **Fixed start time display**: Resolved state update timing issue where start time wasn't appearing in UI field after selection
+- **Removed auto-suggestion**: Eliminated automatic end time suggestion feature per user preference
+- **Eliminated circular parsing**: Fixed buggy parsing loop that caused random end time values
+- **Direct Date object usage**: Modified confirmStartTime to use tempStartTime Date object directly instead of re-parsing formatted strings
+- **Enhanced debugging**: Added comprehensive logging to track state flow and identify issues
+- **Clean validation**: Fixed time range validation to properly handle "9:30 AM to 11:00 AM" format
+- **Result**: TimePicker now works perfectly with reliable time setting, no auto-suggestion, and proper validation
+
 ### ✅ Past Date/Time Validation
 **Fixed:** Current Session  
 **Issue:** Users could create or edit events with dates/times that had already passed, leading to invalid events  
