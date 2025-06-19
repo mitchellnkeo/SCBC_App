@@ -198,6 +198,23 @@ When adding new bugs, please include:
 - Cleaned up unused `formatPSTTime` imports
 - Now correctly shows time ranges like "11:00 AM - 1:00 PM" throughout the app
 
+### ✅ Admin User Management System
+**Added:** Current Session  
+**Feature:** Complete admin role management system for promoting/demoting users  
+**Implementation:** 
+- **Created UserManagementScreen**: Full-featured admin interface for managing user roles
+- **User statistics dashboard**: Shows total users, admin count, member count, and recent signups
+- **Search and filter functionality**: Find users by name/email and filter by role (All/Admins/Members)
+- **Role management actions**: Promote members to admin or demote admins to member with confirmation dialogs
+- **Security safeguards**: Prevents admins from demoting themselves to avoid lockout
+- **Real-time updates**: Local state updates immediately reflect changes without requiring page refresh
+- **User service integration**: Uses existing `getAllUsers`, `updateUserRole`, and `getUserStats` functions
+- **Navigation integration**: Added to MainNavigator and connected from AdminScreen "User Management" card
+- **Responsive design**: Clean card-based interface with user info, role badges, and action buttons
+- **Default role assignment**: New user registration defaults to 'member' role for security
+- **Admin email system**: Existing hardcoded admin emails in `adminUtils.ts` remain for initial admin setup
+- **Result**: Admins can now easily manage user permissions through an intuitive interface, with new users defaulting to member status until promoted by existing admins
+
 ### ✅ Date Picker Auto-Selection Issue
 **Fixed:** Current Session  
 **Issue:** Date picker automatically selected dates while user was scrolling/browsing, making it difficult to choose specific dates  

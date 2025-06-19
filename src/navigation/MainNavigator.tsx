@@ -16,6 +16,7 @@ import FeedbackScreen from '../screens/info/FeedbackScreen';
 import SettingsScreen from '../screens/settings/SettingsScreen';
 import MonthlyBookScreen from '../screens/books/MonthlyBookScreen';
 import EditMonthlyBookScreen from '../screens/admin/EditMonthlyBookScreen';
+import UserManagementScreen from '../screens/admin/UserManagementScreen';
 import { useAuthStore } from '../stores/authStore';
 
 export type MainStackParamList = {
@@ -26,6 +27,7 @@ export type MainStackParamList = {
   PendingEvents: undefined;
   Profile: undefined;
   Admin: undefined;
+  UserManagement: undefined;
   NotificationDemo: undefined;
   EditProfile: undefined;
   UserProfile: { userId: string };
@@ -126,6 +128,14 @@ const MainNavigator: React.FC = () => {
           <Stack.Screen 
             name="PendingEvents" 
             component={PendingEventsScreen}
+            options={{
+              headerShown: false,
+              presentation: 'card',
+            }}
+          />
+          <Stack.Screen 
+            name="UserManagement" 
+            component={UserManagementScreen}
             options={{
               headerShown: false,
               presentation: 'card',

@@ -123,7 +123,7 @@ const AdminScreen: React.FC = () => {
             title="User Management"
             description="Manage user accounts and permissions"
             icon="👥"
-            onPress={() => Alert.alert('Coming Soon', 'User management features will be available soon!')}
+            onPress={() => navigation.navigate('UserManagement' as never)}
           />
 
           <AdminCard

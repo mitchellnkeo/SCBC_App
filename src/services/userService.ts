@@ -6,7 +6,9 @@ import {
   limit,
   orderBy,
   doc,
-  getDoc
+  getDoc,
+  updateDoc,
+  serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { UserSuggestion, User, RSVP, EventComment, BookClubEvent } from '../types';
@@ -515,5 +517,87 @@ export const getUserPastEvents = async (userId: string, limitCount: number = 10)
       hosting: [],
       attending: [],
     };
+  }
+};
+
+/**
+ * Get all users from Firestore (admin only)
+ */
+export const getAllUsers = async (): Promise<User[]> => {
+  try {
+    const usersQuery = query(
+      collection(db, 'users'),
+      orderBy('createdAt', 'desc')
+    );
+    
+    const querySnapshot = await getDocs(usersQuery);
+    const users: User[] = [];
+
+    querySnapshot.forEach((doc) => {
+      const userData = doc.data();
+      users.push({
+        id: doc.id,
+        email: userData.email,
+        displayName: userData.displayName,
+        role: userData.role || 'member',
+        profilePicture: userData.profilePicture,
+        bio: userData.bio,
+        hobbies: userData.hobbies,
+        favoriteBooks: userData.favoriteBooks,
+        createdAt: userData.createdAt?.toDate() || new Date(),
+        updatedAt: userData.updatedAt?.toDate() || new Date(),
+      });
+    });
+
+    return users;
+  } catch (error) {
+    console.error('Error fetching all users:', error);
+    throw new Error('Failed to fetch users');
+  }
+};
+
+/**
+ * Update user role (admin only)
+ */
+export const updateUserRole = async (userId: string, newRole: 'admin' | 'member'): Promise<void> => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      role: newRole,
+      updatedAt: serverTimestamp(),
+    });
+    
+    console.log(`User ${userId} role updated to ${newRole}`);
+  } catch (error) {
+    console.error('Error updating user role:', error);
+    throw new Error('Failed to update user role');
+  }
+};
+
+/**
+ * Get user statistics (admin only)
+ */
+export const getUserStats = async (): Promise<{
+  totalUsers: number;
+  adminCount: number;
+  memberCount: number;
+  recentSignups: number; // last 7 days
+}> => {
+  try {
+    const users = await getAllUsers();
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+
+    const stats = {
+      totalUsers: users.length,
+      adminCount: users.filter(user => user.role === 'admin').length,
+      memberCount: users.filter(user => user.role === 'member').length,
+      recentSignups: users.filter(user => user.createdAt >= weekAgo).length,
+    };
+
+    return stats;
+  } catch (error) {
+    console.error('Error fetching user stats:', error);
+    throw new Error('Failed to fetch user statistics');
   }
 }; 
