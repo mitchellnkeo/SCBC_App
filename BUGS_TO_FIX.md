@@ -242,6 +242,8 @@ Complete FAQ system with public viewing and admin management capabilities.
 - ✅ Draft/published system
 - ✅ Sample content creation button
 - ✅ Comprehensive error handling and validation
+- ✅ Streamlined creation flow: "Publish" button for new FAQs (auto-published)
+- ✅ Published/Draft toggle only shown when editing existing FAQs
 
 **✅ Navigation Integration**:
 - ✅ Added FAQ route to `MainNavigator.tsx`

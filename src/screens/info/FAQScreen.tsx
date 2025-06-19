@@ -138,11 +138,11 @@ const FAQScreen: React.FC = () => {
         
         Alert.alert('Success', 'FAQ updated successfully');
       } else {
-        // Create new FAQ
+        // Create new FAQ (automatically published)
         const newFAQData: CreateFAQData = {
           question: questionText.trim(),
           answer: answerText.trim(),
-          isPublished,
+          isPublished: true, // New FAQs are automatically published
         };
         
         await createFAQ(newFAQData, user!.id, user!.displayName);
@@ -429,7 +429,9 @@ const FAQScreen: React.FC = () => {
               style={styles.modalSaveButton}
               onPress={handleSaveFAQ}
             >
-              <Text style={styles.modalSaveText}>Save</Text>
+              <Text style={styles.modalSaveText}>
+                {editingFAQ ? 'Save' : 'Publish'}
+              </Text>
             </TouchableOpacity>
           </View>
           
@@ -456,28 +458,31 @@ const FAQScreen: React.FC = () => {
               returnKeyType="done"
             />
             
-            <View style={styles.publishToggleContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.publishToggle,
-                  isPublished && styles.publishToggleActive
-                ]}
-                onPress={() => setIsPublished(!isPublished)}
-              >
-                <Text style={[
-                  styles.publishToggleText,
-                  isPublished && styles.publishToggleTextActive
-                ]}>
-                  {isPublished ? '✅ Published' : '📝 Draft'}
+            {/* Only show publish toggle when editing existing FAQs */}
+            {editingFAQ && (
+              <View style={styles.publishToggleContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.publishToggle,
+                    isPublished && styles.publishToggleActive
+                  ]}
+                  onPress={() => setIsPublished(!isPublished)}
+                >
+                  <Text style={[
+                    styles.publishToggleText,
+                    isPublished && styles.publishToggleTextActive
+                  ]}>
+                    {isPublished ? '✅ Published' : '📝 Draft'}
+                  </Text>
+                </TouchableOpacity>
+                <Text style={styles.publishHelp}>
+                  {isPublished 
+                    ? 'This FAQ will be visible to all users' 
+                    : 'This FAQ will only be visible to admins'
+                  }
                 </Text>
-              </TouchableOpacity>
-              <Text style={styles.publishHelp}>
-                {isPublished 
-                  ? 'This FAQ will be visible to all users' 
-                  : 'This FAQ will only be visible to admins'
-                }
-              </Text>
-            </View>
+              </View>
+            )}
           </ScrollView>
         </View>
       </Modal>
