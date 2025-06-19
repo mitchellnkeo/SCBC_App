@@ -17,6 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
 import { CreateEventFormData } from '../../types';
+import ImagePicker from '../../components/common/ImagePicker';
 
 // Move InputField outside the main component to prevent re-creation on each render
 const InputField: React.FC<{
@@ -199,6 +200,15 @@ const CreateEventScreen: React.FC = () => {
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
         >
+          {/* Move ImagePicker to the top */}
+          <ImagePicker
+            value={formData.headerPhoto || ''}
+            onImageSelected={(uri) => setFormData({ ...formData, headerPhoto: uri })}
+            onImageRemoved={() => setFormData({ ...formData, headerPhoto: '' })}
+            label="Event Header Photo (Optional)"
+            placeholder="Add a photo to make your event stand out!"
+          />
+
           <InputField
             label="Event Title"
             value={formData.title}
@@ -290,14 +300,6 @@ const CreateEventScreen: React.FC = () => {
             inputRef={maxAttendeesRef}
             returnKeyType="done"
             onSubmitEditing={() => Keyboard.dismiss()}
-          />
-
-          <InputField
-            label="Header Photo URL (Optional)"
-            value={formData.headerPhoto || ''}
-            onChangeText={(text) => setFormData({ ...formData, headerPhoto: text })}
-            placeholder="https://example.com/image.jpg"
-            keyboardType="url"
           />
 
           {/* Approval Notice for Non-Admin Users */}

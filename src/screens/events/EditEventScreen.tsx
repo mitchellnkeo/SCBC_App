@@ -17,6 +17,7 @@ import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
 import { CreateEventFormData } from '../../types';
 import { handleError } from '../../utils/errorHandler';
+import ImagePicker from '../../components/common/ImagePicker';
 
 type RouteParams = {
   EditEvent: {
@@ -225,6 +226,15 @@ const EditEventScreen: React.FC = () => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          {/* Move ImagePicker to the top */}
+          <ImagePicker
+            value={formData.headerPhoto || ''}
+            onImageSelected={(uri) => setFormData({ ...formData, headerPhoto: uri })}
+            onImageRemoved={() => setFormData({ ...formData, headerPhoto: '' })}
+            label="Event Header Photo (Optional)"
+            placeholder="Add or change the event photo"
+          />
+
           <InputField
             label="Event Title"
             value={formData.title}
@@ -304,14 +314,6 @@ const EditEventScreen: React.FC = () => {
             })}
             placeholder="e.g., 25"
             keyboardType="numeric"
-          />
-
-          <InputField
-            label="Header Photo URL (Optional)"
-            value={formData.headerPhoto || ''}
-            onChangeText={(text) => setFormData({ ...formData, headerPhoto: text })}
-            placeholder="https://example.com/image.jpg"
-            keyboardType="url"
           />
 
           {/* Edit Notice */}
