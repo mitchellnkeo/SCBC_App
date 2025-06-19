@@ -93,7 +93,7 @@ const EventsListScreen: React.FC = () => {
           name="AllEvents" 
           component={AllEventsTab}
           options={{
-            tabBarLabel: 'All Events',
+            tabBarLabel: 'Current/Upcoming',
           }}
         />
         <Tab.Screen 

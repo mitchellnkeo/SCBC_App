@@ -27,6 +27,7 @@ import {
   ApprovalFormData,
   PendingEventStats
 } from '../types';
+import { isEventCurrentOrUpcoming, hasEventEnded } from '../utils/timezone';
 
 // Collections
 const EVENTS_COLLECTION = 'events';
@@ -169,8 +170,6 @@ export const getEvent = async (eventId: string): Promise<BookClubEvent | null> =
 
 export const getAllEvents = async (limitCount: number = 20): Promise<BookClubEvent[]> => {
   try {
-    const now = new Date();
-    
     // Only get approved events for the main events list - with pagination limit
     const eventsQuery = query(
       collection(db, EVENTS_COLLECTION),
@@ -191,11 +190,9 @@ export const getAllEvents = async (limitCount: number = 20): Promise<BookClubEve
       } as BookClubEvent;
     });
     
-    // Filter to show only current and upcoming events (not past events)
+    // Filter to show only current and upcoming events using PST timezone
     const upcomingEvents = events.filter(event => {
-      // Consider an event "current" if it's within 4 hours of end time
-      const eventEndTime = new Date(event.date.getTime() + (4 * 60 * 60 * 1000)); // +4 hours
-      return eventEndTime >= now;
+      return isEventCurrentOrUpcoming(event.date, 4); // 4-hour duration assumption
     });
     
     // Sort by date in JavaScript (upcoming events first)
@@ -210,10 +207,8 @@ export const getAllEvents = async (limitCount: number = 20): Promise<BookClubEve
 
 export const getPastEvents = async (limitCount: number = 20): Promise<BookClubEvent[]> => {
   try {
-    const now = new Date();
-    
     // Get approved events (we'll filter by date in JavaScript since Firestore
-    // has limitations with timestamp queries and we need proper date comparison)
+    // has limitations with timestamp queries and we need proper PST date comparison)
     const eventsQuery = query(
       collection(db, EVENTS_COLLECTION),
       where('status', '==', 'approved'),
@@ -233,12 +228,9 @@ export const getPastEvents = async (limitCount: number = 20): Promise<BookClubEv
       } as BookClubEvent;
     });
     
-    // Filter past events (events that have already ended)
+    // Filter past events using PST timezone
     const pastEvents = events.filter(event => {
-      // Consider an event "past" if it was more than 4 hours ago
-      // (to account for events that might run a few hours)
-      const eventEndTime = new Date(event.date.getTime() + (4 * 60 * 60 * 1000)); // +4 hours
-      return eventEndTime < now;
+      return hasEventEnded(event.date, 4); // 4-hour duration assumption
     });
     
     // Sort by date in reverse chronological order (most recent first)
@@ -521,7 +513,6 @@ export const subscribeToEvents = (callback: (events: BookClubEvent[]) => void) =
   
   const unsubscribe = onSnapshot(eventsQuery, 
     (snapshot) => {
-      const now = new Date();
       const events = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
@@ -534,11 +525,9 @@ export const subscribeToEvents = (callback: (events: BookClubEvent[]) => void) =
         } as BookClubEvent;
       });
       
-      // Filter to show only current and upcoming events (not past events)
+      // Filter to show only current and upcoming events using PST timezone
       const upcomingEvents = events.filter(event => {
-        // Consider an event "current" if it's within 4 hours of end time
-        const eventEndTime = new Date(event.date.getTime() + (4 * 60 * 60 * 1000)); // +4 hours
-        return eventEndTime >= now;
+        return isEventCurrentOrUpcoming(event.date, 4); // 4-hour duration assumption
       });
       
       // Sort by date in JavaScript (upcoming events first)
@@ -561,7 +550,6 @@ export const subscribeToPastEvents = (callback: (pastEvents: BookClubEvent[]) =>
   
   const unsubscribe = onSnapshot(eventsQuery, 
     (snapshot) => {
-      const now = new Date();
       const events = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
@@ -574,11 +562,9 @@ export const subscribeToPastEvents = (callback: (pastEvents: BookClubEvent[]) =>
         } as BookClubEvent;
       });
       
-      // Filter past events (events that have already ended)
+      // Filter past events using PST timezone
       const pastEvents = events.filter(event => {
-        // Consider an event "past" if it was more than 4 hours ago
-        const eventEndTime = new Date(event.date.getTime() + (4 * 60 * 60 * 1000)); // +4 hours
-        return eventEndTime < now;
+        return hasEventEnded(event.date, 4); // 4-hour duration assumption
       });
       
       // Sort by date in reverse chronological order (most recent first)

@@ -17,6 +17,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { useTheme } from '../../contexts/ThemeContext';
 import { BookClubEvent } from '../../types';
 import { MainStackParamList } from '../../navigation/MainNavigator';
+import { formatPSTDate, formatPSTTime, getEventStatus } from '../../utils/timezone';
 
 const AllEventsTab: React.FC = () => {
   const navigation = useNavigation<NavigationProp<MainStackParamList>>();
@@ -67,16 +68,16 @@ const AllEventsTab: React.FC = () => {
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
+    return formatPSTDate(date);
   };
 
-  const formatTime = (time: string) => {
-    return time;
+  const formatTime = (date: Date) => {
+    return formatPSTTime(date);
+  };
+
+  // Get event status with PST awareness
+  const getEventStatusInfo = (event: BookClubEvent) => {
+    return getEventStatus(event.date);
   };
 
   const dynamicStyles = StyleSheet.create({
@@ -353,7 +354,7 @@ const AllEventsTab: React.FC = () => {
       <View style={dynamicStyles.listDetails}>
         <Text style={dynamicStyles.emoji}>🕐</Text>
         <Text style={dynamicStyles.listDetailText} numberOfLines={1}>
-          {formatTime(event.time)}
+          {formatTime(event.date)}
         </Text>
       </View>
       
@@ -386,7 +387,7 @@ const AllEventsTab: React.FC = () => {
         
         <View style={dynamicStyles.listStatus}>
           <View style={dynamicStyles.listStatusDot} />
-          <Text style={dynamicStyles.listStatusText}>Active</Text>
+          <Text style={dynamicStyles.listStatusText}>{getEventStatusInfo(event).description}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -421,7 +422,7 @@ const AllEventsTab: React.FC = () => {
         <View style={dynamicStyles.row}>
           <Text style={dynamicStyles.emoji}>📅</Text>
           <Text style={dynamicStyles.eventDetail}>
-            {formatDate(event.date)} at {formatTime(event.time)}
+            {formatDate(event.date)} at {formatTime(event.date)}
           </Text>
         </View>
         
@@ -456,7 +457,7 @@ const AllEventsTab: React.FC = () => {
           {/* Event Status Indicator */}
           <View style={dynamicStyles.row}>
             <View style={dynamicStyles.statusDot} />
-            <Text style={dynamicStyles.statusText}>Active</Text>
+            <Text style={dynamicStyles.statusText}>{getEventStatusInfo(event).description}</Text>
           </View>
         </View>
       </View>
