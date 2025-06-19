@@ -362,18 +362,25 @@ const PastEventsTab: React.FC = () => {
           {event.title}
         </Text>
 
-        {/* Date and Time */}
-        <View style={[dynamicStyles.row, { marginBottom: 8 }]}>
+        {/* Date and Time - Separate Lines */}
+        <View style={[dynamicStyles.row, { marginBottom: 4 }]}>
           <Text style={dynamicStyles.emoji}>📅</Text>
-          <Text style={dynamicStyles.eventDetail}>
-            {formatDate(event.date)} • {formatTime(event.startTime, event.endTime)}
+          <Text style={[dynamicStyles.eventDetail, { flex: 1 }]} numberOfLines={1}>
+            {formatDate(event.date)}
+          </Text>
+        </View>
+
+        <View style={[dynamicStyles.row, { marginBottom: 8, marginLeft: 26 }]}>
+          <Text style={dynamicStyles.emoji}>🕐</Text>
+          <Text style={[dynamicStyles.eventDetail, { flex: 1 }]} numberOfLines={1}>
+            {formatTime(event.startTime, event.endTime)}
           </Text>
         </View>
 
         {/* Location */}
         <View style={[dynamicStyles.row, { marginBottom: 8 }]}>
           <Text style={dynamicStyles.emoji}>📍</Text>
-          <Text style={dynamicStyles.eventDetail} numberOfLines={1}>
+          <Text style={[dynamicStyles.eventDetail, { flex: 1 }]} numberOfLines={1}>
             {event.location}
           </Text>
         </View>

@@ -120,6 +120,16 @@ When adding new bugs, please include:
 
 ## 🆕 Recently Fixed Issues
 
+### ✅ Event Card Time Layout Overflow
+**Fixed:** Current Session  
+**Issue:** Date and time text was overflowing in event cards when displayed in card view, making text unreadable  
+**Solution:** 
+- Separated date and time into separate lines instead of concatenating them into one long string
+- Added proper flex styling with `flex: 1` and `numberOfLines={1}` to prevent overflow
+- Used consistent indentation with `marginLeft: 26` for time alignment
+- Applied fix to `AllEventsTab.tsx`, `PastEventsTab.tsx`, and `MyEventsTab.tsx`
+- Now displays cleanly with date on first line and time range on second line
+
 ### ✅ Event Card Time Display Issue
 **Fixed:** Current Session  
 **Issue:** Event cards were displaying incorrect single times (e.g., "9:47pm") instead of proper time ranges (e.g., "11:00am-12:00pm")  

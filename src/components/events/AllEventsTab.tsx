@@ -425,11 +425,18 @@ const AllEventsTab: React.FC = () => {
           {event.title}
         </Text>
         
-        {/* Date and Time */}
-        <View style={dynamicStyles.row}>
+        {/* Date and Time - Separate Lines */}
+        <View style={[dynamicStyles.row, { marginBottom: 4 }]}>
           <Text style={dynamicStyles.emoji}>📅</Text>
-          <Text style={dynamicStyles.eventDetail}>
-            {formatDate(event.date)} at {formatTime(event.startTime, event.endTime)}
+          <Text style={[dynamicStyles.eventDetail, { flex: 1 }]} numberOfLines={1}>
+            {formatDate(event.date)}
+          </Text>
+        </View>
+        
+        <View style={[dynamicStyles.row, { marginBottom: 8, marginLeft: 26 }]}>
+          <Text style={dynamicStyles.emoji}>🕐</Text>
+          <Text style={[dynamicStyles.eventDetail, { flex: 1 }]} numberOfLines={1}>
+            {formatTime(event.startTime, event.endTime)}
           </Text>
         </View>
         
