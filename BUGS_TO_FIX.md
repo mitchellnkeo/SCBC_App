@@ -318,3 +318,31 @@ match /faqs/{faqId} {
 - `src/screens/events/EditEventScreen.tsx`
 
 **Result**: Much more intuitive and efficient date selection process for all users. 
+
+### ✅ Text Size Setting Removal
+
+**Added:** Current Session  
+**Feature:** Removed Text Size setting from Settings screen  
+**Implementation:** 
+- **Removed Text Size section**: Eliminated the entire "Text Size" section with Small/Medium/Large options
+- **Removed handleFontSizeChange function**: Cleaned up unused function from SettingsScreen
+- **Updated AppSettings interface**: Removed fontSize property from types/settings.ts
+- **Updated DEFAULT_SETTINGS**: Removed fontSize default value
+- **Simplified settings UI**: Settings now only show Appearance (theme) and Profile Privacy options
+- **Maintained functionality**: All other settings continue to work as expected
+- **Result**: Cleaner, more focused settings interface without unused text size options
+
+### ✅ Admin Panel Placeholder Cleanup
+
+**Added:** Current Session  
+**Feature:** Removed placeholder sections from Admin Panel  
+**Implementation:** 
+- **Removed Analytics button**: Eliminated "View app usage and engagement metrics" placeholder card
+- **Removed App Settings button**: Eliminated "Configure app-wide settings and features" placeholder card
+- **Removed Recent Activity section**: Eliminated "Activity feed coming soon..." placeholder section
+- **Cleaner admin interface**: Admin Panel now focuses on functional features only
+- **Maintained working features**: Kept Pending Events, Monthly Book, User Management, and Content Moderation
+- **Better UX**: Admins no longer see non-functional placeholder sections
+- **Reduced confusion**: Interface now only shows features that actually work
+- **Streamlined layout**: More focused and professional admin panel design
+- **Result**: Clean, professional admin panel with only working functionality

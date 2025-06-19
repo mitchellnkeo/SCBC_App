@@ -132,30 +132,6 @@ const AdminScreen: React.FC = () => {
             icon="🛡️"
             onPress={() => Alert.alert('Coming Soon', 'Content moderation tools will be available soon!')}
           />
-
-          <AdminCard
-            title="Analytics"
-            description="View app usage and engagement metrics"
-            icon="📊"
-            onPress={() => Alert.alert('Coming Soon', 'Analytics dashboard will be available soon!')}
-          />
-
-          <AdminCard
-            title="App Settings"
-            description="Configure app-wide settings and features"
-            icon="⚙️"
-            onPress={() => Alert.alert('Coming Soon', 'App settings will be available soon!')}
-          />
-        </View>
-
-        {/* Recent Activity */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
-          <View style={styles.activityCard}>
-            <Text style={styles.activityPlaceholder}>
-              📈 Activity feed coming soon...
-            </Text>
-          </View>
         </View>
       </ScrollView>
     </View>
@@ -281,18 +257,6 @@ const createStyles = (theme: any) => StyleSheet.create({
   chevron: {
     fontSize: 20,
     color: theme.textTertiary,
-  },
-  activityCard: {
-    backgroundColor: theme.card,
-    borderRadius: 12,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: theme.border,
-  },
-  activityPlaceholder: {
-    fontSize: 16,
-    color: theme.textSecondary,
-    textAlign: 'center',
   },
 });
 

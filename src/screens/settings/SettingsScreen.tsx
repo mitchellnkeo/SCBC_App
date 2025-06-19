@@ -32,10 +32,6 @@ const SettingsScreen: React.FC = () => {
     updateSetting('theme', themeValue);
   };
 
-  const handleFontSizeChange = (fontSize: AppSettings['fontSize']) => {
-    updateSetting('fontSize', fontSize);
-  };
-
   const handlePrivacyChange = (privacy: AppSettings['profilePrivacy']) => {
     updateSetting('profilePrivacy', privacy);
   };
@@ -156,28 +152,6 @@ const SettingsScreen: React.FC = () => {
             description="Follow your device settings"
             isSelected={settings.theme === 'system'}
             onPress={() => handleThemeChange('system')}
-          />
-        </SettingSection>
-
-        {/* Font Size Settings */}
-        <SettingSection title="Text Size">
-          <OptionButton
-            label="Small"
-            description="Compact text for more content"
-            isSelected={settings.fontSize === 'small'}
-            onPress={() => handleFontSizeChange('small')}
-          />
-          <OptionButton
-            label="Medium"
-            description="Standard text size"
-            isSelected={settings.fontSize === 'medium'}
-            onPress={() => handleFontSizeChange('medium')}
-          />
-          <OptionButton
-            label="Large"
-            description="Larger text for better readability"
-            isSelected={settings.fontSize === 'large'}
-            onPress={() => handleFontSizeChange('large')}
           />
         </SettingSection>
 
