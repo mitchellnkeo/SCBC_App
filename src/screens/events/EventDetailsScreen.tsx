@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import {
   StyleSheet,
   Dimensions,
   RefreshControl,
-  Linking,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -27,6 +26,10 @@ import MentionText from '../../components/common/MentionText';
 import ClickableUser from '../../components/common/ClickableUser';
 import { handleError } from '../../utils/errorHandler';
 import { getEventParticipantsForMentions } from '../../services/userService';
+import AddressAction from '../../components/common/AddressAction';
+import { BookClubEvent } from '../../types';
+import { db } from '../../config/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 type RouteParams = {
   EventDetails: {
@@ -198,17 +201,6 @@ const EventDetailsScreen: React.FC = () => {
   const handleCallHost = () => {
     // Placeholder for calling host
     Alert.alert('Call Host', 'Contact feature coming soon!');
-  };
-
-  const handleOpenMap = () => {
-    if (!currentEvent) return;
-    
-    const address = encodeURIComponent(currentEvent.address);
-    const url = `https://maps.apple.com/?q=${address}`;
-    
-    Linking.openURL(url).catch(() => {
-      Alert.alert('Error', 'Could not open maps application.');
-    });
   };
 
   const formatDate = (date: Date) => {
@@ -453,7 +445,10 @@ const EventDetailsScreen: React.FC = () => {
                 </View>
                 
                 {/* Location */}
-                <TouchableOpacity onPress={handleOpenMap} style={styles.infoRow}>
+                <AddressAction
+                  address={currentEvent.address}
+                  style={styles.infoRow}
+                >
                   <Text style={styles.infoIcon}>📍</Text>
                   <View style={styles.infoContent}>
                     <Text style={[styles.infoText, styles.linkText]}>
@@ -463,7 +458,7 @@ const EventDetailsScreen: React.FC = () => {
                       {currentEvent.address}
                     </Text>
                   </View>
-                </TouchableOpacity>
+                </AddressAction>
                 
                 {/* Host */}
                 <View style={styles.infoRow}>

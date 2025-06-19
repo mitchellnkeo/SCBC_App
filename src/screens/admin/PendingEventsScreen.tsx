@@ -18,6 +18,7 @@ import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
 import { BookClubEvent, ApprovalFormData } from '../../types';
 import { format } from 'date-fns';
+import AddressAction from '../../components/common/AddressAction';
 
 const PendingEventsScreen: React.FC = () => {
   const { user } = useAuthStore();
@@ -137,7 +138,9 @@ const PendingEventsScreen: React.FC = () => {
             }
           </Text>
           <Text className="text-gray-600">📍 {event.location}</Text>
-          <Text className="text-gray-600 text-sm">{event.address}</Text>
+          <AddressAction address={event.address}>
+            <Text className="text-gray-600 text-sm">{event.address}</Text>
+          </AddressAction>
           {event.maxAttendees && (
             <Text className="text-gray-600">👥 Max {event.maxAttendees} attendees</Text>
           )}

@@ -154,6 +154,19 @@ When adding new bugs, please include:
 - **Platform compatibility**: Handles different locale formatting across iOS/Android devices
 - **Result**: No more false "End time must be after start time" errors, reliable time validation for all Unicode whitespace variants
 
+### ✅ Address Action Feature - New UX Enhancement
+**Added:** Current Session  
+**Feature:** Enhanced address interaction with multiple mapping and copy options  
+**Implementation:** 
+- **Created AddressAction component**: Reusable component that wraps any address display element
+- **Three action options**: Google Maps, Apple Maps, and Copy to Clipboard when address is tapped
+- **Smart app detection**: Tries to open native apps first, falls back to web versions if apps not installed
+- **Platform optimization**: Uses appropriate URL schemes for iOS and Android
+- **Cross-platform compatibility**: Works consistently across all devices and platforms
+- **Applied globally**: Integrated in EventDetailsScreen and PendingEventsScreen (admin)
+- **User-friendly feedback**: Shows confirmation when address is copied to clipboard
+- **Result**: Users can now easily navigate to event locations using their preferred mapping app or copy addresses for external use
+
 ### ✅ Past Date/Time Validation
 **Fixed:** Current Session  
 **Issue:** Users could create or edit events with dates/times that had already passed, leading to invalid events  
