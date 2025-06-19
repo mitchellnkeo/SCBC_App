@@ -175,6 +175,11 @@ The Seattle Chinatown Book Club App is a production-ready React Native applicati
          allow create, update, delete: if request.auth != null 
            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
        }
+       match /faqs/{faqId} {
+         allow read: if request.auth != null;
+         allow create, update, delete: if request.auth != null 
+           && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+       }
      }
    }
    ```

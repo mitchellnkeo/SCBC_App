@@ -13,6 +13,7 @@ import UserProfileScreen from '../screens/profile/UserProfileScreen';
 import AboutSCBCScreen from '../screens/info/AboutSCBCScreen';
 import ContactInfoScreen from '../screens/info/ContactInfoScreen';
 import FeedbackScreen from '../screens/info/FeedbackScreen';
+import FAQScreen from '../screens/info/FAQScreen';
 import SettingsScreen from '../screens/settings/SettingsScreen';
 import MonthlyBookScreen from '../screens/books/MonthlyBookScreen';
 import EditMonthlyBookScreen from '../screens/admin/EditMonthlyBookScreen';
@@ -34,6 +35,7 @@ export type MainStackParamList = {
   AboutSCBC: undefined;
   ContactInfo: undefined;
   Feedback: undefined;
+  FAQ: undefined;
   Settings: undefined;
   MonthlyBook: undefined;
   EditMonthlyBook: { bookId: string };
@@ -175,6 +177,14 @@ const MainNavigator: React.FC = () => {
       <Stack.Screen 
         name="Feedback" 
         component={FeedbackScreen}
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen 
+        name="FAQ" 
+        component={FAQScreen}
         options={{
           headerShown: false,
           presentation: 'card',

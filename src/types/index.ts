@@ -164,3 +164,29 @@ export interface User {
     totalPending: number;
     newThisWeek: number;
   }
+
+  // FAQ Types
+  export interface FAQ {
+    id: string;
+    question: string;
+    answer: string;
+    createdBy: string; // User ID of creator
+    createdByName: string; // Display name of creator
+    createdAt: Date;
+    updatedAt: Date;
+    isPublished: boolean; // For draft/published status
+    order: number; // For manual ordering
+  }
+
+  export interface CreateFAQData {
+    question: string;
+    answer: string;
+    isPublished?: boolean;
+  }
+
+  export interface EditFAQData {
+    question?: string;
+    answer?: string;
+    isPublished?: boolean;
+    order?: number;
+  }

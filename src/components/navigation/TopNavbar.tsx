@@ -91,6 +91,12 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
       }),
     },
     {
+      title: 'Frequently Asked Questions',
+      onPress: () => handleMenuItemPress(() => {
+        navigation.navigate('FAQ');
+      }),
+    },
+    {
       title: 'SCBC Feedback',
       onPress: () => handleMenuItemPress(() => {
         navigation.navigate('Feedback');

@@ -215,15 +215,70 @@ When adding new bugs, please include:
 - **Admin email system**: Existing hardcoded admin emails in `adminUtils.ts` remain for initial admin setup
 - **Result**: Admins can now easily manage user permissions through an intuitive interface, with new users defaulting to member status until promoted by existing admins
 
-### ✅ Date Picker Auto-Selection Issue
-**Fixed:** Current Session  
-**Issue:** Date picker automatically selected dates while user was scrolling/browsing, making it difficult to choose specific dates  
-**Solution:** 
-- Added temporary date state for browsing on iOS
-- Implemented manual confirmation buttons (Cancel/Confirm) for iOS  
-- Maintained Android default behavior while improving iOS UX
-- Users can now scroll through dates freely and confirm their selection manually
-- Updated both CreateEventScreen and EditEventScreen
+### ✅ FAQ System (NEW FEATURE) 🆕
+
+**Status**: ✅ **COMPLETED**
+**Priority**: High
+**Component**: FAQ Management
+**Screens**: `src/screens/info/FAQScreen.tsx`
+**Services**: `src/services/faqService.ts`
+
+### Description
+Complete FAQ system with public viewing and admin management capabilities.
+
+### Implementation Details
+**✅ FAQ Service** (`src/services/faqService.ts`):
+- ✅ Complete Firebase CRUD operations
+- ✅ FAQ types with question, answer, created by, published status, ordering
+- ✅ Functions: `getPublishedFAQs`, `getAllFAQs`, `createFAQ`, `updateFAQ`, `deleteFAQ`, `reorderFAQs`, `getFAQStats`
+- ✅ `createDefaultFAQs` function that generates 8 sample book club FAQs
+- ✅ Optimized queries to avoid Firebase composite index requirements
+
+**✅ FAQ Screen** (`src/screens/info/FAQScreen.tsx`):
+- ✅ Public viewing mode with expand/collapse FAQ interface
+- ✅ Admin mode toggle for content management
+- ✅ Statistics dashboard for admins
+- ✅ Modal editing interface for creating/editing FAQs
+- ✅ Draft/published system
+- ✅ Sample content creation button
+- ✅ Comprehensive error handling and validation
+
+**✅ Navigation Integration**:
+- ✅ Added FAQ route to `MainNavigator.tsx`
+- ✅ Added "Frequently Asked Questions" to TopNavbar menu
+
+### Firebase Configuration Required
+**✅ COMPLETED**: Firebase Security Rules updated in README.md
+```javascript
+match /faqs/{faqId} {
+  allow read: if request.auth != null;
+  allow create, update, delete: if request.auth != null 
+    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+}
+```
+
+### Features Implemented
+**For All Users**:
+- ✅ Clean numbered FAQ list with expand/collapse functionality
+- ✅ Mobile-optimized responsive design
+- ✅ Easy navigation and reading experience
+
+**For Admins**:
+- ✅ Admin mode toggle
+- ✅ Create/edit/delete FAQs with modal interface
+- ✅ Publish/unpublish functionality (draft system)
+- ✅ Statistics showing total, published, and draft counts
+- ✅ "Create Sample FAQs" button generating 8 relevant book club FAQs
+- ✅ Inline editing controls
+
+### Sample FAQs Created
+✅ 8 pre-written FAQs covering: club description, meeting frequency, book selection, RSVP process, membership fees, reading requirements, book suggestions, and attendance flexibility.
+
+### Technical Notes
+- ✅ Queries optimized to avoid Firebase composite index requirements
+- ✅ Memory-based filtering and sorting for better performance
+- ✅ All TypeScript compilation clean
+- ✅ Production-ready implementation
 
 ## Recently Fixed Issues ✅
 
