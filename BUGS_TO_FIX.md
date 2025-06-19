@@ -237,13 +237,14 @@ Complete FAQ system with public viewing and admin management capabilities.
 **✅ FAQ Screen** (`src/screens/info/FAQScreen.tsx`):
 - ✅ Public viewing mode with expand/collapse FAQ interface
 - ✅ Admin mode toggle for content management
-- ✅ Statistics dashboard for admins
+- ✅ Statistics dashboard for admins (Total and Published counts)
 - ✅ Modal editing interface for creating/editing FAQs
 - ✅ Draft/published system
 - ✅ Sample content creation button
 - ✅ Comprehensive error handling and validation
 - ✅ Streamlined creation flow: "Publish" button for new FAQs (auto-published)
 - ✅ Published/Draft toggle only shown when editing existing FAQs
+- ✅ Role-based default view: Regular users see public view, Admins see admin view by default
 
 **✅ Navigation Integration**:
 - ✅ Added FAQ route to `MainNavigator.tsx`

@@ -32,7 +32,6 @@ import {
 interface FAQStats {
   totalFAQs: number;
   publishedFAQs: number;
-  draftFAQs: number;
 }
 
 const FAQScreen: React.FC = () => {
@@ -44,7 +43,7 @@ const FAQScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
-  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [isAdminMode, setIsAdminMode] = useState(user?.role === 'admin');
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
   const [questionText, setQuestionText] = useState('');
@@ -365,10 +364,6 @@ const FAQScreen: React.FC = () => {
               <View style={styles.statItem}>
                 <Text style={styles.statNumber}>{faqStats.publishedFAQs}</Text>
                 <Text style={styles.statLabel}>Published</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{faqStats.draftFAQs}</Text>
-                <Text style={styles.statLabel}>Drafts</Text>
               </View>
             </View>
           )}
