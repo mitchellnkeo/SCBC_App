@@ -206,11 +206,11 @@ const FeedbackScreen: React.FC = () => {
           <View style={dynamicStyles.benefitsSection}>
             <Text style={dynamicStyles.benefitsTitle}>Your feedback helps us:</Text>
             <View style={dynamicStyles.benefitsList}>
-              <Text style={dynamicStyles.benefitItem}>Choose better books for our monthly selections</Text>
-              <Text style={dynamicStyles.benefitItem}>Plan more engaging events and discussions</Text>
-              <Text style={dynamicStyles.benefitItem}>Improve our app features and user experience</Text>
-              <Text style={dynamicStyles.benefitItem}>Build a stronger, more inclusive community</Text>
-              <Text style={dynamicStyles.benefitItem}>Create new opportunities for connection</Text>
+              <Text style={dynamicStyles.benefitItem}>Choose better books for our monthly selections.</Text>
+              <Text style={dynamicStyles.benefitItem}>Plan more engaging events and discussions.</Text>
+              <Text style={dynamicStyles.benefitItem}>Improve our app features and user experience.</Text>
+              <Text style={dynamicStyles.benefitItem}>Build a stronger, more inclusive community.</Text>
+              <Text style={dynamicStyles.benefitItem}>Create new opportunities for connection.</Text>
             </View>
           </View>
 
@@ -220,16 +220,6 @@ const FeedbackScreen: React.FC = () => {
               Your input directly shapes the future of our book club community.
             </Text>
           </View>
-        </View>
-
-        {/* Additional Info */}
-        <View style={dynamicStyles.additionalInfo}>
-          <Text style={dynamicStyles.infoTitle}>Other ways to reach us:</Text>
-          <Text style={dynamicStyles.infoText}>
-            • Speak with any board member at events{'\n'}
-            • Email us directly through the Contact Info page{'\n'}
-            • Share thoughts during our monthly discussions
-          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
