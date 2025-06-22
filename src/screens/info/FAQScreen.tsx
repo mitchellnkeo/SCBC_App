@@ -310,20 +310,6 @@ const FAQScreen: React.FC = () => {
               )}
             </View>
           )}
-          
-          {/* Stats for admin */}
-          {isAdminMode && faqStats && (
-            <View style={styles.statsContainer}>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{faqStats.totalFAQs}</Text>
-                <Text style={styles.statLabel}>Total</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{faqStats.publishedFAQs}</Text>
-                <Text style={styles.statLabel}>Published</Text>
-              </View>
-            </View>
-          )}
         </View>
 
         {/* FAQs List */}
@@ -483,27 +469,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: 'white',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    marginTop: 16,
-    backgroundColor: theme.background,
-    borderRadius: 8,
-    padding: 16,
-    gap: 20,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: theme.primary,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: theme.textSecondary,
-    marginTop: 4,
   },
   faqsSection: {
     padding: 16,
