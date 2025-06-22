@@ -87,6 +87,21 @@ const AllEventsTab: React.FC = () => {
     return getEventStatus(event.date);
   };
 
+  const getEventDisplayStatus = (event: BookClubEvent): { text: string; color: string } => {
+    const statusInfo = getEventStatusInfo(event);
+    
+    switch (statusInfo.status) {
+      case 'upcoming':
+        return { text: statusInfo.description, color: theme.success };
+      case 'current':
+        return { text: statusInfo.description, color: theme.warning };
+      case 'past':
+        return { text: statusInfo.description, color: theme.textTertiary };
+      default:
+        return { text: 'Unknown', color: theme.textSecondary };
+    }
+  };
+
   const dynamicStyles = StyleSheet.create({
     container: {
       flex: 1,
@@ -177,12 +192,10 @@ const AllEventsTab: React.FC = () => {
       width: 8,
       height: 8,
       borderRadius: 4,
-      backgroundColor: theme.success,
       marginRight: 4,
     },
     statusText: {
       fontSize: 12,
-      color: theme.success,
       fontWeight: '500',
     },
     emptyState: {
@@ -332,12 +345,10 @@ const AllEventsTab: React.FC = () => {
       width: 6,
       height: 6,
       borderRadius: 3,
-      backgroundColor: theme.success,
       marginRight: 4,
     },
     listStatusText: {
       fontSize: 10,
-      color: theme.success,
       fontWeight: '500',
     },
   });
@@ -359,14 +370,12 @@ const AllEventsTab: React.FC = () => {
       
       {/* Time and Location */}
       <View style={dynamicStyles.listDetails}>
-        <Text style={dynamicStyles.emoji}>🕐</Text>
         <Text style={dynamicStyles.listDetailText} numberOfLines={1}>
           {formatTime(event.startTime, event.endTime)}
         </Text>
       </View>
       
       <View style={dynamicStyles.listDetails}>
-        <Text style={dynamicStyles.emoji}>📍</Text>
         <Text style={dynamicStyles.listDetailText} numberOfLines={1}>
           {event.location}
         </Text>
@@ -393,8 +402,8 @@ const AllEventsTab: React.FC = () => {
         </View>
         
         <View style={dynamicStyles.listStatus}>
-          <View style={dynamicStyles.listStatusDot} />
-          <Text style={dynamicStyles.listStatusText}>{getEventStatusInfo(event).description}</Text>
+          <View style={[dynamicStyles.listStatusDot, { backgroundColor: getEventDisplayStatus(event).color }]} />
+          <Text style={[dynamicStyles.listStatusText, { color: getEventDisplayStatus(event).color }]}>{getEventDisplayStatus(event).text}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -414,7 +423,6 @@ const AllEventsTab: React.FC = () => {
         />
       ) : (
         <View style={[dynamicStyles.headerImage, dynamicStyles.placeholderHeader]}>
-          <Text style={dynamicStyles.bookEmoji}>📚</Text>
         </View>
       )}
       
@@ -427,14 +435,12 @@ const AllEventsTab: React.FC = () => {
         
         {/* Date and Time - Separate Lines */}
         <View style={[dynamicStyles.row, { marginBottom: 4 }]}>
-          <Text style={dynamicStyles.emoji}>📅</Text>
           <Text style={[dynamicStyles.eventDetail, { flex: 1 }]} numberOfLines={1}>
             {formatDate(event.date)}
           </Text>
         </View>
         
         <View style={[dynamicStyles.row, { marginBottom: 8, marginLeft: 26 }]}>
-          <Text style={dynamicStyles.emoji}>🕐</Text>
           <Text style={[dynamicStyles.eventDetail, { flex: 1 }]} numberOfLines={1}>
             {formatTime(event.startTime, event.endTime)}
           </Text>
@@ -442,7 +448,6 @@ const AllEventsTab: React.FC = () => {
         
         {/* Location */}
         <View style={[dynamicStyles.row, { marginBottom: 12 }]}>
-          <Text style={dynamicStyles.emoji}>📍</Text>
           <Text style={[dynamicStyles.eventDetail, dynamicStyles.flex1]} numberOfLines={1}>
             {event.location}
           </Text>
@@ -470,8 +475,8 @@ const AllEventsTab: React.FC = () => {
           
           {/* Event Status Indicator */}
           <View style={dynamicStyles.row}>
-            <View style={dynamicStyles.statusDot} />
-            <Text style={dynamicStyles.statusText}>{getEventStatusInfo(event).description}</Text>
+            <View style={[dynamicStyles.statusDot, { backgroundColor: getEventDisplayStatus(event).color }]} />
+            <Text style={[dynamicStyles.statusText, { color: getEventDisplayStatus(event).color }]}>{getEventDisplayStatus(event).text}</Text>
           </View>
         </View>
       </View>
@@ -480,7 +485,6 @@ const AllEventsTab: React.FC = () => {
 
   const EmptyState = () => (
     <View style={dynamicStyles.emptyState}>
-      <Text style={dynamicStyles.emptyEmoji}>📚</Text>
       <Text style={dynamicStyles.emptyTitle}>
         No Events Yet
       </Text>
@@ -530,7 +534,7 @@ const AllEventsTab: React.FC = () => {
                   dynamicStyles.toggleText,
                   viewMode === 'card' && dynamicStyles.activeToggleText
                 ]}>
-                  📋
+                  Card
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -544,7 +548,7 @@ const AllEventsTab: React.FC = () => {
                   dynamicStyles.toggleText,
                   viewMode === 'list' && dynamicStyles.activeToggleText
                 ]}>
-                  📄
+                  List
                 </Text>
               </TouchableOpacity>
             </View>
