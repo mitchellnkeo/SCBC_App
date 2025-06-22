@@ -81,7 +81,7 @@ const ImagePicker: React.FC<ImagePickerProps> = ({
     setIsLoading(true);
     try {
       const result = await ImagePickerExpo.launchCameraAsync({
-        mediaTypes: ImagePickerExpo.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [16, 9],
         quality: 0.8,
@@ -105,7 +105,7 @@ const ImagePicker: React.FC<ImagePickerProps> = ({
     setIsLoading(true);
     try {
       const result = await ImagePickerExpo.launchImageLibraryAsync({
-        mediaTypes: ImagePickerExpo.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [16, 9],
         quality: 0.8,

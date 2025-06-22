@@ -15,7 +15,8 @@ import {
   serverTimestamp,
   Timestamp 
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { db, storage } from '../config/firebase';
 import { 
   BookClubEvent, 
   RSVP, 
@@ -48,8 +49,11 @@ export const createEvent = async (
     const approvedBy = userRole === 'admin' ? userId : null;
     const approvedAt = userRole === 'admin' ? serverTimestamp() : null;
 
+    // Create event document first (without header photo)
+    const { headerPhoto, ...eventDataWithoutPhoto } = eventData;
+    
     const eventDoc = {
-      ...eventData,
+      ...eventDataWithoutPhoto,
       createdBy: userId,
       hostName: userName,
       hostProfilePicture: userProfilePicture || null,
@@ -57,12 +61,29 @@ export const createEvent = async (
       approvedBy,
       approvedAt,
       rejectionReason: null,
+      headerPhoto: null, // Will be updated after upload if image provided
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
 
     const docRef = await addDoc(collection(db, EVENTS_COLLECTION), eventDoc);
     console.log(`Event created with ID: ${docRef.id}, Status: ${status}`);
+    
+    // Upload header image if provided
+    if (headerPhoto && headerPhoto.trim()) {
+      try {
+        const imageUrl = await uploadEventHeaderImage(docRef.id, headerPhoto);
+        await updateDoc(docRef, {
+          headerPhoto: imageUrl,
+          updatedAt: serverTimestamp(),
+        });
+        console.log('Event header image uploaded and linked');
+      } catch (error) {
+        console.error('Error uploading header image:', error);
+        // Don't fail event creation if image upload fails
+      }
+    }
+    
     return docRef.id;
   } catch (error) {
     console.error('Error creating event:', error);
@@ -79,10 +100,57 @@ export const updateEvent = async (
 ): Promise<void> => {
   try {
     const eventRef = doc(db, EVENTS_COLLECTION, eventId);
+    
+    // Handle header image separately
+    const { headerPhoto, ...eventDataWithoutPhoto } = eventData;
+    
+    // Get current event to check for existing image
+    const currentEvent = await getEvent(eventId);
+    
+    // Update event data (without image)
     await updateDoc(eventRef, {
-      ...eventData,
+      ...eventDataWithoutPhoto,
       updatedAt: serverTimestamp(),
     });
+    
+    // Handle header image changes
+    if (headerPhoto !== undefined) {
+      // Delete old image if it exists
+      if (currentEvent?.headerPhoto) {
+        try {
+          await deleteEventHeaderImage(currentEvent.headerPhoto);
+        } catch (error) {
+          console.warn('Failed to delete old header image:', error);
+          // Continue with update even if deletion fails
+        }
+      }
+      
+      // Upload new image if provided
+      if (headerPhoto && headerPhoto.trim()) {
+        try {
+          const imageUrl = await uploadEventHeaderImage(eventId, headerPhoto);
+          await updateDoc(eventRef, {
+            headerPhoto: imageUrl,
+            updatedAt: serverTimestamp(),
+          });
+          console.log('Event header image updated');
+        } catch (error) {
+          console.error('Error uploading new header image:', error);
+          // Set headerPhoto to null if upload fails
+          await updateDoc(eventRef, {
+            headerPhoto: null,
+            updatedAt: serverTimestamp(),
+          });
+        }
+      } else {
+        // Remove image reference if empty string provided
+        await updateDoc(eventRef, {
+          headerPhoto: null,
+          updatedAt: serverTimestamp(),
+        });
+      }
+    }
+    
     console.log('Event updated:', eventId);
     
     // Create event update notifications for attendees
@@ -114,6 +182,9 @@ export const updateEvent = async (
 
 export const deleteEvent = async (eventId: string): Promise<void> => {
   try {
+    // Get event to check for header image
+    const event = await getEvent(eventId);
+    
     const batch = writeBatch(db);
     
     // Delete the event
@@ -141,6 +212,18 @@ export const deleteEvent = async (eventId: string): Promise<void> => {
     });
     
     await batch.commit();
+    
+    // Delete header image if it exists (after batch commit)
+    if (event?.headerPhoto) {
+      try {
+        await deleteEventHeaderImage(event.headerPhoto);
+        console.log('Event header image deleted');
+      } catch (error) {
+        console.warn('Failed to delete event header image:', error);
+        // Don't fail the deletion if image cleanup fails
+      }
+    }
+    
     console.log('Event and related data deleted:', eventId);
   } catch (error) {
     console.error('Error deleting event:', error);
@@ -854,4 +937,61 @@ export const subscribeToUserEvents = (
     unsubscribeAllEvents();
     unsubscribeRsvps();
   };
+};
+
+export const uploadEventHeaderImage = async (eventId: string, imageUri: string): Promise<string> => {
+  try {
+    // Convert image URI to blob
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+    
+    // Create storage reference
+    const storageRef = ref(storage, `event-headers/${eventId}-${Date.now()}.jpg`);
+    
+    // Upload image
+    const snapshot = await uploadBytes(storageRef, blob);
+    
+    // Get download URL
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    
+    console.log('Event header image uploaded:', eventId);
+    return downloadURL;
+  } catch (error) {
+    console.error('Error uploading event header image:', error);
+    throw new Error('Failed to upload event header image. Please try again.');
+  }
+};
+
+export const deleteEventHeaderImage = async (imageUrl: string): Promise<void> => {
+  try {
+    // Skip deletion if it's a local file URI (not a Firebase Storage URL)
+    if (imageUrl.startsWith('file://') || imageUrl.startsWith('content://')) {
+      console.log('Skipping deletion of local file URI:', imageUrl);
+      return;
+    }
+    
+    // Only process Firebase Storage URLs
+    if (!imageUrl.includes('firebasestorage.googleapis.com')) {
+      console.log('Skipping deletion of non-Firebase URL:', imageUrl);
+      return;
+    }
+    
+    // Extract the file path from the URL
+    const url = new URL(imageUrl);
+    const pathMatch = url.pathname.match(/\/o\/(.+)\?/);
+    
+    if (!pathMatch) {
+      console.error('Could not extract file path from Firebase Storage URL:', imageUrl);
+      return;
+    }
+    
+    const filePath = decodeURIComponent(pathMatch[1]);
+    const storageRef = ref(storage, filePath);
+    
+    await deleteObject(storageRef);
+    console.log('Event header image deleted from Firebase Storage');
+  } catch (error) {
+    console.error('Error deleting event header image:', error);
+    // Don't throw error as this is cleanup - event can still be updated
+  }
 }; 

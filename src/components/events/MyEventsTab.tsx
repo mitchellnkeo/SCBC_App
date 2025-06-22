@@ -93,6 +93,56 @@ const MyEventsTab: React.FC = () => {
     return event.createdBy === user?.id ? 'hosting' : 'attending';
   };
 
+  // Helper function to check if an event is in the past
+  const isEventPast = (event: BookClubEvent): boolean => {
+    const now = new Date();
+    const eventDate = new Date(event.date);
+    
+    // If event has end time, use that for comparison
+    if (event.endTime) {
+      const [hours, minutes] = event.endTime.split(':').map(Number);
+      eventDate.setHours(hours, minutes, 0, 0);
+    } else if (event.startTime) {
+      // If only start time, add 2 hours as estimated duration
+      const [hours, minutes] = event.startTime.split(':').map(Number);
+      eventDate.setHours(hours + 2, minutes, 0, 0);
+    } else {
+      // If no time specified, consider past if date has passed
+      eventDate.setHours(23, 59, 59, 999);
+    }
+    
+    return eventDate < now;
+  };
+
+  // Categorize events into upcoming and past
+  const categorizeEvents = (events: BookClubEvent[]) => {
+    const upcoming: BookClubEvent[] = [];
+    const past: BookClubEvent[] = [];
+    
+    events.forEach(event => {
+      if (isEventPast(event)) {
+        past.push(event);
+      } else {
+        upcoming.push(event);
+      }
+    });
+    
+    // Sort upcoming events by date (earliest first)
+    upcoming.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    // Sort past events by date (most recent first)
+    past.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    return { upcoming, past };
+  };
+
+  const getEventStatus = (event: BookClubEvent): { text: string; color: string } => {
+    if (isEventPast(event)) {
+      return { text: 'Past', color: theme.textTertiary };
+    }
+    return { text: 'Active', color: theme.success };
+  };
+
   const dynamicStyles = StyleSheet.create({
     container: {
       flex: 1,
@@ -428,76 +478,80 @@ const MyEventsTab: React.FC = () => {
       color: theme.success,
       fontWeight: '500',
     },
+    listContent: {
+      flex: 1,
+      paddingLeft: 12,
+    },
+    listStatusContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    listTime: {
+      fontSize: 12,
+      color: theme.textSecondary,
+      marginLeft: 8,
+    },
+    listLocation: {
+      fontSize: 12,
+      color: theme.textSecondary,
+      marginLeft: 8,
+    },
+    sectionHeader: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: theme.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.text,
+    },
+    sectionSubtitle: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      marginTop: 2,
+    },
   });
 
   const EventListItem: React.FC<{ event: BookClubEvent }> = ({ event }) => {
     const role = getEventRole(event);
-    
+    const status = getEventStatus(event);
+
     return (
       <TouchableOpacity
-        onPress={() => navigateToEventDetails(event.id)}
         style={dynamicStyles.listItem}
+        onPress={() => navigateToEventDetails(event.id)}
+        activeOpacity={0.7}
       >
         {/* Role Badge */}
-        <View 
-          style={[
-            dynamicStyles.listRoleBadge,
+        <View style={dynamicStyles.roleBadgeContainer}>
+          <View style={[
+            dynamicStyles.roleBadge,
             role === 'hosting' ? dynamicStyles.hostingBadge : dynamicStyles.attendingBadge
-          ]}
-        >
-          <Text style={dynamicStyles.listRoleBadgeText}>
-            {role === 'hosting' ? '🏠' : '✅'}
-          </Text>
-        </View>
-
-        {/* Header with title and date */}
-        <View style={dynamicStyles.listHeader}>
-          <Text style={dynamicStyles.listTitle} numberOfLines={2}>
-            {event.title}
-          </Text>
-          <Text style={dynamicStyles.listDate}>
-            {formatDate(event.date)}
-          </Text>
-        </View>
-        
-        {/* Time and Location */}
-        <View style={dynamicStyles.listDetails}>
-          <Text style={dynamicStyles.emoji}>🕐</Text>
-          <Text style={dynamicStyles.listDetailText} numberOfLines={1}>
-            {formatTime(event.startTime, event.endTime)}
-          </Text>
-        </View>
-        
-        <View style={dynamicStyles.listDetails}>
-          <Text style={dynamicStyles.emoji}>📍</Text>
-          <Text style={dynamicStyles.listDetailText} numberOfLines={1}>
-            {event.location}
-          </Text>
-        </View>
-        
-        {/* Host and Status */}
-        <View style={dynamicStyles.listHost}>
-          <View style={dynamicStyles.hostInfo}>
-            {event.hostProfilePicture ? (
-              <Image
-                source={{ uri: event.hostProfilePicture }}
-                style={dynamicStyles.listHostAvatar}
-              />
-            ) : (
-              <View style={[dynamicStyles.listHostAvatar, dynamicStyles.hostAvatarPlaceholder]}>
-                <Text style={[dynamicStyles.hostInitial, { fontSize: 10 }]}>
-                  {event.hostName.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-            )}
-            <Text style={dynamicStyles.listHostText}>
-              {role === 'hosting' ? 'You' : event.hostName}
+          ]}>
+            <Text style={dynamicStyles.roleBadgeText}>
+              {role === 'hosting' ? 'Hosting' : 'Attending'}
             </Text>
           </View>
+        </View>
+
+        <View style={dynamicStyles.listContent}>
+          <View style={dynamicStyles.listHeader}>
+            <Text style={dynamicStyles.listTitle} numberOfLines={2}>
+              {event.title}
+            </Text>
+            <View style={dynamicStyles.listStatusContainer}>
+              <View style={[dynamicStyles.statusDot, { backgroundColor: status.color }]} />
+              <Text style={[dynamicStyles.statusText, { color: status.color }]}>{status.text}</Text>
+            </View>
+          </View>
           
-          <View style={dynamicStyles.listStatus}>
-            <View style={dynamicStyles.listStatusDot} />
-            <Text style={dynamicStyles.listStatusText}>Active</Text>
+          <View style={dynamicStyles.listDetails}>
+            <Text style={dynamicStyles.listDate}>{formatDate(event.date)}</Text>
+            <Text style={dynamicStyles.listTime}>{formatTime(event.startTime, event.endTime)}</Text>
+            <Text style={dynamicStyles.listLocation} numberOfLines={1}>{event.location}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -506,22 +560,22 @@ const MyEventsTab: React.FC = () => {
 
   const EventCard: React.FC<{ event: BookClubEvent }> = ({ event }) => {
     const role = getEventRole(event);
-    
+    const status = getEventStatus(event);
+
     return (
       <TouchableOpacity
-        onPress={() => navigateToEventDetails(event.id)}
         style={dynamicStyles.eventCard}
+        onPress={() => navigateToEventDetails(event.id)}
+        activeOpacity={0.8}
       >
         {/* Role Badge */}
         <View style={dynamicStyles.roleBadgeContainer}>
-          <View 
-            style={[
-              dynamicStyles.roleBadge,
-              role === 'hosting' ? dynamicStyles.hostingBadge : dynamicStyles.attendingBadge
-            ]}
-          >
+          <View style={[
+            dynamicStyles.roleBadge,
+            role === 'hosting' ? dynamicStyles.hostingBadge : dynamicStyles.attendingBadge
+          ]}>
             <Text style={dynamicStyles.roleBadgeText}>
-              {role === 'hosting' ? '🏠 Hosting' : '✅ Going'}
+              {role === 'hosting' ? 'Hosting' : 'Attending'}
             </Text>
           </View>
         </View>
@@ -591,8 +645,8 @@ const MyEventsTab: React.FC = () => {
             
             {/* Event Status Indicator */}
             <View style={dynamicStyles.row}>
-              <View style={dynamicStyles.statusDot} />
-              <Text style={dynamicStyles.statusText}>Active</Text>
+              <View style={[dynamicStyles.statusDot, { backgroundColor: status.color }]} />
+              <Text style={[dynamicStyles.statusText, { color: status.color }]}>{status.text}</Text>
             </View>
           </View>
         </View>
@@ -685,13 +739,51 @@ const MyEventsTab: React.FC = () => {
             }
             showsVerticalScrollIndicator={false}
           >
-            {userEvents.map((event) => 
-              viewMode === 'card' ? (
-                <EventCard key={event.id} event={event} />
-              ) : (
-                <EventListItem key={event.id} event={event} />
-              )
-            )}
+            {(() => {
+              const { upcoming, past } = categorizeEvents(userEvents);
+              
+              return (
+                <>
+                  {/* Upcoming Events Section */}
+                  {upcoming.length > 0 && (
+                    <>
+                      <View style={dynamicStyles.sectionHeader}>
+                        <Text style={dynamicStyles.sectionTitle}>Upcoming Events</Text>
+                        <Text style={dynamicStyles.sectionSubtitle}>
+                          {upcoming.length} event{upcoming.length !== 1 ? 's' : ''}
+                        </Text>
+                      </View>
+                      {upcoming.map((event) => 
+                        viewMode === 'card' ? (
+                          <EventCard key={event.id} event={event} />
+                        ) : (
+                          <EventListItem key={event.id} event={event} />
+                        )
+                      )}
+                    </>
+                  )}
+
+                  {/* Past Events Section */}
+                  {past.length > 0 && (
+                    <>
+                      <View style={dynamicStyles.sectionHeader}>
+                        <Text style={dynamicStyles.sectionTitle}>Past Events</Text>
+                        <Text style={dynamicStyles.sectionSubtitle}>
+                          {past.length} event{past.length !== 1 ? 's' : ''}
+                        </Text>
+                      </View>
+                      {past.map((event) => 
+                        viewMode === 'card' ? (
+                          <EventCard key={event.id} event={event} />
+                        ) : (
+                          <EventListItem key={event.id} event={event} />
+                        )
+                      )}
+                    </>
+                  )}
+                </>
+              );
+            })()}
             
             {/* Summary Stats */}
             <View style={dynamicStyles.statsContainer}>

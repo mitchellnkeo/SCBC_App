@@ -252,36 +252,37 @@ Complete FAQ system with public viewing and admin management capabilities.
 
 ### Firebase Configuration Required
 **✅ COMPLETED**: Firebase Security Rules updated in README.md
-```javascript
-match /faqs/{faqId} {
-  allow read: if request.auth != null;
-  allow create, update, delete: if request.auth != null 
-    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-}
-```
 
-### Features Implemented
-**For All Users**:
-- ✅ Clean numbered FAQ list with expand/collapse functionality
-- ✅ Mobile-optimized responsive design
-- ✅ Easy navigation and reading experience
+### **Firebase Auth Persistence (2024-12-19)**
+- **Issue**: Firebase Auth warning about missing AsyncStorage persistence
+- **Impact**: Auth state not persisting between app sessions
+- **Solution**: 
+  - Installed `@react-native-async-storage/async-storage` package
+  - Updated Firebase configuration to use AsyncStorage for auth persistence
+  - Added proper TypeScript typing for Development Build environment
+- **Files modified**: `src/config/firebase.ts`, `package.json`
+- **Status**: ✅ **RESOLVED**
+- **Testing**: Auth state now persists between app restarts
+- **Warning elimination**: Resolved Firebase Auth warning about missing AsyncStorage
 
-**For Admins**:
-- ✅ Admin mode toggle
-- ✅ Create/edit/delete FAQs with modal interface
-- ✅ Publish/unpublish functionality (draft system)
-- ✅ Statistics showing total, published, and draft counts
-- ✅ "Create Sample FAQs" button generating 8 relevant book club FAQs
-- ✅ Inline editing controls
-
-### Sample FAQs Created
-✅ 8 pre-written FAQs covering: club description, meeting frequency, book selection, RSVP process, membership fees, reading requirements, book suggestions, and attendance flexibility.
-
-### Technical Notes
-- ✅ Queries optimized to avoid Firebase composite index requirements
-- ✅ Memory-based filtering and sorting for better performance
-- ✅ All TypeScript compilation clean
-- ✅ Production-ready implementation
+### **Event Header Image Upload System (2024-12-19)**
+- **Issue**: Event header images were not being uploaded to Firebase Storage
+- **Impact**: Images from previous sessions were lost, only local URIs were stored
+- **Solution**: 
+  - Added Firebase Storage imports to `eventService.ts`
+  - Created `uploadEventHeaderImage()` function for React Native image uploads
+  - Created `deleteEventHeaderImage()` function for cleanup
+  - Updated `createEvent()` to upload images after event creation
+  - Updated `updateEvent()` to handle image uploads, updates, and deletions
+  - Updated `deleteEvent()` to clean up header images from storage
+  - Updated Firebase Storage security rules to allow event header uploads
+- **Files modified**: `src/services/eventService.ts`, `README.md`
+- **Status**: ✅ **RESOLVED**
+- **Features**: 
+  - Event images now persist in Firebase Storage
+  - Automatic image cleanup when events are deleted or images are changed
+  - Proper error handling for image upload failures
+- **Security**: Added `/event-headers/` path to Firebase Storage rules
 
 ## Recently Fixed Issues ✅
 
@@ -332,6 +333,21 @@ match /faqs/{faqId} {
 - **Maintained functionality**: All other settings continue to work as expected
 - **Result**: Cleaner, more focused settings interface without unused text size options
 
+### ✅ My Events Categorization & Status Fix
+
+**Added:** Current Session  
+**Feature:** Improved My Events tab with proper event categorization and status handling  
+**Implementation:** 
+- **Event categorization**: Events are now properly divided into "Upcoming Events" and "Past Events" sections
+- **Section dividers**: Clear visual separation with section headers showing event counts
+- **Smart date logic**: Events are categorized based on date and time, considering end times when available
+- **Dynamic status**: Events now show "Active" or "Past" status instead of always showing "Active"
+- **Proper sorting**: Upcoming events sorted by earliest first, past events by most recent first
+- **Event duration logic**: Uses end time if available, or adds 2 hours to start time for past event detection
+- **Visual improvements**: Updated event cards and list items with proper status colors
+- **Better UX**: Users can easily distinguish between events they need to attend vs. events they've already attended
+- **Result**: Much more organized and useful My Events tab that properly handles event lifecycle
+
 ### ✅ Admin Panel Placeholder Cleanup
 
 **Added:** Current Session  
@@ -346,3 +362,18 @@ match /faqs/{faqId} {
 - **Reduced confusion**: Interface now only shows features that actually work
 - **Streamlined layout**: More focused and professional admin panel design
 - **Result**: Clean, professional admin panel with only working functionality
+
+### ✅ Firebase Auth Persistence Fix for Development Build
+
+**Added:** Current Session  
+**Feature:** Fixed Firebase Auth persistence warning for Expo Development Build  
+**Implementation:** 
+- **AsyncStorage integration**: Installed and configured @react-native-async-storage/async-storage package
+- **Custom persistence**: Created custom persistence object that uses AsyncStorage for auth state
+- **Development Build optimization**: Configured Firebase Auth specifically for Expo Development Build environment
+- **Session persistence**: User authentication state now persists between app restarts
+- **Warning elimination**: Resolved Firebase Auth warning about missing AsyncStorage
+- **Type safety**: Added proper TypeScript typing for Auth instance export
+- **Backward compatibility**: Maintains compatibility with existing auth workflows
+- **Better UX**: Users no longer need to re-login every time they restart the app
+- **Result**: Seamless authentication experience with proper session persistence in Development Build

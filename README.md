@@ -196,6 +196,10 @@ The Seattle Chinatown Book Club App is a production-ready React Native applicati
          allow write, delete: if request.auth != null 
            && fileName.matches('.*' + request.auth.uid + '.*');
        }
+       match /event-headers/{allPaths=**} {
+         allow read: if request.auth != null;
+         allow write, delete: if request.auth != null;
+       }
        match /monthlyBooks/{bookId}/{allPaths=**} {
          allow read: if request.auth != null;
          allow write, delete: if request.auth != null 
@@ -212,8 +216,10 @@ The Seattle Chinatown Book Club App is a production-ready React Native applicati
 
 ### **Development Commands**
 
+> **Note**: This app uses **Expo Development Build** when running `npm start` or `expo start`. This provides native functionality and proper Firebase integration while maintaining fast development iteration.
+
 ```bash
-# Start development server
+# Start development server (uses Expo Development Build)
 npm start
 
 # Start with specific platform

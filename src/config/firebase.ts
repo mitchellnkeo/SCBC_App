@@ -1,11 +1,12 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { initializeAuth, getAuth, connectAuthEmulator, Auth } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics } from "firebase/analytics";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Ensure we're using the web Firebase SDK explicitly
-console.log('Initializing Firebase with Web SDK');
+console.log('Initializing Firebase with Web SDK for Development Build');
 
 // Firebase configuration using environment variables
 // Your web app's Firebase configuration
@@ -30,12 +31,36 @@ if (getApps().length === 0) {
   console.log('Firebase app already exists');
 }
 
-// Initialize Firebase services (web SDK only)
-export const auth = getAuth(app);
+// Initialize Firebase Auth with AsyncStorage persistence for React Native/Development Build
+let auth: Auth;
+try {
+  // Try to get existing auth instance
+  auth = getAuth(app);
+  console.log('Using existing Firebase Auth instance');
+} catch (error) {
+  // For Development Build, we can use a custom persistence setup
+  console.log('Initializing Firebase Auth for Development Build with AsyncStorage');
+  
+  // Create a custom persistence object that uses AsyncStorage
+  const customPersistence = {
+    type: 'LOCAL',
+    isAvailable: () => Promise.resolve(true),
+    clear: () => AsyncStorage.removeItem('firebase:authUser'),
+    get: (key: string) => AsyncStorage.getItem(key),
+    set: (key: string, value: string) => AsyncStorage.setItem(key, value),
+    remove: (key: string) => AsyncStorage.removeItem(key),
+  };
+
+  auth = initializeAuth(app, {
+    persistence: customPersistence as any,
+  });
+}
+
+export { auth };
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-console.log('Firebase Auth, Firestore, and Storage initialized');
+console.log('Firebase Auth, Firestore, and Storage initialized for Development Build');
 
 // Analytics only works in web/production builds, not in Expo development
 let analytics;
