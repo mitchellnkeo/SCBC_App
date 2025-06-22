@@ -51,7 +51,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
       case ErrorType.VALIDATION:
         return '#f59e0b'; // amber
       case ErrorType.STORAGE:
-        return '#8b5cf6'; // purple
+        return '#dc2626'; // red
       case ErrorType.RATE_LIMIT:
         return '#f59e0b'; // amber
       default:

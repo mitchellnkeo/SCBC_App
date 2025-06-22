@@ -7,10 +7,10 @@ module.exports = {
         colors: {
           // Add your book club brand colors here
           primary: {
-            50: '#fdf2f8',
-            500: '#ec4899',
-            600: '#db2777',
-            700: '#be185d',
+            50: '#fef2f2',
+            500: '#dc2626',
+            600: '#dc2626',
+            700: '#b91c1c',
           },
           secondary: {
             50: '#f0f9ff',

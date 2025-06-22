@@ -23,27 +23,28 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   const getNotificationIcon = (type: NotificationType, status?: string): string => {
     switch (type) {
       case 'comment_reply':
-        return '';
+        return '💬';
       case 'event_update':
-        return '';
+        return '📅';
       case 'event_approved':
-        return '';
+        return '✅';
       case 'event_rejected':
-        return '';
+        return '❌';
       case 'mention':
-        return '';
+        return '@';
       case 'rsvp_update':
-        return '';
+        return '👥';
       case 'admin_message':
+        return '📢';
       default:
-        return '';
+        return '🔔';
     }
   };
 
   const getNotificationColor = (type: NotificationType): string => {
     switch (type) {
       case 'mention':
-        return '#ec4899';
+        return '#dc2626';
       case 'event_update':
         return '#3b82f6';
       case 'event_approved':
@@ -53,7 +54,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       case 'rsvp_update':
         return '#f59e0b';
       case 'comment_reply':
-        return '#8b5cf6';
+        return '#dc2626';
       case 'admin_message':
         return '#f97316';
       default:
@@ -182,7 +183,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 4,
-    backgroundColor: '#ec4899',
+    backgroundColor: '#dc2626',
     borderRadius: 2,
   },
   leftSection: {

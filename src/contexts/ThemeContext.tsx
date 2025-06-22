@@ -41,8 +41,8 @@ const lightTheme: Theme = {
   textTertiary: '#6b7280',    // gray-600
   
   // UI colors
-  primary: '#ec4899',         // pink-500
-  primaryLight: '#fdf2f8',    // pink-50
+  primary: '#dc2626',         // red-600
+  primaryLight: '#fef2f2',    // red-50
   border: '#e5e7eb',         // gray-200
   borderLight: '#f3f4f6',    // gray-100
   
@@ -68,8 +68,8 @@ const darkTheme: Theme = {
   textTertiary: '#9ca3af',    // gray-400
   
   // UI colors
-  primary: '#ec4899',         // pink-500 (same as light)
-  primaryLight: '#831843',    // pink-900
+  primary: '#dc2626',         // red-600 (same as light)
+  primaryLight: '#7f1d1d',    // red-900
   border: '#4b5563',         // gray-600
   borderLight: '#374151',    // gray-700
   

@@ -173,7 +173,7 @@ const MyEventsTab: React.FC = () => {
       borderRadius: 20,
     },
     hostingBadge: {
-      backgroundColor: '#8b5cf6',
+      backgroundColor: '#dc2626',
     },
     attendingBadge: {
       backgroundColor: theme.success,
@@ -327,7 +327,7 @@ const MyEventsTab: React.FC = () => {
       color: theme.textSecondary,
     },
     hostingStatNumber: {
-      color: '#8b5cf6',
+      color: '#dc2626',
     },
     attendingStatNumber: {
       color: theme.success,
