@@ -12,6 +12,7 @@ import {
   TextInput,
   Modal,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { MainStackParamList } from '../../navigation/MainNavigator';
@@ -79,8 +80,7 @@ const MonthlyBookScreen: React.FC = () => {
             {
               text: 'Copy URL',
               onPress: () => {
-                // In a real app, you'd use Clipboard API here
-                Alert.alert('URL', currentBook.discussionSheetUrl);
+                Clipboard.setString(currentBook.discussionSheetUrl);
               },
             },
             { text: 'OK' },
@@ -141,7 +141,56 @@ const MonthlyBookScreen: React.FC = () => {
     setEditingMeeting(null);
   };
 
-  const handleZoomLinkPress = async (zoomLink: string) => {
+  const handleZoomLinkPress = (zoomLink: string) => {
+    Alert.alert(
+      'Join Virtual Meeting',
+      'How would you like to access the meeting?',
+      [
+        {
+          text: 'Email Link to Myself',
+          onPress: () => handleEmailZoomLink(zoomLink),
+        },
+        {
+          text: 'Join from Phone',
+          onPress: () => handleJoinFromPhone(zoomLink),
+        },
+        {
+          text: 'Copy Link',
+          onPress: () => handleCopyZoomLink(zoomLink),
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ]
+    );
+  };
+
+  const handleEmailZoomLink = async (zoomLink: string) => {
+    if (!user?.email) {
+      Alert.alert('Error', 'No email address found in your profile.');
+      return;
+    }
+
+    const subject = encodeURIComponent('SCBC Virtual Meeting Link');
+    const body = encodeURIComponent(
+      `Hi,\n\nHere's the Zoom link for the Seattle Chinatown Book Club virtual meeting:\n\n${zoomLink}\n\nSee you there!\n\nBest regards,\nSCBC App`
+    );
+    const emailUrl = `mailto:${user.email}?subject=${subject}&body=${body}`;
+
+    try {
+      const supported = await Linking.canOpenURL(emailUrl);
+      if (supported) {
+        await Linking.openURL(emailUrl);
+      } else {
+        Alert.alert('Unable to open email', 'Please copy the Zoom link manually.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Unable to open email app.');
+    }
+  };
+
+  const handleJoinFromPhone = async (zoomLink: string) => {
     try {
       const supported = await Linking.canOpenURL(zoomLink);
       if (supported) {
@@ -151,6 +200,15 @@ const MonthlyBookScreen: React.FC = () => {
       }
     } catch (error) {
       Alert.alert('Error', 'Unable to open Zoom link.');
+    }
+  };
+
+  const handleCopyZoomLink = async (zoomLink: string) => {
+    try {
+      await Clipboard.setStringAsync(zoomLink);
+      Alert.alert('Link Copied', 'The Zoom meeting link has been copied to your clipboard.');
+    } catch (error) {
+      Alert.alert('Error', 'Unable to copy link to clipboard.');
     }
   };
 

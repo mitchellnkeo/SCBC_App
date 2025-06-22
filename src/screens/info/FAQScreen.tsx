@@ -60,17 +60,12 @@ const FAQScreen: React.FC = () => {
   const loadFAQs = async () => {
     try {
       setIsLoading(true);
-      if (isAdminMode && isAdmin) {
-        const [allFaqs, stats] = await Promise.all([
-          getAllFAQs(),
-          getFAQStats()
-        ]);
-        setFaqs(allFaqs);
-        setFaqStats(stats);
-      } else {
-        const publishedFaqs = await getPublishedFAQs();
-        setFaqs(publishedFaqs);
-      }
+      const [allFaqs, stats] = await Promise.all([
+        getAllFAQs(),
+        getFAQStats()
+      ]);
+      setFaqs(allFaqs);
+      setFaqStats(stats);
     } catch (error) {
       console.error('Error loading FAQs:', error);
       Alert.alert('Error', 'Failed to load FAQs. Please try again.');
@@ -120,11 +115,11 @@ const FAQScreen: React.FC = () => {
 
     try {
       if (editingFAQ) {
-        // Update existing FAQ
+        // Update existing FAQ (always published)
         const updates: EditFAQData = {
           question: questionText.trim(),
           answer: answerText.trim(),
-          isPublished,
+          isPublished: true,
         };
         await updateFAQ(editingFAQ.id, updates);
         
@@ -141,7 +136,7 @@ const FAQScreen: React.FC = () => {
         const newFAQData: CreateFAQData = {
           question: questionText.trim(),
           answer: answerText.trim(),
-          isPublished: true, // New FAQs are automatically published
+          isPublished: true,
         };
         
         await createFAQ(newFAQData, user!.id, user!.displayName);
@@ -182,22 +177,6 @@ const FAQScreen: React.FC = () => {
     );
   };
 
-  const togglePublishStatus = async (faq: FAQ) => {
-    try {
-      const newStatus = !faq.isPublished;
-      await updateFAQ(faq.id, { isPublished: newStatus });
-      
-      setFaqs(prev => prev.map(f =>
-        f.id === faq.id ? { ...f, isPublished: newStatus } : f
-      ));
-      
-      Alert.alert('Success', `FAQ ${newStatus ? 'published' : 'unpublished'} successfully`);
-    } catch (error) {
-      console.error('Error toggling publish status:', error);
-      Alert.alert('Error', 'Failed to update FAQ status. Please try again.');
-    }
-  };
-
   const handleCreateDefaultFAQs = async () => {
     Alert.alert(
       'Create Default FAQs',
@@ -225,10 +204,7 @@ const FAQScreen: React.FC = () => {
     const isExpanded = expandedFAQ === faq.id;
     
     return (
-      <View style={[
-        styles.faqCard,
-        !faq.isPublished && isAdminMode && styles.draftCard
-      ]}>
+      <View style={styles.faqCard}>
         <TouchableOpacity
           style={styles.faqHeader}
           onPress={() => toggleFAQ(faq.id)}
@@ -237,11 +213,6 @@ const FAQScreen: React.FC = () => {
           <View style={styles.faqQuestionContainer}>
             <Text style={styles.faqNumber}>{index + 1}.</Text>
             <Text style={styles.faqQuestion}>{faq.question}</Text>
-            {!faq.isPublished && isAdminMode && (
-              <View style={styles.draftBadge}>
-                <Text style={styles.draftBadgeText}>DRAFT</Text>
-              </View>
-            )}
           </View>
           <Text style={[
             styles.expandIcon,
@@ -263,15 +234,6 @@ const FAQScreen: React.FC = () => {
                   activeOpacity={0.8}
                 >
                   <Text style={styles.editButtonText}>Edit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[faq.isPublished ? styles.unpublishButton : styles.publishButton]}
-                  onPress={() => togglePublishStatus(faq)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.publishButtonText}>
-                    {faq.isPublished ? 'Unpublish' : 'Publish'}
-                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.deleteButton}
@@ -447,32 +409,6 @@ const FAQScreen: React.FC = () => {
               multiline
               returnKeyType="done"
             />
-            
-            {/* Only show publish toggle when editing existing FAQs */}
-            {editingFAQ && (
-              <View style={styles.publishToggleContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.publishToggle,
-                    isPublished && styles.publishToggleActive
-                  ]}
-                  onPress={() => setIsPublished(!isPublished)}
-                >
-                  <Text style={[
-                    styles.publishToggleText,
-                    isPublished && styles.publishToggleTextActive
-                  ]}>
-                    {isPublished ? 'Published' : 'Draft'}
-                  </Text>
-                </TouchableOpacity>
-                <Text style={styles.publishHelp}>
-                  {isPublished 
-                    ? 'This FAQ will be visible to all users' 
-                    : 'This FAQ will only be visible to admins'
-                  }
-                </Text>
-              </View>
-            )}
           </ScrollView>
         </View>
       </Modal>
@@ -580,10 +516,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderColor: theme.border,
     overflow: 'hidden',
   },
-  draftCard: {
-    borderColor: theme.warning,
-    backgroundColor: theme.warning + '10',
-  },
   faqHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -607,17 +539,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: theme.text,
     flex: 1,
     marginRight: 8,
-  },
-  draftBadge: {
-    backgroundColor: theme.warning,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  draftBadgeText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: 'white',
   },
   expandIcon: {
     fontSize: 14,
@@ -650,22 +571,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderRadius: 6,
   },
   editButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'white',
-  },
-  publishButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  publishButtonActive: {
-    backgroundColor: theme.success,
-  },
-  unpublishButton: {
-    backgroundColor: theme.warning,
-  },
-  publishButtonText: {
     fontSize: 12,
     fontWeight: '600',
     color: 'white',
@@ -793,35 +698,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     marginBottom: 20,
     minHeight: 120,
     textAlignVertical: 'top',
-  },
-  publishToggleContainer: {
-    alignItems: 'center',
-  },
-  publishToggle: {
-    backgroundColor: theme.surface,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: theme.border,
-    marginBottom: 8,
-  },
-  publishToggleActive: {
-    backgroundColor: theme.success,
-    borderColor: theme.success,
-  },
-  publishToggleText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.text,
-  },
-  publishToggleTextActive: {
-    color: 'white',
-  },
-  publishHelp: {
-    fontSize: 14,
-    color: theme.textSecondary,
-    textAlign: 'center',
   },
 });
 
