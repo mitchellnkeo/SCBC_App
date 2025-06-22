@@ -231,13 +231,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   primaryButton: {
-    backgroundColor: '#ec4899',
+    backgroundColor: '#dc2626',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
   },
   primaryButtonDisabled: {
-    backgroundColor: '#f9a8d4',
+    backgroundColor: '#fca5a5',
   },
   primaryButtonText: {
     color: 'white',
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   linkText: {
-    color: '#ec4899',
+    color: '#dc2626',
   },
 });
 

@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
   },
   viewProfileButton: {
-    backgroundColor: '#ec4899',
+    backgroundColor: '#dc2626',
     borderRadius: 8,
     padding: 12,
     marginTop: 16,

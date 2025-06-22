@@ -78,7 +78,7 @@ const MentionText: React.FC<MentionTextProps> = ({
 
 const styles = StyleSheet.create({
   mentionText: {
-    color: '#ec4899',
+    color: '#dc2626',
     fontWeight: '600',
     backgroundColor: 'rgba(236, 72, 153, 0.1)',
     paddingHorizontal: 2,

@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   primaryButton: {
-    backgroundColor: '#ec4899',
+    backgroundColor: '#dc2626',
     padding: 16,
     borderRadius: 8,
   },
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   linkText: {
-    color: '#ec4899',
+    color: '#dc2626',
   },
 });
 

@@ -101,7 +101,6 @@ const AddressAction: React.FC<AddressActionProps> = ({
                 style={[styles.optionButton, styles.googleButton]}
                 onPress={handleGoogleMaps}
               >
-                <Text style={styles.optionIcon}>🗺️</Text>
                 <Text style={styles.optionText}>Google Maps</Text>
               </TouchableOpacity>
 
@@ -109,7 +108,6 @@ const AddressAction: React.FC<AddressActionProps> = ({
                 style={[styles.optionButton, styles.appleButton]}
                 onPress={handleAppleMaps}
               >
-                <Text style={styles.optionIcon}>🍎</Text>
                 <Text style={styles.optionText}>Apple Maps</Text>
               </TouchableOpacity>
 
@@ -117,7 +115,6 @@ const AddressAction: React.FC<AddressActionProps> = ({
                 style={[styles.optionButton, styles.copyButton]}
                 onPress={handleCopyAddress}
               >
-                <Text style={styles.optionIcon}>📋</Text>
                 <Text style={styles.optionText}>Copy Address</Text>
               </TouchableOpacity>
             </View>

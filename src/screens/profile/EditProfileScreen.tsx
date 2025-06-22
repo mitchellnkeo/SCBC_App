@@ -248,7 +248,7 @@ export const EditProfileScreen: React.FC = () => {
                 />
                 {isUpdatingPicture && (
                   <View style={styles.profilePictureOverlay}>
-                    <ActivityIndicator size="large" color="#ec4899" />
+                    <ActivityIndicator size="large" color="#dc2626" />
                   </View>
                 )}
               </TouchableOpacity>
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     flex: 1,
-    backgroundColor: '#ec4899',
+    backgroundColor: '#dc2626',
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
