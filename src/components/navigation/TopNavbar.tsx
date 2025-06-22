@@ -67,7 +67,8 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
 
   const menuItems = [
     {
-      title: 'Monthly Book',
+      icon: '📚',
+      title: 'Monthly Meeting Details',
       onPress: () => handleMenuItemPress(() => {
         navigation.navigate('MonthlyBook');
       }),
@@ -79,13 +80,13 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
       }),
     },
     {
-      title: 'About SCBC',
+      title: 'About Us',
       onPress: () => handleMenuItemPress(() => {
         navigation.navigate('AboutSCBC');
       }),
     },
     {
-      title: 'SCBC Contact Info',
+      title: 'Contact Us',
       onPress: () => handleMenuItemPress(() => {
         navigation.navigate('ContactInfo');
       }),
@@ -97,7 +98,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
       }),
     },
     {
-      title: 'SCBC Feedback',
+      title: 'Leave Feedback',
       onPress: () => handleMenuItemPress(() => {
         navigation.navigate('Feedback');
       }),

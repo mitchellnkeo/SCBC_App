@@ -608,7 +608,7 @@ const MonthlyBookScreen: React.FC = () => {
   if (loading) {
     return (
       <View style={dynamicStyles.container}>
-        <TopNavbar title="Monthly Book" />
+        <TopNavbar title="Monthly Meeting Details" />
         <View style={dynamicStyles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
           <Text style={dynamicStyles.loadingText}>Loading current book...</Text>
@@ -620,7 +620,7 @@ const MonthlyBookScreen: React.FC = () => {
   if (!currentBook) {
     return (
       <View style={dynamicStyles.container}>
-        <TopNavbar title="Monthly Book" />
+        <TopNavbar title="Monthly Meeting Details" />
         <View style={dynamicStyles.emptyContainer}>
           <Text style={dynamicStyles.emptyEmoji}>📚</Text>
           <Text style={dynamicStyles.emptyTitle}>No Book Selected</Text>
@@ -644,7 +644,7 @@ const MonthlyBookScreen: React.FC = () => {
   return (
     <View style={dynamicStyles.container}>
       {/* Top Navigation */}
-      <TopNavbar title="Monthly Book" />
+      <TopNavbar title="Monthly Meeting Details" />
       
       <ScrollView 
         style={dynamicStyles.scrollView}
