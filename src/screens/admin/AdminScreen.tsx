@@ -106,14 +106,14 @@ const AdminScreen: React.FC = () => {
           <AdminCard
             title="Pending Events"
             description="Review and approve user-submitted events"
-            icon="📋"
+            icon=""
             badge={pendingStats.totalPending > 0 ? pendingStats.totalPending.toString() : undefined}
             onPress={navigateToPendingEvents}
             bgColor={pendingStats.totalPending > 0 ? 'bg-yellow-50' : 'bg-white'}
           />
 
           <AdminCard
-            icon="📚"
+            icon=""
             title="Monthly Meeting Details"
             description="Manage the current monthly book and meeting details"
             onPress={() => navigation.navigate('MonthlyBook' as never)}
@@ -122,14 +122,14 @@ const AdminScreen: React.FC = () => {
           <AdminCard
             title="User Management"
             description="Manage user accounts and permissions"
-            icon="👥"
+            icon=""
             onPress={() => navigation.navigate('UserManagement' as never)}
           />
 
           <AdminCard
             title="Content Moderation"
             description="Review flagged comments and content"
-            icon="🛡️"
+            icon=""
             onPress={() => Alert.alert('Coming Soon', 'Content moderation tools will be available soon!')}
           />
         </View>

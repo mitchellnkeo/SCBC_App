@@ -233,7 +233,6 @@ const ContactInfoScreen: React.FC = () => {
       >
         {/* Header */}
         <View style={dynamicStyles.header}>
-          <Text style={dynamicStyles.emoji}>📞</Text>
           <Text style={dynamicStyles.title}>Contact Information</Text>
           <Text style={dynamicStyles.subtitle}>Get in touch with Seattle Chinatown Book Club</Text>
         </View>
@@ -270,15 +269,6 @@ const ContactInfoScreen: React.FC = () => {
           <Text style={dynamicStyles.infoText}>
             We'd love to hear from you! Whether you have questions about upcoming events, book recommendations, or want to get involved with our community, don't hesitate to reach out.
           </Text>
-          
-          <View style={dynamicStyles.responseInfo}>
-            <Text style={dynamicStyles.responseText}>
-              📬 We typically respond within 24-48 hours
-            </Text>
-            <Text style={dynamicStyles.responseText}>
-              🌟 Follow us on Instagram for the latest updates
-            </Text>
-          </View>
         </View>
 
         <View style={dynamicStyles.bottomSpacer} />

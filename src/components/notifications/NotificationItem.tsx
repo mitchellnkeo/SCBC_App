@@ -20,24 +20,23 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   onPress,
   onMarkAsRead,
 }) => {
-  const getNotificationIcon = (type: NotificationType): string => {
+  const getNotificationIcon = (type: NotificationType, status?: string): string => {
     switch (type) {
-      case 'mention':
-        return '💬';
-      case 'event_update':
-        return '📝';
-      case 'event_approved':
-        return '✅';
-      case 'event_rejected':
-        return '❌';
-      case 'rsvp_update':
-        return '📅';
       case 'comment_reply':
-        return '↩️';
+        return '';
+      case 'event_update':
+        return '';
+      case 'event_approved':
+        return '';
+      case 'event_rejected':
+        return '';
+      case 'mention':
+        return '';
+      case 'rsvp_update':
+        return '';
       case 'admin_message':
-        return '🔔';
       default:
-        return '📱';
+        return '';
     }
   };
 

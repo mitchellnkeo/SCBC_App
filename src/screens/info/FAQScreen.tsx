@@ -260,27 +260,25 @@ const FAQScreen: React.FC = () => {
                 <TouchableOpacity
                   style={styles.editButton}
                   onPress={() => openEditModal(faq)}
+                  activeOpacity={0.8}
                 >
-                  <Text style={styles.editButtonText}>✏️ Edit</Text>
+                  <Text style={styles.editButtonText}>Edit</Text>
                 </TouchableOpacity>
-                
                 <TouchableOpacity
-                  style={[
-                    styles.publishButton,
-                    faq.isPublished ? styles.unpublishButton : styles.publishButtonActive
-                  ]}
+                  style={[faq.isPublished ? styles.unpublishButton : styles.publishButton]}
                   onPress={() => togglePublishStatus(faq)}
+                  activeOpacity={0.8}
                 >
                   <Text style={styles.publishButtonText}>
-                    {faq.isPublished ? '👁️ Unpublish' : '📢 Publish'}
+                    {faq.isPublished ? 'Unpublish' : 'Publish'}
                   </Text>
                 </TouchableOpacity>
-                
                 <TouchableOpacity
                   style={styles.deleteButton}
                   onPress={() => handleDeleteFAQ(faq)}
+                  activeOpacity={0.8}
                 >
-                  <Text style={styles.deleteButtonText}>🗑️ Delete</Text>
+                  <Text style={styles.deleteButtonText}>Delete</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -335,11 +333,8 @@ const FAQScreen: React.FC = () => {
                 ]}
                 onPress={() => setIsAdminMode(!isAdminMode)}
               >
-                <Text style={[
-                  styles.modeToggleText,
-                  isAdminMode && styles.modeToggleTextActive
-                ]}>
-                  {isAdminMode ? '👤 Public View' : '⚙️ Admin Mode'}
+                <Text style={styles.toggleButtonText}>
+                  {isAdminMode ? 'Public View' : 'Admin Mode'}
                 </Text>
               </TouchableOpacity>
               
@@ -348,7 +343,7 @@ const FAQScreen: React.FC = () => {
                   style={styles.addButton}
                   onPress={() => openEditModal()}
                 >
-                  <Text style={styles.addButtonText}>➕ Add FAQ</Text>
+                  <Text style={styles.addButtonText}>Add FAQ</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -467,7 +462,7 @@ const FAQScreen: React.FC = () => {
                     styles.publishToggleText,
                     isPublished && styles.publishToggleTextActive
                   ]}>
-                    {isPublished ? '✅ Published' : '📝 Draft'}
+                    {isPublished ? 'Published' : 'Draft'}
                   </Text>
                 </TouchableOpacity>
                 <Text style={styles.publishHelp}>
@@ -537,13 +532,10 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.primary,
     borderColor: theme.primary,
   },
-  modeToggleText: {
+  toggleButtonText: {
     fontSize: 14,
     fontWeight: '600',
     color: theme.text,
-  },
-  modeToggleTextActive: {
-    color: 'white',
   },
   addButton: {
     backgroundColor: theme.success,

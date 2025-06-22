@@ -65,7 +65,6 @@ class ErrorBoundary extends Component<Props, State> {
       return (
         <View style={styles.container}>
           <View style={styles.content}>
-            <Text style={styles.emoji}>😵</Text>
             <Text style={styles.title}>Oops! Something went wrong</Text>
             <Text style={styles.message}>
               The app encountered an unexpected error. This has been logged and will be fixed in a future update.

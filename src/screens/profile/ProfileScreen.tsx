@@ -120,33 +120,32 @@ const ProfileScreen: React.FC = () => {
       {/* Profile Actions */}
       <View style={styles.actionsSection}>
         <TouchableOpacity style={styles.actionItem}>
-          <Text style={styles.actionText}>📚 Reading History</Text>
-          <Text style={styles.actionSubtext}>Coming soon...</Text>
+          <Text style={styles.actionText}>Reading History</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.actionItem}
+          onPress={() => navigation.navigate('Settings')}
+        >
+          <Text style={styles.actionText}>Settings</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.actionItem}>
-          <Text style={styles.actionText}>⚙️ Settings</Text>
-          <Text style={styles.actionSubtext}>Coming soon...</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.actionItem}>
-          <Text style={styles.actionText}>📖 My Books</Text>
-          <Text style={styles.actionSubtext}>Coming soon...</Text>
+          <Text style={styles.actionText}>My Books</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.actionItem}
           onPress={() => navigation.navigate('EditProfile')}
         >
-          <Text style={styles.actionText}>✏️ Edit Profile</Text>
-          <Text style={styles.actionSubtext}>Update your information</Text>
+          <Text style={styles.actionText}>Edit Profile</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.actionItem}
           onPress={() => navigation.navigate('NotificationDemo')}
         >
-          <Text style={styles.actionText}>🔔 Push Notifications</Text>
+          <Text style={styles.actionText}>Push Notifications</Text>
           <Text style={styles.actionSubtext}>Test notification features</Text>
         </TouchableOpacity>
       </View>

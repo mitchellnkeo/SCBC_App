@@ -174,7 +174,6 @@ const FeedbackScreen: React.FC = () => {
       >
         {/* Header */}
         <View style={dynamicStyles.header}>
-          <Text style={dynamicStyles.emoji}>💬</Text>
           <Text style={dynamicStyles.title}>Community Feedback</Text>
           <Text style={dynamicStyles.subtitle}>
             Help us make SCBC even better!
@@ -188,7 +187,7 @@ const FeedbackScreen: React.FC = () => {
             onPress={handleOpenForm}
             activeOpacity={0.8}
           >
-            <Text style={dynamicStyles.feedbackButtonText}>📝 Share Your Feedback</Text>
+            <Text style={dynamicStyles.feedbackButtonText}>Share Your Feedback</Text>
           </TouchableOpacity>
           
           <Text style={dynamicStyles.formNote}>
@@ -207,11 +206,11 @@ const FeedbackScreen: React.FC = () => {
           <View style={dynamicStyles.benefitsSection}>
             <Text style={dynamicStyles.benefitsTitle}>Your feedback helps us:</Text>
             <View style={dynamicStyles.benefitsList}>
-              <Text style={dynamicStyles.benefitItem}>📚 Choose better books for our monthly selections</Text>
-              <Text style={dynamicStyles.benefitItem}>🎉 Plan more engaging events and discussions</Text>
-              <Text style={dynamicStyles.benefitItem}>📱 Improve our app features and user experience</Text>
-              <Text style={dynamicStyles.benefitItem}>🤝 Build a stronger, more inclusive community</Text>
-              <Text style={dynamicStyles.benefitItem}>✨ Create new opportunities for connection</Text>
+              <Text style={dynamicStyles.benefitItem}>Choose better books for our monthly selections</Text>
+              <Text style={dynamicStyles.benefitItem}>Plan more engaging events and discussions</Text>
+              <Text style={dynamicStyles.benefitItem}>Improve our app features and user experience</Text>
+              <Text style={dynamicStyles.benefitItem}>Build a stronger, more inclusive community</Text>
+              <Text style={dynamicStyles.benefitItem}>Create new opportunities for connection</Text>
             </View>
           </View>
 

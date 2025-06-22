@@ -622,7 +622,6 @@ const MonthlyBookScreen: React.FC = () => {
       <View style={dynamicStyles.container}>
         <TopNavbar title="Monthly Meeting Details" />
         <View style={dynamicStyles.emptyContainer}>
-          <Text style={dynamicStyles.emptyEmoji}>📚</Text>
           <Text style={dynamicStyles.emptyTitle}>No Book Selected</Text>
           <Text style={dynamicStyles.emptyText}>
             No monthly book has been set yet. Check back soon!
@@ -661,7 +660,7 @@ const MonthlyBookScreen: React.FC = () => {
               onPress={handleEditPress}
               activeOpacity={0.8}
             >
-              <Text style={dynamicStyles.editButtonText}>✏️ Edit</Text>
+              <Text style={dynamicStyles.editButtonText}>Edit</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -674,7 +673,6 @@ const MonthlyBookScreen: React.FC = () => {
               <Image source={{ uri: currentBook.coverImageUrl }} style={dynamicStyles.bookCover} />
             ) : (
               <View style={dynamicStyles.bookCoverPlaceholder}>
-                <Text style={dynamicStyles.bookEmoji}>📖</Text>
                 <Text style={dynamicStyles.placeholderText}>Book Cover</Text>
               </View>
             )}
@@ -689,7 +687,7 @@ const MonthlyBookScreen: React.FC = () => {
               <View style={dynamicStyles.awardsSection}>
                 {currentBook.awards.map((award: string, index: number) => (
                   <View key={index} style={dynamicStyles.awardBadge}>
-                    <Text style={dynamicStyles.awardText}>🏆 {award}</Text>
+                    <Text style={dynamicStyles.awardText}>Award: {award}</Text>
                   </View>
                 ))}
               </View>
@@ -719,7 +717,6 @@ const MonthlyBookScreen: React.FC = () => {
           activeOpacity={0.8}
         >
           <View style={dynamicStyles.discussionButtonContent}>
-            <Text style={dynamicStyles.discussionButtonIcon}>📝</Text>
             <View style={dynamicStyles.discussionButtonText}>
               <Text style={dynamicStyles.discussionButtonTitle}>Discussion Sheet</Text>
               <Text style={dynamicStyles.discussionButtonSubtitle}>
@@ -733,7 +730,7 @@ const MonthlyBookScreen: React.FC = () => {
         {/* In-Person Meeting Details */}
         <View style={dynamicStyles.meetingCard}>
           <View style={dynamicStyles.meetingHeader}>
-            <Text style={dynamicStyles.meetingTitle}>📍 In-Person Meeting Details</Text>
+            <Text style={dynamicStyles.meetingTitle}>In-Person Meeting Details</Text>
             {user?.role === 'admin' && (
               <TouchableOpacity
                 style={dynamicStyles.meetingEditButton}
@@ -777,7 +774,7 @@ const MonthlyBookScreen: React.FC = () => {
         {/* Virtual Meeting Details */}
         <View style={dynamicStyles.meetingCard}>
           <View style={dynamicStyles.meetingHeader}>
-            <Text style={dynamicStyles.meetingTitle}>💻 Virtual Meeting Details</Text>
+            <Text style={dynamicStyles.meetingTitle}>Virtual Meeting Details</Text>
             {user?.role === 'admin' && (
               <TouchableOpacity
                 style={dynamicStyles.meetingEditButton}

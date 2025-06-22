@@ -277,7 +277,6 @@ const EditMonthlyBookScreen: React.FC = () => {
               />
             ) : (
               <View style={styles.imagePlaceholder}>
-                <Text style={styles.imageEmoji}>📖</Text>
                 <Text style={styles.imagePlaceholderText}>No Cover Image</Text>
               </View>
             )}
@@ -438,7 +437,7 @@ const EditMonthlyBookScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Meeting Details</Text>
 
           {/* In-Person Meeting */}
-          <Text style={styles.label}>📍 In-Person Meeting</Text>
+          <Text style={styles.label}>In-Person Meeting</Text>
           
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Location</Text>
@@ -475,7 +474,7 @@ const EditMonthlyBookScreen: React.FC = () => {
           </View>
 
           {/* Virtual Meeting */}
-          <Text style={styles.label}>💻 Virtual Meeting</Text>
+          <Text style={styles.label}>Virtual Meeting</Text>
           
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Zoom Link</Text>
@@ -601,10 +600,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#e5e7eb',
     borderStyle: 'dashed',
-  },
-  imageEmoji: {
-    fontSize: 48,
-    marginBottom: 8,
   },
   imagePlaceholderText: {
     fontSize: 14,

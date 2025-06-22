@@ -67,7 +67,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
 
   const menuItems = [
     {
-      icon: '📚',
+      icon: '',
       title: 'Monthly Meeting Details',
       onPress: () => handleMenuItemPress(() => {
         navigation.navigate('MonthlyBook');
