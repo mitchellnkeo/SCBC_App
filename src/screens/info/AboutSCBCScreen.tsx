@@ -149,47 +149,22 @@ const AboutSCBCScreen: React.FC = () => {
       >
         {/* Header */}
         <View style={dynamicStyles.header}>
-          <Text style={dynamicStyles.emoji}>📚</Text>
           <Text style={dynamicStyles.title}>About Seattle Chinatown Book Club</Text>
         </View>
 
         {/* Main Content */}
         <View style={dynamicStyles.contentCard}>
           <Text style={dynamicStyles.description}>
-            Seattle Chinatown Book Club is an AANHPI centered book club found in the heart of Seattle's Chinatown International-District at Mam's Bookstore.
+            Seattle Chinatown Book Club is an AANHPI centered book club found in the heart of Seattle's Chinatown International-District at Mam's Bookstore. We are more than a book club -- we are a community.
           </Text>
-          
-          <View style={dynamicStyles.highlightBox}>
-            <Text style={dynamicStyles.highlightText}>
-              🏮 Located in Seattle's Historic Chinatown International-District
-            </Text>
-            <Text style={dynamicStyles.highlightText}>
-              📖 Hosted at Mam's Bookstore
-            </Text>
-            <Text style={dynamicStyles.highlightText}>
-              🌏 AANHPI Centered Community
-            </Text>
-          </View>
         </View>
 
         {/* Mission Section */}
         <View style={dynamicStyles.missionCard}>
           <Text style={dynamicStyles.sectionTitle}>Our Mission</Text>
           <Text style={dynamicStyles.missionText}>
-            We bring together readers to explore diverse voices, share stories, and build community through the power of literature. Our focus on AANHPI (Asian American, Native Hawaiian, and Pacific Islander) perspectives helps amplify underrepresented voices while creating meaningful connections in our neighborhood.
+            We bring together Seattle to explore diverse voices, share stories, and build community through the power of literature. Our focus on AANHPI (Asian American, Native Hawaiian, and Pacific Islander) perspectives helps amplify underrepresented voices while creating meaningful connections in our neighborhood and beyond the book club itself.
           </Text>
-        </View>
-
-        {/* Location Section */}
-        <View style={dynamicStyles.locationCard}>
-          <Text style={dynamicStyles.sectionTitle}>Find Us</Text>
-          <View style={dynamicStyles.locationInfo}>
-            <Text style={dynamicStyles.locationName}>Mam's Bookstore</Text>
-            <Text style={dynamicStyles.locationAddress}>
-              Chinatown International-District{'\n'}
-              Seattle, WA
-            </Text>
-          </View>
         </View>
 
         <View style={dynamicStyles.bottomSpacer} />
