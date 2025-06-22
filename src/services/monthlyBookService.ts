@@ -26,6 +26,17 @@ export interface MonthlyBook {
   awards: string[];
   whySelected: string;
   discussionSheetUrl: string;
+  // Meeting details
+  inPersonMeeting?: {
+    location: string;
+    day: string;
+    time: string;
+  };
+  virtualMeeting?: {
+    zoomLink: string;
+    day: string;
+    time: string;
+  };
   createdAt: Timestamp;
   updatedAt: Timestamp;
   isActive: boolean; // Only one book should be active at a time
@@ -42,6 +53,17 @@ export interface CreateMonthlyBookData {
   awards: string[];
   whySelected: string;
   discussionSheetUrl: string;
+  // Meeting details
+  inPersonMeeting?: {
+    location: string;
+    day: string;
+    time: string;
+  };
+  virtualMeeting?: {
+    zoomLink: string;
+    day: string;
+    time: string;
+  };
 }
 
 export interface UpdateMonthlyBookData extends Partial<CreateMonthlyBookData> {

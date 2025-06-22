@@ -40,6 +40,13 @@ interface FormData {
   awards: string;
   whySelected: string;
   discussionSheetUrl: string;
+  // Meeting details
+  inPersonLocation: string;
+  inPersonDay: string;
+  inPersonTime: string;
+  virtualZoomLink: string;
+  virtualDay: string;
+  virtualTime: string;
 }
 
 const EditMonthlyBookScreen: React.FC = () => {
@@ -65,6 +72,13 @@ const EditMonthlyBookScreen: React.FC = () => {
     awards: '',
     whySelected: '',
     discussionSheetUrl: '',
+    // Meeting details
+    inPersonLocation: '',
+    inPersonDay: '',
+    inPersonTime: '',
+    virtualZoomLink: '',
+    virtualDay: '',
+    virtualTime: '',
   });
 
   const isNewBook = bookId === 'new';
@@ -92,6 +106,13 @@ const EditMonthlyBookScreen: React.FC = () => {
           awards: book.awards.join(', '),
           whySelected: book.whySelected,
           discussionSheetUrl: book.discussionSheetUrl,
+          // Meeting details
+          inPersonLocation: book.inPersonMeeting?.location || '',
+          inPersonDay: book.inPersonMeeting?.day || '',
+          inPersonTime: book.inPersonMeeting?.time || '',
+          virtualZoomLink: book.virtualMeeting?.zoomLink || '',
+          virtualDay: book.virtualMeeting?.day || '',
+          virtualTime: book.virtualMeeting?.time || '',
         });
       }
     } catch (error) {
@@ -146,6 +167,17 @@ const EditMonthlyBookScreen: React.FC = () => {
         awards: formData.awards.split(',').map(award => award.trim()).filter(award => award.length > 0),
         whySelected: formData.whySelected.trim(),
         discussionSheetUrl: formData.discussionSheetUrl.trim(),
+        // Meeting details
+        inPersonMeeting: {
+          location: formData.inPersonLocation.trim(),
+          day: formData.inPersonDay.trim(),
+          time: formData.inPersonTime.trim(),
+        },
+        virtualMeeting: {
+          zoomLink: formData.virtualZoomLink.trim(),
+          day: formData.virtualDay.trim(),
+          time: formData.virtualTime.trim(),
+        },
       };
 
       let savedBookId: string;
@@ -398,6 +430,87 @@ const EditMonthlyBookScreen: React.FC = () => {
               returnKeyType="done"
               onSubmitEditing={() => Keyboard.dismiss()}
             />
+          </View>
+        </View>
+
+        {/* Meeting Details */}
+        <View style={styles.formSection}>
+          <Text style={styles.sectionTitle}>Meeting Details</Text>
+
+          {/* In-Person Meeting */}
+          <Text style={styles.label}>📍 In-Person Meeting</Text>
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Location</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.inPersonLocation}
+              onChangeText={(text) => setFormData({ ...formData, inPersonLocation: text })}
+              placeholder="e.g., Central Library, Room 204"
+              placeholderTextColor="#9ca3af"
+            />
+          </View>
+
+          <View style={styles.row}>
+            <View style={[styles.inputGroup, styles.halfWidth]}>
+              <Text style={styles.label}>Day</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.inPersonDay}
+                onChangeText={(text) => setFormData({ ...formData, inPersonDay: text })}
+                placeholder="e.g., Saturday, Jan 15th"
+                placeholderTextColor="#9ca3af"
+              />
+            </View>
+            <View style={[styles.inputGroup, styles.halfWidth]}>
+              <Text style={styles.label}>Time</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.inPersonTime}
+                onChangeText={(text) => setFormData({ ...formData, inPersonTime: text })}
+                placeholder="e.g., 2:00 PM - 4:00 PM"
+                placeholderTextColor="#9ca3af"
+              />
+            </View>
+          </View>
+
+          {/* Virtual Meeting */}
+          <Text style={styles.label}>💻 Virtual Meeting</Text>
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Zoom Link</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.virtualZoomLink}
+              onChangeText={(text) => setFormData({ ...formData, virtualZoomLink: text })}
+              placeholder="https://zoom.us/j/..."
+              placeholderTextColor="#9ca3af"
+              keyboardType="url"
+              autoCapitalize="none"
+            />
+          </View>
+
+          <View style={styles.row}>
+            <View style={[styles.inputGroup, styles.halfWidth]}>
+              <Text style={styles.label}>Day</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.virtualDay}
+                onChangeText={(text) => setFormData({ ...formData, virtualDay: text })}
+                placeholder="e.g., Sunday, Jan 16th"
+                placeholderTextColor="#9ca3af"
+              />
+            </View>
+            <View style={[styles.inputGroup, styles.halfWidth]}>
+              <Text style={styles.label}>Time</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.virtualTime}
+                onChangeText={(text) => setFormData({ ...formData, virtualTime: text })}
+                placeholder="e.g., 7:00 PM - 9:00 PM"
+                placeholderTextColor="#9ca3af"
+              />
+            </View>
           </View>
         </View>
 

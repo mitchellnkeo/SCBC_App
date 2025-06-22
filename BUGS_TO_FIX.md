@@ -253,6 +253,28 @@ Complete FAQ system with public viewing and admin management capabilities.
 ### Firebase Configuration Required
 **✅ COMPLETED**: Firebase Security Rules updated in README.md
 
+### **Meeting Details Management System (2024-12-19)**
+- **Feature**: Replaced "Join the Discussion" section with admin-editable meeting details
+- **Implementation**: 
+  - Removed "Join the Discussion" box from Monthly Book screen
+  - Added "In-Person Meeting Details" card with location, day, and time fields
+  - Added "Virtual Meeting Details" card with Zoom link, day, and time fields
+  - Admin-only edit functionality with modal forms
+  - Added meeting details fields to EditMonthlyBookScreen admin form
+  - Updated MonthlyBook interface to include nested meeting objects
+- **Files modified**: 
+  - `src/screens/books/MonthlyBookScreen.tsx` - New meeting details UI
+  - `src/screens/admin/EditMonthlyBookScreen.tsx` - Admin form fields
+  - `src/services/monthlyBookService.ts` - Updated interfaces
+- **Status**: ✅ **COMPLETE**
+- **Features**: 
+  - Admin can set/edit in-person meeting location, day, and time
+  - Admin can set/edit virtual meeting Zoom link, day, and time
+  - Clickable Zoom links for users to join virtual meetings
+  - Empty state messages for when no meeting details are set
+  - Role-based permissions (only admins can edit)
+- **UI**: Clean card-based interface with proper spacing and responsive design
+
 ### **Firebase Auth Persistence (2024-12-19)**
 - **Issue**: Firebase Auth warning about missing AsyncStorage persistence
 - **Impact**: Auth state not persisting between app sessions

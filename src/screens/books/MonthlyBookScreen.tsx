@@ -9,6 +9,8 @@ import {
   Alert,
   Image,
   ActivityIndicator,
+  TextInput,
+  Modal,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -26,12 +28,25 @@ const MonthlyBookScreen: React.FC = () => {
   const { theme } = useTheme();
   const [currentBook, setCurrentBook] = useState<MonthlyBook | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editingMeeting, setEditingMeeting] = useState<'inPerson' | 'virtual' | null>(null);
+  const [meetingFormData, setMeetingFormData] = useState({
+    inPerson: { location: '', day: '', time: '' },
+    virtual: { zoomLink: '', day: '', time: '' },
+  });
 
   const loadCurrentBook = async () => {
     try {
       setLoading(true);
       const book = await monthlyBookService.getCurrentMonthlyBook();
       setCurrentBook(book);
+      
+      // Populate meeting form data
+      if (book) {
+        setMeetingFormData({
+          inPerson: book.inPersonMeeting || { location: '', day: '', time: '' },
+          virtual: book.virtualMeeting || { zoomLink: '', day: '', time: '' },
+        });
+      }
     } catch (error) {
       console.error('Error loading current book:', error);
       Alert.alert('Error', 'Unable to load current book.');
@@ -80,6 +95,62 @@ const MonthlyBookScreen: React.FC = () => {
   const handleEditPress = () => {
     if (currentBook) {
       navigation.navigate('EditMonthlyBook', { bookId: currentBook.id });
+    }
+  };
+
+  const handleMeetingEdit = (type: 'inPerson' | 'virtual') => {
+    setEditingMeeting(type);
+  };
+
+  const handleMeetingSave = async () => {
+    if (!currentBook || !editingMeeting) return;
+
+    try {
+      const updateData: any = {};
+      
+      if (editingMeeting === 'inPerson') {
+        updateData.inPersonMeeting = meetingFormData.inPerson;
+      } else {
+        updateData.virtualMeeting = meetingFormData.virtual;
+      }
+
+      await monthlyBookService.updateMonthlyBook(currentBook.id, updateData);
+      
+      // Update local state
+      setCurrentBook({
+        ...currentBook,
+        ...updateData,
+      });
+      
+      setEditingMeeting(null);
+      Alert.alert('Success', 'Meeting details updated successfully!');
+    } catch (error) {
+      console.error('Error updating meeting details:', error);
+      Alert.alert('Error', 'Failed to update meeting details.');
+    }
+  };
+
+  const handleMeetingCancel = () => {
+    // Reset form data to current book data
+    if (currentBook) {
+      setMeetingFormData({
+        inPerson: currentBook.inPersonMeeting || { location: '', day: '', time: '' },
+        virtual: currentBook.virtualMeeting || { zoomLink: '', day: '', time: '' },
+      });
+    }
+    setEditingMeeting(null);
+  };
+
+  const handleZoomLinkPress = async (zoomLink: string) => {
+    try {
+      const supported = await Linking.canOpenURL(zoomLink);
+      if (supported) {
+        await Linking.openURL(zoomLink);
+      } else {
+        Alert.alert('Unable to open link', 'Please copy the Zoom link manually.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Unable to open Zoom link.');
     }
   };
 
@@ -391,6 +462,140 @@ const MonthlyBookScreen: React.FC = () => {
       fontSize: 14,
       fontWeight: '600',
     },
+    // Meeting cards
+    meetingCard: {
+      backgroundColor: theme.card,
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 16,
+      shadowColor: theme.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    meetingHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    meetingTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.text,
+    },
+    meetingEditButton: {
+      backgroundColor: theme.primary,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 6,
+    },
+    meetingEditButtonText: {
+      color: 'white',
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    meetingDetails: {
+      gap: 12,
+    },
+    meetingDetailRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    meetingDetailLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.textSecondary,
+      width: 80,
+    },
+    meetingDetailValue: {
+      fontSize: 14,
+      color: theme.text,
+      flex: 1,
+    },
+    zoomLink: {
+      fontSize: 14,
+      color: theme.primary,
+      textDecorationLine: 'underline',
+      flex: 1,
+    },
+    emptyMeetingText: {
+      fontSize: 14,
+      color: theme.textTertiary,
+      fontStyle: 'italic',
+      textAlign: 'center',
+    },
+    // Modal styles
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalContent: {
+      backgroundColor: theme.card,
+      borderRadius: 16,
+      padding: 24,
+      width: '90%',
+      maxWidth: 400,
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.text,
+      marginBottom: 20,
+      textAlign: 'center',
+    },
+    inputGroup: {
+      marginBottom: 16,
+    },
+    inputLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.text,
+      marginBottom: 8,
+    },
+    textInput: {
+      borderWidth: 1,
+      borderColor: theme.border,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      color: theme.text,
+      backgroundColor: theme.surface,
+    },
+    modalButtons: {
+      flexDirection: 'row',
+      gap: 12,
+      marginTop: 20,
+    },
+    modalButton: {
+      flex: 1,
+      paddingVertical: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    cancelButton: {
+      backgroundColor: theme.surface,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    saveButton: {
+      backgroundColor: theme.primary,
+    },
+    modalButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    cancelButtonText: {
+      color: theme.textSecondary,
+    },
+    saveButtonText: {
+      color: 'white',
+    },
   });
 
   const InfoRow: React.FC<{ label: string; value: string | number }> = ({ label, value }) => (
@@ -525,19 +730,215 @@ const MonthlyBookScreen: React.FC = () => {
           </View>
         </TouchableOpacity>
 
-        {/* Reading Progress */}
-        <View style={dynamicStyles.progressCard}>
-          <Text style={dynamicStyles.progressTitle}>Join the Discussion</Text>
-          <Text style={dynamicStyles.progressText}>
-            We'll be discussing this book at our next meetup. Use the discussion sheet to guide your reading and prepare thoughtful questions for our group conversation.
-          </Text>
-          
-          <View style={dynamicStyles.progressTips}>
-            <Text style={dynamicStyles.tipText}>💡 Take notes while reading</Text>
-            <Text style={dynamicStyles.tipText}>🤔 Consider the discussion questions</Text>
-            <Text style={dynamicStyles.tipText}>📚 Share your thoughts with the group</Text>
+        {/* In-Person Meeting Details */}
+        <View style={dynamicStyles.meetingCard}>
+          <View style={dynamicStyles.meetingHeader}>
+            <Text style={dynamicStyles.meetingTitle}>📍 In-Person Meeting Details</Text>
+            {user?.role === 'admin' && (
+              <TouchableOpacity
+                style={dynamicStyles.meetingEditButton}
+                onPress={() => handleMeetingEdit('inPerson')}
+                activeOpacity={0.8}
+              >
+                <Text style={dynamicStyles.meetingEditButtonText}>Edit</Text>
+              </TouchableOpacity>
+            )}
           </View>
+          
+          {currentBook.inPersonMeeting && 
+           (currentBook.inPersonMeeting.location || currentBook.inPersonMeeting.day || currentBook.inPersonMeeting.time) ? (
+            <View style={dynamicStyles.meetingDetails}>
+              {currentBook.inPersonMeeting.location && (
+                <View style={dynamicStyles.meetingDetailRow}>
+                  <Text style={dynamicStyles.meetingDetailLabel}>Location:</Text>
+                  <Text style={dynamicStyles.meetingDetailValue}>{currentBook.inPersonMeeting.location}</Text>
+                </View>
+              )}
+              {currentBook.inPersonMeeting.day && (
+                <View style={dynamicStyles.meetingDetailRow}>
+                  <Text style={dynamicStyles.meetingDetailLabel}>Day:</Text>
+                  <Text style={dynamicStyles.meetingDetailValue}>{currentBook.inPersonMeeting.day}</Text>
+                </View>
+              )}
+              {currentBook.inPersonMeeting.time && (
+                <View style={dynamicStyles.meetingDetailRow}>
+                  <Text style={dynamicStyles.meetingDetailLabel}>Time:</Text>
+                  <Text style={dynamicStyles.meetingDetailValue}>{currentBook.inPersonMeeting.time}</Text>
+                </View>
+              )}
+            </View>
+          ) : (
+            <Text style={dynamicStyles.emptyMeetingText}>
+              {user?.role === 'admin' ? 'No in-person meeting details set. Tap Edit to add details.' : 'In-person meeting details will be announced soon.'}
+            </Text>
+          )}
         </View>
+
+        {/* Virtual Meeting Details */}
+        <View style={dynamicStyles.meetingCard}>
+          <View style={dynamicStyles.meetingHeader}>
+            <Text style={dynamicStyles.meetingTitle}>💻 Virtual Meeting Details</Text>
+            {user?.role === 'admin' && (
+              <TouchableOpacity
+                style={dynamicStyles.meetingEditButton}
+                onPress={() => handleMeetingEdit('virtual')}
+                activeOpacity={0.8}
+              >
+                <Text style={dynamicStyles.meetingEditButtonText}>Edit</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          
+          {currentBook.virtualMeeting && 
+           (currentBook.virtualMeeting.zoomLink || currentBook.virtualMeeting.day || currentBook.virtualMeeting.time) ? (
+            <View style={dynamicStyles.meetingDetails}>
+              {currentBook.virtualMeeting.zoomLink && (
+                <View style={dynamicStyles.meetingDetailRow}>
+                  <Text style={dynamicStyles.meetingDetailLabel}>Zoom:</Text>
+                  <TouchableOpacity onPress={() => handleZoomLinkPress(currentBook.virtualMeeting!.zoomLink)}>
+                    <Text style={dynamicStyles.zoomLink}>Join Meeting</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              {currentBook.virtualMeeting.day && (
+                <View style={dynamicStyles.meetingDetailRow}>
+                  <Text style={dynamicStyles.meetingDetailLabel}>Day:</Text>
+                  <Text style={dynamicStyles.meetingDetailValue}>{currentBook.virtualMeeting.day}</Text>
+                </View>
+              )}
+              {currentBook.virtualMeeting.time && (
+                <View style={dynamicStyles.meetingDetailRow}>
+                  <Text style={dynamicStyles.meetingDetailLabel}>Time:</Text>
+                  <Text style={dynamicStyles.meetingDetailValue}>{currentBook.virtualMeeting.time}</Text>
+                </View>
+              )}
+            </View>
+          ) : (
+            <Text style={dynamicStyles.emptyMeetingText}>
+              {user?.role === 'admin' ? 'No virtual meeting details set. Tap Edit to add details.' : 'Virtual meeting details will be announced soon.'}
+            </Text>
+          )}
+        </View>
+
+        {/* Edit Meeting Modal */}
+        <Modal
+          visible={editingMeeting !== null}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={handleMeetingCancel}
+        >
+          <View style={dynamicStyles.modalOverlay}>
+            <View style={dynamicStyles.modalContent}>
+              <Text style={dynamicStyles.modalTitle}>
+                {editingMeeting === 'inPerson' ? 'Edit In-Person Meeting' : 'Edit Virtual Meeting'}
+              </Text>
+              
+              {editingMeeting === 'inPerson' ? (
+                <>
+                  <View style={dynamicStyles.inputGroup}>
+                    <Text style={dynamicStyles.inputLabel}>Location</Text>
+                    <TextInput
+                      style={dynamicStyles.textInput}
+                      value={meetingFormData.inPerson.location}
+                      onChangeText={(text) => setMeetingFormData({
+                        ...meetingFormData,
+                        inPerson: { ...meetingFormData.inPerson, location: text }
+                      })}
+                      placeholder="e.g., Central Library, Room 204"
+                      placeholderTextColor={theme.textTertiary}
+                    />
+                  </View>
+                  <View style={dynamicStyles.inputGroup}>
+                    <Text style={dynamicStyles.inputLabel}>Day</Text>
+                    <TextInput
+                      style={dynamicStyles.textInput}
+                      value={meetingFormData.inPerson.day}
+                      onChangeText={(text) => setMeetingFormData({
+                        ...meetingFormData,
+                        inPerson: { ...meetingFormData.inPerson, day: text }
+                      })}
+                      placeholder="e.g., Saturday, January 15th"
+                      placeholderTextColor={theme.textTertiary}
+                    />
+                  </View>
+                  <View style={dynamicStyles.inputGroup}>
+                    <Text style={dynamicStyles.inputLabel}>Time</Text>
+                    <TextInput
+                      style={dynamicStyles.textInput}
+                      value={meetingFormData.inPerson.time}
+                      onChangeText={(text) => setMeetingFormData({
+                        ...meetingFormData,
+                        inPerson: { ...meetingFormData.inPerson, time: text }
+                      })}
+                      placeholder="e.g., 2:00 PM - 4:00 PM"
+                      placeholderTextColor={theme.textTertiary}
+                    />
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={dynamicStyles.inputGroup}>
+                    <Text style={dynamicStyles.inputLabel}>Zoom Link</Text>
+                    <TextInput
+                      style={dynamicStyles.textInput}
+                      value={meetingFormData.virtual.zoomLink}
+                      onChangeText={(text) => setMeetingFormData({
+                        ...meetingFormData,
+                        virtual: { ...meetingFormData.virtual, zoomLink: text }
+                      })}
+                      placeholder="https://zoom.us/j/..."
+                      placeholderTextColor={theme.textTertiary}
+                      autoCapitalize="none"
+                    />
+                  </View>
+                  <View style={dynamicStyles.inputGroup}>
+                    <Text style={dynamicStyles.inputLabel}>Day</Text>
+                    <TextInput
+                      style={dynamicStyles.textInput}
+                      value={meetingFormData.virtual.day}
+                      onChangeText={(text) => setMeetingFormData({
+                        ...meetingFormData,
+                        virtual: { ...meetingFormData.virtual, day: text }
+                      })}
+                      placeholder="e.g., Sunday, January 16th"
+                      placeholderTextColor={theme.textTertiary}
+                    />
+                  </View>
+                  <View style={dynamicStyles.inputGroup}>
+                    <Text style={dynamicStyles.inputLabel}>Time</Text>
+                    <TextInput
+                      style={dynamicStyles.textInput}
+                      value={meetingFormData.virtual.time}
+                      onChangeText={(text) => setMeetingFormData({
+                        ...meetingFormData,
+                        virtual: { ...meetingFormData.virtual, time: text }
+                      })}
+                      placeholder="e.g., 7:00 PM - 9:00 PM"
+                      placeholderTextColor={theme.textTertiary}
+                    />
+                  </View>
+                </>
+              )}
+              
+              <View style={dynamicStyles.modalButtons}>
+                <TouchableOpacity
+                  style={[dynamicStyles.modalButton, dynamicStyles.cancelButton]}
+                  onPress={handleMeetingCancel}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[dynamicStyles.modalButtonText, dynamicStyles.cancelButtonText]}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[dynamicStyles.modalButton, dynamicStyles.saveButton]}
+                  onPress={handleMeetingSave}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[dynamicStyles.modalButtonText, dynamicStyles.saveButtonText]}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
         <View style={dynamicStyles.bottomSpacer} />
       </ScrollView>
