@@ -347,9 +347,18 @@ const PastEventsTab: React.FC = () => {
       onPress={() => navigateToEventDetails(event.id)}
       activeOpacity={0.7}
     >
-      {/* Header Image Placeholder */}
-      <View style={[dynamicStyles.headerImage, dynamicStyles.placeholderHeader]}>
-      </View>
+      {/* Header Image */}
+      {event.headerPhoto ? (
+        <Image
+          source={{ uri: event.headerPhoto }}
+          style={dynamicStyles.headerImage}
+          resizeMode="cover"
+        />
+      ) : (
+        <View style={[dynamicStyles.headerImage, dynamicStyles.placeholderHeader]}>
+          <Text style={dynamicStyles.bookEmoji}>📚</Text>
+        </View>
+      )}
 
       {/* Event Details */}
       <View style={dynamicStyles.cardContent}>
@@ -365,7 +374,6 @@ const PastEventsTab: React.FC = () => {
         </View>
 
         <View style={[dynamicStyles.row, { marginBottom: 8, marginLeft: 26 }]}>
-
           <Text style={[dynamicStyles.eventDetail, { flex: 1 }]} numberOfLines={1}>
             {formatTime(event.startTime, event.endTime)}
           </Text>
