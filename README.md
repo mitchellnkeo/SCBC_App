@@ -47,6 +47,13 @@ The Seattle Chinatown Book Club App is a production-ready React Native applicati
 - **508 Compliance** - Accessible color choices for government and enterprise use
 - **Professional Design** - Removed decorative elements for cleaner, more professional appearance
 
+### **Critical Bug Fixes**
+- **Event Duration Calculation** - Fixed hardcoded 4-hour assumption to use actual event start/end times
+- **Event Status Accuracy** - Events now correctly transition from "Event in Progress" to "Past Event" based on actual duration
+- **Past Events Header Images** - Fixed missing header images in Past Events card view
+- **Time String Parsing** - Enhanced error handling for malformed time data with graceful fallbacks
+- **Event Filtering** - Resolved inconsistencies in event categorization across all tabs
+
 ## ✨ **Key Features**
 
 ### 📅 **Event Management**

@@ -104,11 +104,18 @@ const PastEventsTab: React.FC = () => {
       fontWeight: '600',
       color: theme.text,
     },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.text,
+    },
     viewToggle: {
       flexDirection: 'row',
-      backgroundColor: theme.borderLight,
+      backgroundColor: theme.background,
       borderRadius: 8,
       padding: 2,
+      borderWidth: 1,
+      borderColor: theme.border,
     },
     toggleButton: {
       paddingHorizontal: 12,
@@ -296,6 +303,12 @@ const PastEventsTab: React.FC = () => {
       textAlign: 'center',
       lineHeight: 24,
     },
+    activeToggle: {
+      backgroundColor: theme.primary,
+    },
+    activeToggleText: {
+      color: 'white',
+    },
   });
 
   // Event list item component (compact view)
@@ -311,7 +324,9 @@ const PastEventsTab: React.FC = () => {
             {event.title}
           </Text>
           <View style={dynamicStyles.row}>
+            <Text style={dynamicStyles.listDetail} numberOfLines={1}>
               {formatDate(event.date)} • {formatTime(event.startTime, event.endTime)}
+            </Text>
           </View>
           <View style={dynamicStyles.row}>
             <Text style={dynamicStyles.listDetail} numberOfLines={1}>
@@ -449,31 +464,29 @@ const PastEventsTab: React.FC = () => {
           <TouchableOpacity
             style={[
               dynamicStyles.toggleButton,
-              viewMode === 'card' ? dynamicStyles.toggleButtonActive : dynamicStyles.toggleButtonInactive
+              viewMode === 'card' && dynamicStyles.activeToggle
             ]}
             onPress={() => setViewMode('card')}
-            activeOpacity={0.7}
           >
             <Text style={[
               dynamicStyles.toggleText,
-              viewMode === 'card' ? dynamicStyles.toggleTextActive : dynamicStyles.toggleTextInactive
+              viewMode === 'card' && dynamicStyles.activeToggleText
             ]}>
-              📋
+              Card
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
               dynamicStyles.toggleButton,
-              viewMode === 'list' ? dynamicStyles.toggleButtonActive : dynamicStyles.toggleButtonInactive
+              viewMode === 'list' && dynamicStyles.activeToggle
             ]}
             onPress={() => setViewMode('list')}
-            activeOpacity={0.7}
           >
             <Text style={[
               dynamicStyles.toggleText,
-              viewMode === 'list' ? dynamicStyles.toggleTextActive : dynamicStyles.toggleTextInactive
+              viewMode === 'list' && dynamicStyles.activeToggleText
             ]}>
-              📄
+              List
             </Text>
           </TouchableOpacity>
         </View>
