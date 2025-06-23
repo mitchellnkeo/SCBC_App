@@ -198,7 +198,7 @@ const FeedbackScreen: React.FC = () => {
         {/* Main Content */}
         <View style={dynamicStyles.mainContent}>
           <Text style={dynamicStyles.description}>
-            Your voice matters to us! The Seattle Chinatown Book Club thrives on community input and feedback. 
+            Your voice matters to us! 
             Whether you have suggestions for book selections, event improvements, new features for our app, 
             or general thoughts about your experience with SCBC, we want to hear from you.
           </Text>
