@@ -120,6 +120,13 @@ const AdminScreen: React.FC = () => {
           />
 
           <AdminCard
+            title="WhatsApp Community Chat"
+            description="Manage the WhatsApp community invitation link"
+            icon=""
+            onPress={() => navigation.navigate('WhatsAppCommunity' as never)}
+          />
+
+          <AdminCard
             title="User Management"
             description="Manage user accounts and permissions"
             icon=""
