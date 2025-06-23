@@ -394,27 +394,8 @@ const WhatsAppCommunityScreen: React.FC = () => {
 
         <View style={dynamicStyles.mainContent}>
           <Text style={dynamicStyles.description}>
-            Join our WhatsApp community to stay connected with fellow book club members between meetings! 
-            Share thoughts, get updates, and be part of our growing literary community.
+            Join our WhatsApp community to stay connected with fellow book club members between meetings!
           </Text>
-
-          <View style={dynamicStyles.benefitsSection}>
-            <Text style={dynamicStyles.benefitsTitle}>In our WhatsApp community:</Text>
-            <View style={dynamicStyles.benefitsList}>
-              <Text style={dynamicStyles.benefitItem}>Get quick updates about upcoming events and meetings</Text>
-              <Text style={dynamicStyles.benefitItem}>Share book recommendations and reading thoughts</Text>
-              <Text style={dynamicStyles.benefitItem}>Connect with other members between meetings</Text>
-              <Text style={dynamicStyles.benefitItem}>Ask questions and get quick responses</Text>
-              <Text style={dynamicStyles.benefitItem}>Stay in the loop with community news</Text>
-            </View>
-          </View>
-
-          <View style={dynamicStyles.encouragement}>
-            <Text style={dynamicStyles.encouragementText}>
-              Our WhatsApp community is a welcoming space for all book lovers. 
-              Join us for casual conversations, book discussions, and community updates!
-            </Text>
-          </View>
         </View>
 
         {isAdmin && (
