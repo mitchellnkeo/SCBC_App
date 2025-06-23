@@ -81,7 +81,7 @@ const PastEventsTab: React.FC = () => {
 
   // Get event status with PST awareness
   const getEventStatusInfo = (event: BookClubEvent) => {
-    return getEventStatus(event.date);
+    return getEventStatus(event.date, event.startTime, event.endTime);
   };
 
   const dynamicStyles = StyleSheet.create({
@@ -311,13 +311,9 @@ const PastEventsTab: React.FC = () => {
             {event.title}
           </Text>
           <View style={dynamicStyles.row}>
-            <Text style={dynamicStyles.smallEmoji}>📅</Text>
-            <Text style={dynamicStyles.listDetail}>
               {formatDate(event.date)} • {formatTime(event.startTime, event.endTime)}
-            </Text>
           </View>
           <View style={dynamicStyles.row}>
-            <Text style={dynamicStyles.smallEmoji}>📍</Text>
             <Text style={dynamicStyles.listDetail} numberOfLines={1}>
               {event.location}
             </Text>
@@ -353,7 +349,6 @@ const PastEventsTab: React.FC = () => {
     >
       {/* Header Image Placeholder */}
       <View style={[dynamicStyles.headerImage, dynamicStyles.placeholderHeader]}>
-        <Text style={dynamicStyles.bookEmoji}>📚</Text>
       </View>
 
       {/* Event Details */}
@@ -364,14 +359,13 @@ const PastEventsTab: React.FC = () => {
 
         {/* Date and Time - Separate Lines */}
         <View style={[dynamicStyles.row, { marginBottom: 4 }]}>
-          <Text style={dynamicStyles.emoji}>📅</Text>
           <Text style={[dynamicStyles.eventDetail, { flex: 1 }]} numberOfLines={1}>
             {formatDate(event.date)}
           </Text>
         </View>
 
         <View style={[dynamicStyles.row, { marginBottom: 8, marginLeft: 26 }]}>
-          <Text style={dynamicStyles.emoji}>🕐</Text>
+
           <Text style={[dynamicStyles.eventDetail, { flex: 1 }]} numberOfLines={1}>
             {formatTime(event.startTime, event.endTime)}
           </Text>
@@ -379,7 +373,6 @@ const PastEventsTab: React.FC = () => {
 
         {/* Location */}
         <View style={[dynamicStyles.row, { marginBottom: 8 }]}>
-          <Text style={dynamicStyles.emoji}>📍</Text>
           <Text style={[dynamicStyles.eventDetail, { flex: 1 }]} numberOfLines={1}>
             {event.location}
           </Text>
@@ -414,7 +407,6 @@ const PastEventsTab: React.FC = () => {
   // Empty state component
   const EmptyState = () => (
     <View style={dynamicStyles.emptyState}>
-      <Text style={dynamicStyles.emptyEmoji}>📜</Text>
       <Text style={dynamicStyles.emptyTitle}>No Past Events</Text>
       <Text style={dynamicStyles.emptySubtitle}>
         Past events will appear here once they've been completed. Check back after attending some book club events!

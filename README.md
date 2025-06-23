@@ -17,6 +17,36 @@
 
 The Seattle Chinatown Book Club App is a production-ready React Native application designed for a growing community of 300+ members. Built with modern technologies and scalable architecture, it provides a complete platform for book club management, community interaction, and event coordination.
 
+## 🆕 **Recent Updates (June 2025)**
+
+### **Meeting Details Management**
+- **In-Person & Virtual Meeting Details** - Admin-editable meeting information for monthly book discussions
+- **Zoom Integration** - Enhanced Zoom link handling with email, phone, and clipboard options
+- **Meeting Cards Interface** - Clean card-based design for displaying meeting information
+- **Admin-Only Editing** - Role-based permissions for meeting details management
+
+### **User Interface Improvements**
+- **Navigation Updates** - Cleaner menu item names ("About Us", "Contact Us", "Leave Feedback")
+- **Page Rename** - "Monthly Book" → "Monthly Meeting Details" for clarity
+- **Emoji Removal** - Comprehensive removal of emojis throughout the application for professional appearance
+- **Color Scheme Update** - Modern red color scheme (#dc2626) replacing purple/pink for better accessibility
+
+### **Event System Enhancements**
+- **Event Status Synchronization** - Fixed inconsistencies between "My Events" and "Upcoming Events"
+- **Timezone Handling** - Proper PST timezone support across all event displays
+- **Status Indicators** - Consistent "Event in Progress", "Upcoming Event", and "Past Event" statuses
+- **View Styling** - Synchronized list view styling between event tabs
+
+### **Admin Panel Streamlining**
+- **FAQ Management** - Removed publish/draft complexity, all FAQs auto-published
+- **Statistics Removal** - Cleaner interfaces with removal of statistical summary boxes
+- **Notification Fixes** - Resolved TypeScript errors and improved notification handling
+
+### **Accessibility & UX**
+- **WCAG AA Compliance** - Color-blind friendly red color scheme with proper contrast ratios
+- **508 Compliance** - Accessible color choices for government and enterprise use
+- **Professional Design** - Removed decorative elements for cleaner, more professional appearance
+
 ## ✨ **Key Features**
 
 ### 📅 **Event Management**
@@ -33,8 +63,10 @@ The Seattle Chinatown Book Club App is a production-ready React Native applicati
 - **@Mention System** - Tag users in comments with real-time notifications
 - **User Discovery** - Search and view other member profiles
 
-### 📖 **Monthly Book Management**
+### 📖 **Monthly Meeting Details**
 - **Admin-Editable Books** - Complete monthly book selection management
+- **Meeting Details Management** - In-person and virtual meeting information with admin controls
+- **Zoom Integration** - Enhanced Zoom link handling with email, phone, and clipboard options
 - **Book Cover Upload** - Upload and manage book cover images
 - **Discussion Sheets** - Link to Google Docs for reading guides
 - **Book Details** - Title, author, genre, pages, awards, selection reasoning
@@ -49,6 +81,8 @@ The Seattle Chinatown Book Club App is a production-ready React Native applicati
 - **Event Approval** - Review and approve/reject member events
 - **User Management** - Manage user roles and permissions
 - **Monthly Book Control** - Full CRUD operations for book selections
+- **Meeting Details Management** - Control in-person and virtual meeting information
+- **FAQ Management** - Streamlined FAQ system with auto-publishing
 - **Content Moderation** - Admin oversight of community content
 
 ### 🎨 **User Experience**

@@ -84,7 +84,7 @@ const AllEventsTab: React.FC = () => {
 
   // Get event status with PST awareness
   const getEventStatusInfo = (event: BookClubEvent) => {
-    return getEventStatus(event.date);
+    return getEventStatus(event.date, event.startTime, event.endTime);
   };
 
   const getEventDisplayStatus = (event: BookClubEvent): { text: string; color: string } => {

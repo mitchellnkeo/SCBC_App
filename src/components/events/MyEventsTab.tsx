@@ -91,7 +91,7 @@ const MyEventsTab: React.FC = () => {
 
   // Get event status with PST awareness (same as AllEventsTab)
   const getEventStatusInfo = (event: BookClubEvent) => {
-    return getTimezoneEventStatus(event.date);
+    return getTimezoneEventStatus(event.date, event.startTime, event.endTime);
   };
 
   // Helper function to check if an event is in the past (using timezone-aware logic)

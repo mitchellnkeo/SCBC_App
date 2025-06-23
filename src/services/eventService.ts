@@ -275,7 +275,7 @@ export const getAllEvents = async (limitCount: number = 20): Promise<BookClubEve
     
     // Filter to show only current and upcoming events using PST timezone
     const upcomingEvents = events.filter(event => {
-      return isEventCurrentOrUpcoming(event.date, 4); // 4-hour duration assumption
+      return isEventCurrentOrUpcoming(event.date, event.startTime, event.endTime);
     });
     
     // Sort by date in JavaScript (upcoming events first)
@@ -313,7 +313,7 @@ export const getPastEvents = async (limitCount: number = 20): Promise<BookClubEv
     
     // Filter past events using PST timezone
     const pastEvents = events.filter(event => {
-      return hasEventEnded(event.date, 4); // 4-hour duration assumption
+      return hasEventEnded(event.date, event.startTime, event.endTime);
     });
     
     // Sort by date in reverse chronological order (most recent first)
@@ -610,7 +610,7 @@ export const subscribeToEvents = (callback: (events: BookClubEvent[]) => void) =
       
       // Filter to show only current and upcoming events using PST timezone
       const upcomingEvents = events.filter(event => {
-        return isEventCurrentOrUpcoming(event.date, 4); // 4-hour duration assumption
+        return isEventCurrentOrUpcoming(event.date, event.startTime, event.endTime);
       });
       
       // Sort by date in JavaScript (upcoming events first)
@@ -647,7 +647,7 @@ export const subscribeToPastEvents = (callback: (pastEvents: BookClubEvent[]) =>
       
       // Filter past events using PST timezone
       const pastEvents = events.filter(event => {
-        return hasEventEnded(event.date, 4); // 4-hour duration assumption
+        return hasEventEnded(event.date, event.startTime, event.endTime);
       });
       
       // Sort by date in reverse chronological order (most recent first)

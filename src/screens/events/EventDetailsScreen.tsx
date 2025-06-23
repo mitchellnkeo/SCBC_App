@@ -315,7 +315,6 @@ const EventDetailsScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorEmoji}>😞</Text>
           <Text style={styles.errorTitle}>Something went wrong</Text>
           <Text style={styles.errorMessage}>{error}</Text>
           <TouchableOpacity
@@ -361,7 +360,6 @@ const EventDetailsScreen: React.FC = () => {
           {/* Error State */}
           {error && (
             <View style={styles.errorContainer}>
-              <Text style={styles.errorEmoji}>😞</Text>
               <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
               <Text style={styles.errorMessage}>{error}</Text>
               <TouchableOpacity
@@ -389,7 +387,6 @@ const EventDetailsScreen: React.FC = () => {
                   />
                 ) : (
                   <View style={styles.headerPlaceholder}>
-                    <Text style={styles.headerEmoji}>📚</Text>
                   </View>
                 )}
                 
