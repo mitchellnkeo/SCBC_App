@@ -62,7 +62,7 @@ const EventDetailsScreen: React.FC = () => {
 
   const [newComment, setNewComment] = useState('');
   const [commentMentions, setCommentMentions] = useState<Mention[]>([]);
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyStates, setReplyStates] = useState<Record<string, { isReplying: boolean; content: string; mentions: Mention[] }>>({});
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [availableUsers, setAvailableUsers] = useState<UserSuggestion[]>([]);
 
@@ -134,7 +134,6 @@ const EventDetailsScreen: React.FC = () => {
         user.displayName,
         { 
           content: newComment.trim(), 
-          parentCommentId: replyingTo || undefined,
           mentions: commentMentions 
         },
         user.profilePicture
@@ -142,9 +141,37 @@ const EventDetailsScreen: React.FC = () => {
       
       setNewComment('');
       setCommentMentions([]);
-      setReplyingTo(null);
     } catch (error) {
       Alert.alert('Error', 'Failed to add comment. Please try again.');
+    }
+  };
+
+  const handleAddReply = async (parentCommentId: string) => {
+    if (!user || !currentEvent) return;
+    
+    const replyState = replyStates[parentCommentId];
+    if (!replyState || !replyState.content.trim()) return;
+    
+    try {
+      await createComment(
+        currentEvent.id,
+        user.id,
+        user.displayName,
+        { 
+          content: replyState.content.trim(), 
+          parentCommentId,
+          mentions: replyState.mentions 
+        },
+        user.profilePicture
+      );
+      
+      // Clear the reply state for this comment
+      setReplyStates(prev => ({
+        ...prev,
+        [parentCommentId]: { isReplying: false, content: '', mentions: [] }
+      }));
+    } catch (error) {
+      Alert.alert('Error', 'Failed to add reply. Please try again.');
     }
   };
 
@@ -156,6 +183,27 @@ const EventDetailsScreen: React.FC = () => {
   const handleCommentTextChange = (text: string, mentions: Mention[]) => {
     setNewComment(text);
     setCommentMentions(mentions);
+  };
+
+  const handleReplyTextChange = (commentId: string, text: string, mentions: Mention[]) => {
+    setReplyStates(prev => ({
+      ...prev,
+      [commentId]: { ...prev[commentId], content: text, mentions }
+    }));
+  };
+
+  const handleStartReply = (commentId: string) => {
+    setReplyStates(prev => ({
+      ...prev,
+      [commentId]: { isReplying: true, content: '', mentions: [] }
+    }));
+  };
+
+  const handleCancelReply = (commentId: string) => {
+    setReplyStates(prev => ({
+      ...prev,
+      [commentId]: { isReplying: false, content: '', mentions: [] }
+    }));
   };
 
   const handleDeleteComment = (commentId: string) => {
@@ -251,6 +299,7 @@ const EventDetailsScreen: React.FC = () => {
     isReply?: boolean;
   }> = ({ comment, isReply = false }) => {
     const canDelete = user?.role === 'admin' || user?.id === comment.userId;
+    const replyState = replyStates[comment.id] || { isReplying: false, content: '', mentions: [] };
     
     return (
       <View style={[styles.commentItem, isReply && styles.replyItem]}>
@@ -288,11 +337,52 @@ const EventDetailsScreen: React.FC = () => {
         
         {!isReply && (
           <TouchableOpacity
-            onPress={() => setReplyingTo(comment.id)}
+            onPress={() => handleStartReply(comment.id)}
             style={styles.replyButton}
           >
             <Text style={styles.replyButtonText}>Reply</Text>
           </TouchableOpacity>
+        )}
+
+        {/* Reply Input Box - appears under this comment when replying */}
+        {!isReply && replyState.isReplying && (
+          <View style={styles.replyInputContainer}>
+            <View style={styles.replyInputHeader}>
+              <Text style={styles.replyToUserText}>Replying to {comment.userName}</Text>
+              <TouchableOpacity
+                onPress={() => handleCancelReply(comment.id)}
+                style={styles.cancelReplyButton}
+              >
+                <Text style={styles.cancelReplyText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.commentInputContainer}>
+              <MentionInput
+                value={replyState.content}
+                onChangeText={(text, mentions) => handleReplyTextChange(comment.id, text, mentions)}
+                placeholder="Write a reply..."
+                users={availableUsers}
+                multiline
+                maxLength={500}
+                style={styles.commentInput}
+              />
+              <TouchableOpacity
+                onPress={() => handleAddReply(comment.id)}
+                disabled={!replyState.content.trim() || isCommenting}
+                style={[
+                  styles.replySubmitButton,
+                  (!replyState.content.trim() || isCommenting) && styles.replySubmitButtonDisabled
+                ]}
+              >
+                {isCommenting ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text style={styles.replySubmitText}>Send</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
         
         {/* Render replies */}
@@ -556,23 +646,11 @@ const EventDetailsScreen: React.FC = () => {
                   
                   {/* Add Comment */}
                   <View style={styles.addCommentContainer}>
-                    {replyingTo && (
-                      <View style={styles.replyingToContainer}>
-                        <Text style={styles.replyingToText}>Replying to comment...</Text>
-                        <TouchableOpacity
-                          onPress={() => setReplyingTo(null)}
-                          style={styles.cancelReplyButton}
-                        >
-                          <Text style={styles.cancelReplyText}>Cancel</Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                    
                     <View style={styles.commentInputContainer}>
                       <MentionInput
                         value={newComment}
                         onChangeText={handleCommentTextChange}
-                        placeholder={replyingTo ? "Write a reply..." : "Add a comment..."}
+                        placeholder="Add a comment..."
                         users={availableUsers}
                         multiline
                         maxLength={500}
@@ -880,28 +958,6 @@ const styles = StyleSheet.create({
   addCommentContainer: {
     marginBottom: 24,
   },
-  replyingToContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fef3c7',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  replyingToText: {
-    fontSize: 14,
-    color: '#92400e',
-    fontWeight: '500',
-  },
-  cancelReplyButton: {
-    padding: 4,
-  },
-  cancelReplyText: {
-    fontSize: 14,
-    color: '#dc2626',
-    fontWeight: '600',
-  },
   commentInputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -1005,6 +1061,49 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 100,
+  },
+  replyInputContainer: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  replyInputHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  cancelReplyButton: {
+    padding: 4,
+  },
+  cancelReplyText: {
+    fontSize: 14,
+    color: '#dc2626',
+    fontWeight: '600',
+  },
+  replyToUserText: {
+    fontSize: 14,
+    color: '#92400e',
+    fontWeight: '500',
+  },
+  replySubmitButton: {
+    backgroundColor: '#ec4899',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 60,
+  },
+  replySubmitButtonDisabled: {
+    backgroundColor: '#d1d5db',
+  },
+  replySubmitText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });
 
