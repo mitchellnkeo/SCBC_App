@@ -335,6 +335,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
     overflow: 'hidden',
+    paddingRight: 8,
   },
   commentInput: {
     flex: 1,
@@ -348,9 +349,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#ec4899',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 60,
+    marginLeft: 8,
+    marginBottom: 4,
   },
   sendCommentButtonDisabled: {
     backgroundColor: '#d1d5db',
@@ -388,6 +392,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
+    gap: 8,
   },
   commentMeta: {
     flex: 1,
@@ -396,6 +401,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#111827',
+    marginBottom: 2,
   },
   commentTime: {
     fontSize: 12,
@@ -462,9 +468,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#ec4899',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 60,
+    marginLeft: 8,
+    marginBottom: 4,
   },
   replySubmitButtonDisabled: {
     backgroundColor: '#d1d5db',
