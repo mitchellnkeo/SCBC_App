@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback, memo, useMemo } from 'react';
 import {
   View,
   Text,
@@ -39,7 +39,587 @@ type RouteParams = {
 
 const { width: screenWidth } = Dimensions.get('window');
 
-const EventDetailsScreen: React.FC = () => {
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  errorEmoji: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  retryButton: {
+    backgroundColor: '#ec4899',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  headerContainer: {
+    position: 'relative',
+    height: 250,
+  },
+  headerImage: {
+    width: '100%',
+    height: '100%',
+  },
+  headerPlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#fce7f3',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerEmoji: {
+    fontSize: 64,
+  },
+  headerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  backButton: {
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    fontSize: 24,
+    color: '#111827',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  editEventButton: {
+    backgroundColor: 'rgba(59, 130, 246, 0.9)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  editEventText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  deleteEventButton: {
+    backgroundColor: 'rgba(239,68,68,0.9)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  deleteEventText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  content: {
+    padding: 24,
+  },
+  eventTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 24,
+    lineHeight: 34,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  infoIcon: {
+    fontSize: 20,
+    marginRight: 12,
+    marginTop: 2,
+  },
+  infoContent: {
+    flex: 1,
+  },
+  infoText: {
+    fontSize: 16,
+    color: '#111827',
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  infoSubtext: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  linkText: {
+    color: '#3b82f6',
+    textDecorationLine: 'underline',
+  },
+  hostContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  hostInfo: {
+    marginLeft: 12,
+  },
+  hostName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#111827',
+  },
+  hostRole: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  callHostButton: {
+    marginLeft: 'auto',
+    backgroundColor: '#10b981',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  callHostText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  rsvpSection: {
+    marginBottom: 32,
+  },
+  rsvpTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 16,
+  },
+  rsvpButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  rsvpButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 2,
+    alignItems: 'center',
+  },
+  rsvpButtonGoing: {
+    backgroundColor: 'white',
+    borderColor: '#10b981',
+  },
+  rsvpButtonGoingSelected: {
+    backgroundColor: '#10b981',
+    borderColor: '#10b981',
+  },
+  rsvpButtonMaybe: {
+    backgroundColor: 'white',
+    borderColor: '#f59e0b',
+  },
+  rsvpButtonMaybeSelected: {
+    backgroundColor: '#f59e0b',
+    borderColor: '#f59e0b',
+  },
+  rsvpButtonNotGoing: {
+    backgroundColor: 'white',
+    borderColor: '#ef4444',
+  },
+  rsvpButtonNotGoingSelected: {
+    backgroundColor: '#ef4444',
+    borderColor: '#ef4444',
+  },
+  rsvpButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  rsvpButtonTextSelected: {
+    color: 'white',
+  },
+  attendeesSection: {
+    marginBottom: 24,
+  },
+  attendeesList: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+  },
+  attendeeItem: {
+    alignItems: 'center',
+    marginRight: 16,
+    width: 60,
+  },
+  attendeeClickable: {
+    alignItems: 'center',
+    flexDirection: 'column',
+  },
+  attendeeName: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  descriptionSection: {
+    marginBottom: 32,
+  },
+  description: {
+    fontSize: 16,
+    color: '#374151',
+    lineHeight: 24,
+  },
+  commentsSection: {
+    marginBottom: 24,
+  },
+  addCommentContainer: {
+    marginBottom: 24,
+  },
+  commentInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    overflow: 'hidden',
+  },
+  commentInput: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    maxHeight: 100,
+    color: '#111827',
+  },
+  sendCommentButton: {
+    backgroundColor: '#ec4899',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 60,
+  },
+  sendCommentButtonDisabled: {
+    backgroundColor: '#d1d5db',
+  },
+  sendCommentText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  commentsList: {
+    gap: 16,
+  },
+  noCommentsContainer: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  noCommentsText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+  },
+  commentItem: {
+    backgroundColor: 'white',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  replyItem: {
+    marginLeft: 32,
+    marginTop: 12,
+    backgroundColor: '#f9fafb',
+  },
+  commentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  commentMeta: {
+    flex: 1,
+  },
+  commentAuthor: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  commentTime: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  deleteCommentButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#ef4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteCommentText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  commentContent: {
+    fontSize: 16,
+    color: '#374151',
+    lineHeight: 22,
+    marginBottom: 8,
+  },
+  replyButton: {
+    alignSelf: 'flex-start',
+  },
+  replyButtonText: {
+    fontSize: 14,
+    color: '#ec4899',
+    fontWeight: '600',
+  },
+  bottomSpacing: {
+    height: 100,
+  },
+  replyInputContainer: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  replyInputHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  cancelReplyButton: {
+    padding: 4,
+  },
+  cancelReplyText: {
+    fontSize: 14,
+    color: '#dc2626',
+    fontWeight: '600',
+  },
+  replyToUserText: {
+    fontSize: 14,
+    color: '#92400e',
+    fontWeight: '500',
+  },
+  replySubmitButton: {
+    backgroundColor: '#ec4899',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 60,
+  },
+  replySubmitButtonDisabled: {
+    backgroundColor: '#d1d5db',
+  },
+  replySubmitText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+});
+
+// Move CommentItem outside the main component to prevent re-creation on each render
+const CommentItem: React.FC<{ 
+  comment: EventComment; 
+  isReply?: boolean;
+  user: any;
+  replyStates: Record<string, { isReplying: boolean; content: string; mentions: Mention[] }>;
+  availableUsers: UserSuggestion[];
+  isCommenting: boolean;
+  onDeleteComment: (commentId: string) => void;
+  onStartReply: (commentId: string) => void;
+  onCancelReply: (commentId: string) => void;
+  onReplyTextChange: (commentId: string, text: string, mentions: Mention[]) => void;
+  onAddReply: (commentId: string) => void;
+  onMentionPress: (mention: Mention) => void;
+}> = memo(({ 
+  comment, 
+  isReply = false, 
+  user, 
+  replyStates, 
+  availableUsers, 
+  isCommenting,
+  onDeleteComment,
+  onStartReply,
+  onCancelReply,
+  onReplyTextChange,
+  onAddReply,
+  onMentionPress
+}) => {
+  const canDelete = user?.role === 'admin' || user?.id === comment.userId;
+  const replyState = replyStates[comment.id] || { isReplying: false, content: '', mentions: [] };
+  
+  // Memoize the reply text change handler for this specific comment
+  const handleThisReplyTextChange = useCallback((text: string, mentions: Mention[]) => {
+    onReplyTextChange(comment.id, text, mentions);
+  }, [comment.id, onReplyTextChange]);
+  
+  return (
+    <View style={[styles.commentItem, isReply && styles.replyItem]}>
+      <View style={styles.commentHeader}>
+        <ClickableUser
+          userId={comment.userId}
+          displayName={comment.userName}
+          profilePicture={comment.userProfilePicture}
+          avatarSize="small"
+          textStyle={styles.commentAuthor}
+        />
+        
+        <View style={styles.commentMeta}>
+          <Text style={styles.commentTime}>
+            {comment.createdAt.toLocaleDateString()} at {comment.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </Text>
+        </View>
+        
+        {canDelete && (
+          <TouchableOpacity
+            onPress={() => onDeleteComment(comment.id)}
+            style={styles.deleteCommentButton}
+          >
+            <Text style={styles.deleteCommentText}>×</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+      
+      <MentionText 
+        text={comment.content} 
+        mentions={comment.mentions || []} 
+        style={styles.commentContent}
+        onMentionPress={onMentionPress}
+      />
+      
+      {!isReply && (
+        <TouchableOpacity
+          onPress={() => onStartReply(comment.id)}
+          style={styles.replyButton}
+        >
+          <Text style={styles.replyButtonText}>Reply</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Reply Input Box - appears under this comment when replying */}
+      {!isReply && replyState.isReplying && (
+        <View style={styles.replyInputContainer}>
+          <View style={styles.replyInputHeader}>
+            <Text style={styles.replyToUserText}>Replying to {comment.userName}</Text>
+            <TouchableOpacity
+              onPress={() => onCancelReply(comment.id)}
+              style={styles.cancelReplyButton}
+            >
+              <Text style={styles.cancelReplyText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.commentInputContainer}>
+            <MentionInput
+              key={`reply-${comment.id}`}
+              value={replyState.content}
+              onChangeText={handleThisReplyTextChange}
+              placeholder="Write a reply..."
+              users={availableUsers}
+              multiline
+              maxLength={500}
+              style={styles.commentInput}
+            />
+            <TouchableOpacity
+              onPress={() => onAddReply(comment.id)}
+              disabled={!replyState.content.trim() || isCommenting}
+              style={[
+                styles.replySubmitButton,
+                (!replyState.content.trim() || isCommenting) && styles.replySubmitButtonDisabled
+              ]}
+            >
+              {isCommenting ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text style={styles.replySubmitText}>Send</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+      
+      {/* Render replies */}
+      {comment.replies && comment.replies.map((reply) => (
+        <CommentItem 
+          key={reply.id} 
+          comment={reply} 
+          isReply={true}
+          user={user}
+          replyStates={replyStates}
+          availableUsers={availableUsers}
+          isCommenting={isCommenting}
+          onDeleteComment={onDeleteComment}
+          onStartReply={onStartReply}
+          onCancelReply={onCancelReply}
+          onReplyTextChange={onReplyTextChange}
+          onAddReply={onAddReply}
+          onMentionPress={onMentionPress}
+        />
+      ))}
+    </View>
+  );
+});
+
+const EventDetailsScreen: React.FC = memo(() => {
   const route = useRoute<RouteProp<RouteParams, 'EventDetails'>>();
   const navigation = useNavigation();
   const { eventId } = route.params;
@@ -180,31 +760,31 @@ const EventDetailsScreen: React.FC = () => {
     (navigation as any).navigate('UserProfile', { userId: mention.userId });
   };
 
-  const handleCommentTextChange = (text: string, mentions: Mention[]) => {
+  const handleCommentTextChange = useCallback((text: string, mentions: Mention[]) => {
     setNewComment(text);
     setCommentMentions(mentions);
-  };
+  }, []);
 
-  const handleReplyTextChange = (commentId: string, text: string, mentions: Mention[]) => {
+  const handleReplyTextChange = useCallback((commentId: string, text: string, mentions: Mention[]) => {
     setReplyStates(prev => ({
       ...prev,
       [commentId]: { ...prev[commentId], content: text, mentions }
     }));
-  };
+  }, []);
 
-  const handleStartReply = (commentId: string) => {
+  const handleStartReply = useCallback((commentId: string) => {
     setReplyStates(prev => ({
       ...prev,
       [commentId]: { isReplying: true, content: '', mentions: [] }
     }));
-  };
+  }, []);
 
-  const handleCancelReply = (commentId: string) => {
+  const handleCancelReply = useCallback((commentId: string) => {
     setReplyStates(prev => ({
       ...prev,
       [commentId]: { isReplying: false, content: '', mentions: [] }
     }));
-  };
+  }, []);
 
   const handleDeleteComment = (commentId: string) => {
     Alert.alert(
@@ -292,105 +872,6 @@ const EventDetailsScreen: React.FC = () => {
     const isSelected = userStatus === status;
     
     return [styles.rsvpButtonText, isSelected && styles.rsvpButtonTextSelected];
-  };
-
-  const CommentItem: React.FC<{ 
-    comment: EventComment; 
-    isReply?: boolean;
-  }> = ({ comment, isReply = false }) => {
-    const canDelete = user?.role === 'admin' || user?.id === comment.userId;
-    const replyState = replyStates[comment.id] || { isReplying: false, content: '', mentions: [] };
-    
-    return (
-      <View style={[styles.commentItem, isReply && styles.replyItem]}>
-        <View style={styles.commentHeader}>
-          <ClickableUser
-            userId={comment.userId}
-            displayName={comment.userName}
-            profilePicture={comment.userProfilePicture}
-            avatarSize="small"
-            textStyle={styles.commentAuthor}
-          />
-          
-          <View style={styles.commentMeta}>
-            <Text style={styles.commentTime}>
-              {comment.createdAt.toLocaleDateString()} at {comment.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </Text>
-          </View>
-          
-          {canDelete && (
-            <TouchableOpacity
-              onPress={() => handleDeleteComment(comment.id)}
-              style={styles.deleteCommentButton}
-            >
-              <Text style={styles.deleteCommentText}>×</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-        
-        <MentionText 
-          text={comment.content} 
-          mentions={comment.mentions || []} 
-          style={styles.commentContent}
-          onMentionPress={handleMentionPress}
-        />
-        
-        {!isReply && (
-          <TouchableOpacity
-            onPress={() => handleStartReply(comment.id)}
-            style={styles.replyButton}
-          >
-            <Text style={styles.replyButtonText}>Reply</Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Reply Input Box - appears under this comment when replying */}
-        {!isReply && replyState.isReplying && (
-          <View style={styles.replyInputContainer}>
-            <View style={styles.replyInputHeader}>
-              <Text style={styles.replyToUserText}>Replying to {comment.userName}</Text>
-              <TouchableOpacity
-                onPress={() => handleCancelReply(comment.id)}
-                style={styles.cancelReplyButton}
-              >
-                <Text style={styles.cancelReplyText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.commentInputContainer}>
-              <MentionInput
-                value={replyState.content}
-                onChangeText={(text, mentions) => handleReplyTextChange(comment.id, text, mentions)}
-                placeholder="Write a reply..."
-                users={availableUsers}
-                multiline
-                maxLength={500}
-                style={styles.commentInput}
-              />
-              <TouchableOpacity
-                onPress={() => handleAddReply(comment.id)}
-                disabled={!replyState.content.trim() || isCommenting}
-                style={[
-                  styles.replySubmitButton,
-                  (!replyState.content.trim() || isCommenting) && styles.replySubmitButtonDisabled
-                ]}
-              >
-                {isCommenting ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <Text style={styles.replySubmitText}>Send</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-        
-        {/* Render replies */}
-        {comment.replies && comment.replies.map((reply) => (
-          <CommentItem key={reply.id} comment={reply} isReply={true} />
-        ))}
-      </View>
-    );
   };
 
   if (isLoading || !currentEvent) {
@@ -648,6 +1129,7 @@ const EventDetailsScreen: React.FC = () => {
                   <View style={styles.addCommentContainer}>
                     <View style={styles.commentInputContainer}>
                       <MentionInput
+                        key="main-comment"
                         value={newComment}
                         onChangeText={handleCommentTextChange}
                         placeholder="Add a comment..."
@@ -683,7 +1165,20 @@ const EventDetailsScreen: React.FC = () => {
                       </View>
                     ) : (
                       currentEvent.comments.map((comment) => (
-                        <CommentItem key={comment.id} comment={comment} />
+                        <CommentItem 
+                          key={comment.id} 
+                          comment={comment}
+                          user={user}
+                          replyStates={replyStates}
+                          availableUsers={availableUsers}
+                          isCommenting={isCommenting}
+                          onDeleteComment={handleDeleteComment}
+                          onStartReply={handleStartReply}
+                          onCancelReply={handleCancelReply}
+                          onReplyTextChange={handleReplyTextChange}
+                          onAddReply={handleAddReply}
+                          onMentionPress={handleMentionPress}
+                        />
                       ))
                     )}
                   </View>
@@ -698,413 +1193,6 @@ const EventDetailsScreen: React.FC = () => {
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollViewContent: {
-    flexGrow: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#6b7280',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-  },
-  errorEmoji: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
-  errorTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  errorMessage: {
-    fontSize: 16,
-    color: '#6b7280',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  retryButton: {
-    backgroundColor: '#ec4899',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: 'white',
-    fontWeight: '600',
-  },
-  headerContainer: {
-    position: 'relative',
-    height: 250,
-  },
-  headerImage: {
-    width: '100%',
-    height: '100%',
-  },
-  headerPlaceholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#fce7f3',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerEmoji: {
-    fontSize: 64,
-  },
-  headerOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 100,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingTop: 16,
-    paddingHorizontal: 16,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-  },
-  backButton: {
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: '#111827',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  editEventButton: {
-    backgroundColor: 'rgba(59, 130, 246, 0.9)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  editEventText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  deleteEventButton: {
-    backgroundColor: 'rgba(239,68,68,0.9)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  deleteEventText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  content: {
-    padding: 24,
-  },
-  eventTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 24,
-    lineHeight: 34,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  infoIcon: {
-    fontSize: 20,
-    marginRight: 12,
-    marginTop: 2,
-  },
-  infoContent: {
-    flex: 1,
-  },
-  infoText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 2,
-  },
-  infoSubtext: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  linkText: {
-    color: '#ec4899',
-  },
-  hostContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  rsvpSection: {
-    marginTop: 32,
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 16,
-  },
-  rsvpButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  rsvpButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-    borderWidth: 2,
-    alignItems: 'center',
-  },
-  rsvpButtonGoing: {
-    backgroundColor: 'white',
-    borderColor: '#10b981',
-  },
-  rsvpButtonGoingSelected: {
-    backgroundColor: '#10b981',
-    borderColor: '#10b981',
-  },
-  rsvpButtonMaybe: {
-    backgroundColor: 'white',
-    borderColor: '#f59e0b',
-  },
-  rsvpButtonMaybeSelected: {
-    backgroundColor: '#f59e0b',
-    borderColor: '#f59e0b',
-  },
-  rsvpButtonNotGoing: {
-    backgroundColor: 'white',
-    borderColor: '#ef4444',
-  },
-  rsvpButtonNotGoingSelected: {
-    backgroundColor: '#ef4444',
-    borderColor: '#ef4444',
-  },
-  rsvpButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6b7280',
-  },
-  rsvpButtonTextSelected: {
-    color: 'white',
-  },
-  attendeesSection: {
-    marginBottom: 24,
-  },
-  attendeesList: {
-    flexDirection: 'row',
-    paddingVertical: 8,
-  },
-  attendeeItem: {
-    alignItems: 'center',
-    marginRight: 16,
-    width: 60,
-  },
-  attendeeClickable: {
-    alignItems: 'center',
-    flexDirection: 'column',
-  },
-  attendeeName: {
-    fontSize: 12,
-    color: '#6b7280',
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  descriptionSection: {
-    marginBottom: 32,
-  },
-  description: {
-    fontSize: 16,
-    color: '#374151',
-    lineHeight: 24,
-  },
-  commentsSection: {
-    marginBottom: 24,
-  },
-  addCommentContainer: {
-    marginBottom: 24,
-  },
-  commentInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    backgroundColor: 'white',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    overflow: 'hidden',
-  },
-  commentInput: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    maxHeight: 100,
-    color: '#111827',
-  },
-  sendCommentButton: {
-    backgroundColor: '#ec4899',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    minWidth: 60,
-  },
-  sendCommentButtonDisabled: {
-    backgroundColor: '#d1d5db',
-  },
-  sendCommentText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  commentsList: {
-    gap: 16,
-  },
-  noCommentsContainer: {
-    padding: 32,
-    alignItems: 'center',
-  },
-  noCommentsText: {
-    fontSize: 16,
-    color: '#6b7280',
-    textAlign: 'center',
-  },
-  commentItem: {
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  replyItem: {
-    marginLeft: 32,
-    marginTop: 12,
-    backgroundColor: '#f9fafb',
-  },
-  commentHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  commentMeta: {
-    flex: 1,
-  },
-  commentAuthor: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  commentTime: {
-    fontSize: 12,
-    color: '#6b7280',
-  },
-  deleteCommentButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#ef4444',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  deleteCommentText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  commentContent: {
-    fontSize: 16,
-    color: '#374151',
-    lineHeight: 22,
-    marginBottom: 8,
-  },
-  replyButton: {
-    alignSelf: 'flex-start',
-  },
-  replyButtonText: {
-    fontSize: 14,
-    color: '#ec4899',
-    fontWeight: '600',
-  },
-  bottomSpacing: {
-    height: 100,
-  },
-  replyInputContainer: {
-    marginTop: 12,
-    padding: 12,
-    backgroundColor: '#f9fafb',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  replyInputHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  cancelReplyButton: {
-    padding: 4,
-  },
-  cancelReplyText: {
-    fontSize: 14,
-    color: '#dc2626',
-    fontWeight: '600',
-  },
-  replyToUserText: {
-    fontSize: 14,
-    color: '#92400e',
-    fontWeight: '500',
-  },
-  replySubmitButton: {
-    backgroundColor: '#ec4899',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    minWidth: 60,
-  },
-  replySubmitButtonDisabled: {
-    backgroundColor: '#d1d5db',
-  },
-  replySubmitText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 14,
-  },
 });
 
 export default EventDetailsScreen; 
