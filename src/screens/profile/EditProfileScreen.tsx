@@ -19,6 +19,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { useAuthStore } from '../../stores/authStore';
 import { updateUserProfile, updateProfilePicture, removeProfilePicture } from '../../services';
 import ProfilePicture from '../../components/common/ProfilePicture';
+import { Button } from '../../components/common/Button';
 
 interface EditProfileFormData {
   displayName: string;
@@ -376,23 +377,24 @@ export const EditProfileScreen: React.FC = () => {
 
         {/* Action Buttons */}
         <View style={styles.actions}>
-          <TouchableOpacity
-            style={styles.cancelButton}
+          <Button
+            title="Cancel"
             onPress={handleCancel}
             disabled={isSubmitting}
-          >
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </TouchableOpacity>
+            variant="secondary"
+            size="large"
+            style={{ flex: 1 }}
+          />
 
-          <TouchableOpacity
-            style={[styles.saveButton, isSubmitting && styles.disabledButton]}
+          <Button
+            title={isSubmitting ? 'Saving...' : 'Save Changes'}
             onPress={handleSubmit(onSubmit)}
             disabled={isSubmitting}
-          >
-            <Text style={styles.saveButtonText}>
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
-            </Text>
-          </TouchableOpacity>
+            loading={isSubmitting}
+            variant="error"
+            size="large"
+            style={{ flex: 1 }}
+          />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -475,35 +477,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 24,
     gap: 12,
-  },
-  cancelButton: {
-    flex: 1,
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    padding: 16,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: '#6b7280',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  saveButton: {
-    flex: 1,
-    backgroundColor: '#dc2626',
-    borderRadius: 8,
-    padding: 16,
-    alignItems: 'center',
-  },
-  saveButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  disabledButton: {
-    opacity: 0.5,
   },
   profilePictureContainer: {
     alignItems: 'center',

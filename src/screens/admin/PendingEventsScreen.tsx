@@ -19,6 +19,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { BookClubEvent, ApprovalFormData } from '../../types';
 import { format } from 'date-fns';
 import AddressAction from '../../components/common/AddressAction';
+import { Button } from '../../components/common/Button';
 
 const PendingEventsScreen: React.FC = () => {
   const { user } = useAuthStore();
@@ -152,22 +153,24 @@ const PendingEventsScreen: React.FC = () => {
         </Text>
 
         {/* Action Buttons */}
-        <View className="flex-row space-x-3">
-          <TouchableOpacity
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <Button
+            title="✓ Approve"
             onPress={() => handleEventAction(event, 'approve')}
             disabled={isApproving}
-            className="flex-1 bg-green-500 py-3 rounded-lg items-center"
-          >
-            <Text className="text-white font-semibold">✓ Approve</Text>
-          </TouchableOpacity>
+            variant="success"
+            size="medium"
+            style={{ flex: 1 }}
+          />
           
-          <TouchableOpacity
+          <Button
+            title="✗ Reject"
             onPress={() => handleEventAction(event, 'reject')}
             disabled={isApproving}
-            className="flex-1 bg-red-500 py-3 rounded-lg items-center"
-          >
-            <Text className="text-white font-semibold">✗ Reject</Text>
-          </TouchableOpacity>
+            variant="error"
+            size="medium"
+            style={{ flex: 1 }}
+          />
         </View>
       </View>
     </View>
@@ -256,29 +259,26 @@ const PendingEventsScreen: React.FC = () => {
                 </View>
               )}
 
-              <View className="flex-row space-x-3">
-                <TouchableOpacity
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <Button
+                  title="Cancel"
                   onPress={() => setShowApprovalModal(false)}
-                  style={styles.cancelButton}
-                  className="flex-1 border border-gray-300 py-3 rounded-lg items-center"
                   disabled={isApproving}
-                >
-                  <Text style={styles.cancelButtonText} className="text-gray-700 font-semibold">Cancel</Text>
-                </TouchableOpacity>
+                  variant="secondary"
+                  size="large"
+                  style={{ flex: 1 }}
+                />
                 
-                <TouchableOpacity
+                <Button
+                  title={isApproving ? 'Processing...' : 
+                         actionType === 'approve' ? 'Approve' : 'Reject'}
                   onPress={confirmAction}
                   disabled={isApproving}
-                  style={[styles.actionButton, actionType === 'approve' ? styles.approveButton : styles.rejectButton]}
-                  className={`flex-1 py-3 rounded-lg items-center ${
-                    actionType === 'approve' ? 'bg-green-500' : 'bg-red-500'
-                  }`}
-                >
-                  <Text style={styles.actionButtonText} className="text-white font-semibold">
-                    {isApproving ? 'Processing...' : 
-                     actionType === 'approve' ? 'Approve' : 'Reject'}
-                  </Text>
-                </TouchableOpacity>
+                  loading={isApproving}
+                  variant={actionType === 'approve' ? 'success' : 'error'}
+                  size="large"
+                  style={{ flex: 1 }}
+                />
               </View>
             </View>
           </KeyboardAvoidingView>
@@ -349,34 +349,7 @@ const styles = StyleSheet.create({
     color: '#111827', // gray-900
     backgroundColor: 'white',
   },
-  cancelButton: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#d1d5db', // gray-300
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: '#374151', // gray-700
-    fontWeight: '600',
-  },
-  actionButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  approveButton: {
-    backgroundColor: '#10b981', // green-500
-  },
-  rejectButton: {
-    backgroundColor: '#ef4444', // red-500
-  },
-  actionButtonText: {
-    color: 'white',
-    fontWeight: '600',
-  },
+
   keyboardAvoidingView: {
     flex: 1,
   },

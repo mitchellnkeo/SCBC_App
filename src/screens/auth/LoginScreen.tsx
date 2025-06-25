@@ -7,6 +7,7 @@ import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { useAuthStore } from '../../stores/authStore';
 import { LoginCredentials } from '../../types';
 import { handleError } from '../../utils/errorHandler';
+import { Button } from '../../components/common/Button';
 
 type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -133,20 +134,15 @@ const LoginScreen: React.FC = () => {
           </View>
 
           {/* Login Button */}
-          <TouchableOpacity 
-            style={[styles.primaryButton, (isSubmitting || isLoading) && styles.primaryButtonDisabled]}
+          <Button
+            title={isSubmitting || isLoading ? 'Signing in...' : 'Login'}
             onPress={handleSubmit(onSubmit)}
             disabled={isSubmitting || isLoading}
-          >
-            {isSubmitting || isLoading ? (
-              <View style={styles.buttonLoading}>
-                <ActivityIndicator size="small" color="white" />
-                <Text style={styles.primaryButtonText}>Signing in...</Text>
-              </View>
-            ) : (
-              <Text style={styles.primaryButtonText}>Login</Text>
-            )}
-          </TouchableOpacity>
+            loading={isSubmitting || isLoading}
+            variant="error"
+            size="large"
+            fullWidth
+          />
 
           {/* Error Display */}
           {error && (
@@ -230,25 +226,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginTop: 8,
   },
-  primaryButton: {
-    backgroundColor: '#dc2626',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  primaryButtonDisabled: {
-    backgroundColor: '#fca5a5',
-  },
-  primaryButtonText: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  buttonLoading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
+
   linkButton: {
     marginTop: 24,
   },

@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../../stores/authStore';
 import TopNavbar from '../../components/navigation/TopNavbar';
+import { Button } from '../../components/common/Button';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getAllUsers, updateUserRole, getUserStats } from '../../services/userService';
 import { User } from '../../types';
@@ -173,21 +174,13 @@ const UserManagementScreen: React.FC = () => {
         </Text>
       </View>
       
-      <TouchableOpacity
-        style={[
-          styles.roleButton,
-          user.role === 'admin' ? styles.demoteButton : styles.promoteButton
-        ]}
+      <Button
+        title={user.role === 'admin' ? '↓ Demote' : '↑ Promote'}
         onPress={() => handleRoleChange(user.id, user.role)}
         disabled={user.id === currentUser?.id && user.role === 'admin'}
-      >
-        <Text style={[
-          styles.roleButtonText,
-          user.role === 'admin' ? styles.demoteButtonText : styles.promoteButtonText
-        ]}>
-          {user.role === 'admin' ? '↓ Demote' : '↑ Promote'}
-        </Text>
-      </TouchableOpacity>
+        variant={user.role === 'admin' ? 'warning' : 'success'}
+        size="small"
+      />
     </View>
   );
 
@@ -463,29 +456,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 12,
     color: theme.textSecondary,
   },
-  roleButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-    minWidth: 80,
-    alignItems: 'center',
-  },
-  promoteButton: {
-    backgroundColor: '#10b981',
-  },
-  demoteButton: {
-    backgroundColor: '#f59e0b',
-  },
-  roleButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  promoteButtonText: {
-    color: 'white',
-  },
-  demoteButtonText: {
-    color: 'white',
-  },
+
   emptyState: {
     padding: 32,
     alignItems: 'center',

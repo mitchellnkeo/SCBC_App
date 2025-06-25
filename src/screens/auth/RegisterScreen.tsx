@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
+import { Button } from '../../components/common/Button';
 
 type RegisterScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Register'>;
 
@@ -31,9 +32,13 @@ const RegisterScreen: React.FC = () => {
           <Text style={styles.placeholderText}>Password</Text>
         </View>
 
-        <TouchableOpacity style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>Register</Text>
-        </TouchableOpacity>
+        <Button
+          title="Register"
+          onPress={() => {/* TODO: Implement registration */}}
+          variant="error"
+          size="large"
+          fullWidth
+        />
       </View>
 
       <TouchableOpacity 
@@ -79,16 +84,7 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: '#6b7280',
   },
-  primaryButton: {
-    backgroundColor: '#dc2626',
-    padding: 16,
-    borderRadius: 8,
-  },
-  primaryButtonText: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: '600',
-  },
+
   linkButton: {
     marginTop: 24,
   },
