@@ -19,6 +19,7 @@ import { BookClubEvent } from '../../types';
 import { MainStackParamList } from '../../navigation/MainNavigator';
 import { formatPSTDate, getEventStatus } from '../../utils/timezone';
 import { formatTimeRange } from '../../utils/dateTimeUtils';
+import { Button } from '../common/Button';
 
 const AllEventsTab: React.FC = () => {
   const navigation = useNavigation<NavigationProp<MainStackParamList>>();
@@ -482,12 +483,12 @@ const AllEventsTab: React.FC = () => {
         Be the first to create an event for the book club! Share reading discussions, meetups, and literary adventures.
       </Text>
       
-      <TouchableOpacity
+      <Button
+        title="Create First Event"
         onPress={navigateToCreateEvent}
-        style={dynamicStyles.createButton}
-      >
-        <Text style={dynamicStyles.createButtonText}>Create First Event</Text>
-      </TouchableOpacity>
+        variant="primary"
+        size="large"
+      />
     </View>
   );
 

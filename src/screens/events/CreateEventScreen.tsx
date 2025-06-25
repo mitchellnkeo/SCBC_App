@@ -20,6 +20,7 @@ import { CreateEventFormData } from '../../types';
 import ImagePicker from '../../components/common/ImagePicker';
 import TimePicker from '../../components/common/TimePicker';
 import { formatFullDate } from '../../utils/dateTimeUtils';
+import { Button } from '../../components/common/Button';
 
 // Move InputField outside the main component to prevent re-creation on each render
 const InputField: React.FC<{
@@ -231,18 +232,14 @@ const CreateEventScreen: React.FC = () => {
           <Text style={styles.closeButtonText} className="text-pink-500 text-lg">✕</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle} className="text-xl font-bold text-gray-900 flex-1">Create Event</Text>
-        <TouchableOpacity
+        <Button
+          title={isCreating ? 'Submitting...' : 'Submit'}
           onPress={handleSubmit}
           disabled={isCreating}
-          style={[styles.submitButton, isCreating && styles.submitButtonDisabled]}
-          className={`px-4 py-2 rounded-lg ${
-            isCreating ? 'bg-gray-300' : 'bg-pink-500'
-          }`}
-        >
-          <Text style={styles.submitButtonText} className="text-white font-semibold">
-            {isCreating ? 'Submitting...' : 'Submit'}
-          </Text>
-        </TouchableOpacity>
+          loading={isCreating}
+          variant="primary"
+          size="medium"
+        />
       </View>
 
       <KeyboardAvoidingView 
@@ -431,19 +428,7 @@ const styles = StyleSheet.create({
     color: '#111827', // gray-900
     flex: 1,
   },
-  submitButton: {
-    backgroundColor: '#ec4899', // pink-500
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  submitButtonDisabled: {
-    backgroundColor: '#d1d5db', // gray-300
-  },
-  submitButtonText: {
-    color: 'white',
-    fontWeight: '600',
-  },
+
   keyboardAvoidingView: {
     flex: 1,
   },

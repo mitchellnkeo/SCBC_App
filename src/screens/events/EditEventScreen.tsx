@@ -20,6 +20,7 @@ import { handleError } from '../../utils/errorHandler';
 import ImagePicker from '../../components/common/ImagePicker';
 import TimePicker from '../../components/common/TimePicker';
 import { formatFullDate } from '../../utils/dateTimeUtils';
+import { Button } from '../../components/common/Button';
 
 type RouteParams = {
   EditEvent: {
@@ -276,15 +277,14 @@ const EditEventScreen: React.FC = () => {
         
         <Text style={styles.headerTitle}>Edit Event</Text>
         
-        <TouchableOpacity 
+        <Button
+          title={isSubmitting ? 'Saving...' : 'Save'}
           onPress={handleSubmit}
-          style={[styles.headerButton, styles.saveButton]}
           disabled={isSubmitting}
-        >
-          <Text style={[styles.headerButtonText, styles.saveButtonText]}>
-            {isSubmitting ? 'Saving...' : 'Save'}
-          </Text>
-        </TouchableOpacity>
+          loading={isSubmitting}
+          variant="primary"
+          size="small"
+        />
       </View>
 
       <KeyboardAvoidingView 
@@ -451,15 +451,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6b7280',
   },
-  saveButton: {
-    backgroundColor: '#ec4899',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-  },
-  saveButtonText: {
-    color: 'white',
-    fontWeight: '600',
-  },
+
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',

@@ -19,6 +19,7 @@ import { MainStackParamList } from '../../navigation/MainNavigator';
 import { getUserEvents, subscribeToUserEvents } from '../../services/eventService';
 import { formatPSTDate, getEventStatus as getTimezoneEventStatus } from '../../utils/timezone';
 import { formatTimeRange } from '../../utils/dateTimeUtils';
+import { Button } from '../common/Button';
 
 const MyEventsTab: React.FC = () => {
   const navigation = useNavigation<NavigationProp<MainStackParamList>>();
@@ -669,12 +670,12 @@ const MyEventsTab: React.FC = () => {
         You haven't RSVP'd to any events or created any events yet. Start by browsing all events or creating your own!
       </Text>
       
-      <TouchableOpacity
+      <Button
+        title="Create Your First Event"
         onPress={navigateToCreateEvent}
-        style={dynamicStyles.createButton}
-      >
-        <Text style={dynamicStyles.createButtonText}>Create Your First Event</Text>
-      </TouchableOpacity>
+        variant="primary"
+        size="large"
+      />
     </View>
   );
 

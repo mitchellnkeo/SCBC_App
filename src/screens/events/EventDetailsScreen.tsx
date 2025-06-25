@@ -31,6 +31,9 @@ import { BookClubEvent } from '../../types';
 import { db } from '../../config/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { formatFullDate, formatTimeRange } from '../../utils/dateTimeUtils';
+import { Button } from '../../components/common/Button';
+import { useTheme } from '../../contexts/ThemeContext';
+import { createCommonStyles } from '../../styles/commonStyles';
 
 type RouteParams = {
   EventDetails: {
