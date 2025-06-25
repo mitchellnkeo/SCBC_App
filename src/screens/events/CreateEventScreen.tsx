@@ -19,6 +19,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { CreateEventFormData } from '../../types';
 import ImagePicker from '../../components/common/ImagePicker';
 import TimePicker from '../../components/common/TimePicker';
+import { formatFullDate } from '../../utils/dateTimeUtils';
 
 // Move InputField outside the main component to prevent re-creation on each render
 const InputField: React.FC<{
@@ -216,14 +217,7 @@ const CreateEventScreen: React.FC = () => {
     setShowDatePicker(true);
   };
 
-  const formatDate = (date: Date): string => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
+
 
   return (
     <SafeAreaView style={styles.container} className="flex-1 bg-gray-50">
@@ -304,7 +298,7 @@ const CreateEventScreen: React.FC = () => {
               className="border border-gray-300 rounded-lg p-3"
             >
               <View style={styles.dateButtonContent}>
-                <Text style={styles.dateText} className="text-gray-900">{formatDate(formData.date)}</Text>
+                <Text style={styles.dateText} className="text-gray-900">{formatFullDate(formData.date)}</Text>
                 <Text style={styles.calendarIcon}>📅</Text>
               </View>
             </TouchableOpacity>

@@ -18,6 +18,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { BookClubEvent } from '../../types';
 import { MainStackParamList } from '../../navigation/MainNavigator';
 import { formatPSTDate, getEventStatus } from '../../utils/timezone';
+import { formatTimeRange } from '../../utils/dateTimeUtils';
 
 const AllEventsTab: React.FC = () => {
   const navigation = useNavigation<NavigationProp<MainStackParamList>>();
@@ -69,17 +70,6 @@ const AllEventsTab: React.FC = () => {
 
   const formatDate = (date: Date) => {
     return formatPSTDate(date);
-  };
-
-  const formatTime = (startTime?: string, endTime?: string): string => {
-    // Format with start and end times
-    if (startTime && endTime) {
-      return `${startTime} - ${endTime}`;
-    } else if (startTime) {
-      return startTime;
-    }
-    
-    return 'Time TBD';
   };
 
   // Get event status with PST awareness
@@ -371,7 +361,7 @@ const AllEventsTab: React.FC = () => {
       {/* Time and Location */}
       <View style={dynamicStyles.listDetails}>
         <Text style={dynamicStyles.listDetailText} numberOfLines={1}>
-          {formatTime(event.startTime, event.endTime)}
+          {formatTimeRange(event.startTime, event.endTime)}
         </Text>
       </View>
       
@@ -442,7 +432,7 @@ const AllEventsTab: React.FC = () => {
         
         <View style={[dynamicStyles.row, { marginBottom: 8, marginLeft: 26 }]}>
           <Text style={[dynamicStyles.eventDetail, { flex: 1 }]} numberOfLines={1}>
-            {formatTime(event.startTime, event.endTime)}
+            {formatTimeRange(event.startTime, event.endTime)}
           </Text>
         </View>
         

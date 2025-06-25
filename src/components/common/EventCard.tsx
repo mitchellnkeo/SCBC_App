@@ -10,6 +10,7 @@ import { BookClubEvent } from '../../types';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { MainStackParamList } from '../../navigation/MainNavigator';
+import { formatDate, formatTimeRange } from '../../utils/dateTimeUtils';
 
 type NavigationProp = StackNavigationProp<MainStackParamList>;
 
@@ -30,24 +31,7 @@ const EventCard: React.FC<EventCardProps> = ({
     navigation.navigate('EventDetails', { eventId: event.id });
   };
 
-  const formatDate = (date: Date): string => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
 
-  const formatTime = (startTime?: string, endTime?: string): string => {
-    // Format with start and end times
-    if (startTime && endTime) {
-      return `${startTime} - ${endTime}`;
-    } else if (startTime) {
-      return startTime;
-    }
-    
-    return 'Time TBD';
-  };
 
   const getStatusColor = (status: string): string => {
     switch (status) {
@@ -102,7 +86,7 @@ const EventCard: React.FC<EventCardProps> = ({
             {formatDate(event.date)}
           </Text>
           <Text style={[styles.time, isPastEvent && styles.pastTime]}>
-            {formatTime(event.startTime, event.endTime)}
+            {formatTimeRange(event.startTime, event.endTime)}
           </Text>
         </View>
 

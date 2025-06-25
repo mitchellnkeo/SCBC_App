@@ -18,6 +18,7 @@ import { BookClubEvent } from '../../types';
 import { MainStackParamList } from '../../navigation/MainNavigator';
 import { getUserEvents, subscribeToUserEvents } from '../../services/eventService';
 import { formatPSTDate, getEventStatus as getTimezoneEventStatus } from '../../utils/timezone';
+import { formatTimeRange } from '../../utils/dateTimeUtils';
 
 const MyEventsTab: React.FC = () => {
   const navigation = useNavigation<NavigationProp<MainStackParamList>>();
@@ -72,17 +73,6 @@ const MyEventsTab: React.FC = () => {
 
   const formatDate = (date: Date) => {
     return formatPSTDate(date);
-  };
-
-  const formatTime = (startTime?: string, endTime?: string): string => {
-    // Format with start and end times
-    if (startTime && endTime) {
-      return `${startTime} - ${endTime}`;
-    } else if (startTime) {
-      return startTime;
-    }
-    
-    return 'Time TBD';
   };
 
   const getEventRole = (event: BookClubEvent): 'hosting' | 'attending' => {
@@ -539,7 +529,7 @@ const MyEventsTab: React.FC = () => {
         {/* Time and Location */}
         <View style={dynamicStyles.listDetails}>
           <Text style={dynamicStyles.listDetailText} numberOfLines={1}>
-            {formatTime(event.startTime, event.endTime)}
+            {formatTimeRange(event.startTime, event.endTime)}
           </Text>
         </View>
         
@@ -628,7 +618,7 @@ const MyEventsTab: React.FC = () => {
           
           <View style={[dynamicStyles.row, { marginBottom: 8, marginLeft: 26 }]}>
             <Text style={[dynamicStyles.eventDetail, { flex: 1 }]} numberOfLines={1}>
-              {formatTime(event.startTime, event.endTime)}
+              {formatTimeRange(event.startTime, event.endTime)}
             </Text>
           </View>
           

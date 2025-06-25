@@ -30,6 +30,7 @@ import AddressAction from '../../components/common/AddressAction';
 import { BookClubEvent } from '../../types';
 import { db } from '../../config/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import { formatFullDate, formatTimeRange } from '../../utils/dateTimeUtils';
 
 type RouteParams = {
   EventDetails: {
@@ -840,25 +841,7 @@ const EventDetailsScreen: React.FC = memo(() => {
     Alert.alert('Call Host', 'Contact feature coming soon!');
   };
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
 
-  const formatTime = (startTime?: string, endTime?: string): string => {
-    // Format with start and end times
-    if (startTime && endTime) {
-      return `${startTime} - ${endTime}`;
-    } else if (startTime) {
-      return startTime;
-    }
-    
-    return 'Time TBD';
-  };
 
   const getRSVPButtonStyle = (status: 'going' | 'maybe' | 'not-going') => {
     const userStatus = currentEvent?.userRsvp?.status;
@@ -1013,10 +996,10 @@ const EventDetailsScreen: React.FC = memo(() => {
                   <Text style={styles.infoIcon}>📅</Text>
                   <View style={styles.infoContent}>
                     <Text style={styles.infoText}>
-                      {formatDate(currentEvent.date)}
+                      {formatFullDate(currentEvent.date)}
                     </Text>
                     <Text style={styles.infoSubtext}>
-                      {formatTime(currentEvent.startTime, currentEvent.endTime)}
+                      {formatTimeRange(currentEvent.startTime, currentEvent.endTime)}
                     </Text>
                   </View>
                 </View>

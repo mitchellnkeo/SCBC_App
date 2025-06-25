@@ -19,6 +19,7 @@ import { CreateEventFormData } from '../../types';
 import { handleError } from '../../utils/errorHandler';
 import ImagePicker from '../../components/common/ImagePicker';
 import TimePicker from '../../components/common/TimePicker';
+import { formatFullDate } from '../../utils/dateTimeUtils';
 
 type RouteParams = {
   EditEvent: {
@@ -234,14 +235,7 @@ const EditEventScreen: React.FC = () => {
     setShowDatePicker(true);
   };
 
-  const formatDate = (date: Date): string => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+
 
   if (isLoading) {
     return (
@@ -338,7 +332,7 @@ const EditEventScreen: React.FC = () => {
               className="border border-gray-300 rounded-lg p-3"
             >
               <View style={styles.dateButtonContent}>
-                <Text style={styles.dateText} className="text-gray-900">{formatDate(formData.date)}</Text>
+                <Text style={styles.dateText} className="text-gray-900">{formatFullDate(formData.date)}</Text>
                 <Text style={styles.calendarIcon}>📅</Text>
               </View>
             </TouchableOpacity>
