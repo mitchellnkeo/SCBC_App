@@ -113,41 +113,49 @@ export const updateEvent = async (
       updatedAt: serverTimestamp(),
     });
     
-    // Handle header image changes
+    // Handle header image changes only if the image actually changed
     if (headerPhoto !== undefined) {
-      // Delete old image if it exists
-      if (currentEvent?.headerPhoto) {
-        try {
-          await deleteEventHeaderImage(currentEvent.headerPhoto);
-        } catch (error) {
-          console.warn('Failed to delete old header image:', error);
-          // Continue with update even if deletion fails
-        }
-      }
+      const currentImageUrl = currentEvent?.headerPhoto || '';
+      const newImageUrl = headerPhoto || '';
       
-      // Upload new image if provided
-      if (headerPhoto && headerPhoto.trim()) {
-        try {
-          const imageUrl = await uploadEventHeaderImage(eventId, headerPhoto);
-          await updateDoc(eventRef, {
-            headerPhoto: imageUrl,
-            updatedAt: serverTimestamp(),
-          });
-          console.log('Event header image updated');
-        } catch (error) {
-          console.error('Error uploading new header image:', error);
-          // Set headerPhoto to null if upload fails
+      // Only process image changes if the URL/URI is actually different
+      if (currentImageUrl !== newImageUrl) {
+        // Delete old image if it exists and we're changing/removing it
+        if (currentEvent?.headerPhoto) {
+          try {
+            await deleteEventHeaderImage(currentEvent.headerPhoto);
+          } catch (error) {
+            console.warn('Failed to delete old header image:', error);
+            // Continue with update even if deletion fails
+          }
+        }
+        
+        // Upload new image if provided
+        if (headerPhoto && headerPhoto.trim()) {
+          try {
+            const imageUrl = await uploadEventHeaderImage(eventId, headerPhoto);
+            await updateDoc(eventRef, {
+              headerPhoto: imageUrl,
+              updatedAt: serverTimestamp(),
+            });
+            console.log('Event header image updated');
+          } catch (error) {
+            console.error('Error uploading new header image:', error);
+            // Set headerPhoto to null if upload fails
+            await updateDoc(eventRef, {
+              headerPhoto: null,
+              updatedAt: serverTimestamp(),
+            });
+          }
+        } else {
+          // Remove image reference if empty string provided
           await updateDoc(eventRef, {
             headerPhoto: null,
             updatedAt: serverTimestamp(),
           });
         }
       } else {
-        // Remove image reference if empty string provided
-        await updateDoc(eventRef, {
-          headerPhoto: null,
-          updatedAt: serverTimestamp(),
-        });
+        console.log('Header photo unchanged, skipping image processing');
       }
     }
     
@@ -976,16 +984,30 @@ export const deleteEventHeaderImage = async (imageUrl: string): Promise<void> =>
       return;
     }
     
-    // Extract the file path from the URL
+    // Extract the file path from the URL - handle both old and new Firebase Storage URL formats
     const url = new URL(imageUrl);
-    const pathMatch = url.pathname.match(/\/o\/(.+)\?/);
+    let filePath: string | null = null;
     
-    if (!pathMatch) {
+    // Try to extract from the path (new format: /v0/b/bucket/o/path)
+    const newFormatMatch = url.pathname.match(/\/v0\/b\/[^/]+\/o\/(.+)/);
+    if (newFormatMatch) {
+      filePath = decodeURIComponent(newFormatMatch[1]);
+    } else {
+      // Fallback to old format (/o/path)
+      const oldFormatMatch = url.pathname.match(/\/o\/(.+)/);
+      if (oldFormatMatch) {
+        // Remove query parameters if they exist in the path
+        const pathWithoutQuery = oldFormatMatch[1].split('?')[0];
+        filePath = decodeURIComponent(pathWithoutQuery);
+      }
+    }
+    
+    if (!filePath) {
       console.error('Could not extract file path from Firebase Storage URL:', imageUrl);
+      console.debug('URL pathname:', url.pathname);
       return;
     }
     
-    const filePath = decodeURIComponent(pathMatch[1]);
     const storageRef = ref(storage, filePath);
     
     await deleteObject(storageRef);
