@@ -356,18 +356,20 @@ const EditEventScreen: React.FC = () => {
                   
                   {Platform.OS === 'ios' && (
                     <View style={styles.datePickerButtons}>
-                      <TouchableOpacity 
-                        style={[styles.dateActionButton, styles.cancelButton]}
+                      <Button
+                        title="Cancel"
                         onPress={cancelDateSelection}
-                      >
-                        <Text style={styles.cancelButtonText}>Cancel</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity 
-                        style={[styles.dateActionButton, styles.confirmButton]}
+                        variant="error"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      />
+                      <Button
+                        title="Confirm"
                         onPress={confirmDateSelection}
-                      >
-                        <Text style={styles.confirmButtonText}>Confirm</Text>
-                      </TouchableOpacity>
+                        variant="primary"
+                        size="medium"
+                        style={{ flex: 1, marginLeft: 12 }}
+                      />
                     </View>
                   )}
                 </View>
@@ -560,22 +562,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  cancelButton: {
-    backgroundColor: '#ef4444',
-  },
-  confirmButton: {
-    backgroundColor: '#3b82f6',
-  },
-  cancelButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  confirmButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+
   dateButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -627,12 +614,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 16,
   },
-  dateActionButton: {
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-  },
+
 });
 
 export default EditEventScreen; 

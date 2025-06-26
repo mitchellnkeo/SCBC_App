@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
+import { Button } from './Button';
 
 interface AddressActionProps {
   address: string;
@@ -97,34 +98,40 @@ const AddressAction: React.FC<AddressActionProps> = ({
             </Text>
 
             <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={[styles.optionButton, styles.googleButton]}
+              <Button
+                title="Google Maps"
                 onPress={handleGoogleMaps}
-              >
-                <Text style={styles.optionText}>Google Maps</Text>
-              </TouchableOpacity>
+                variant="outline"
+                size="large"
+                fullWidth
+                style={{ marginBottom: 8 }}
+              />
 
-              <TouchableOpacity
-                style={[styles.optionButton, styles.appleButton]}
+              <Button
+                title="Apple Maps"
                 onPress={handleAppleMaps}
-              >
-                <Text style={styles.optionText}>Apple Maps</Text>
-              </TouchableOpacity>
+                variant="outline"
+                size="large"
+                fullWidth
+                style={{ marginBottom: 8 }}
+              />
 
-              <TouchableOpacity
-                style={[styles.optionButton, styles.copyButton]}
+              <Button
+                title="Copy Address"
                 onPress={handleCopyAddress}
-              >
-                <Text style={styles.optionText}>Copy Address</Text>
-              </TouchableOpacity>
+                variant="outline"
+                size="large"
+                fullWidth
+              />
             </View>
 
-            <TouchableOpacity
-              style={styles.cancelButton}
+            <Button
+              title="Cancel"
               onPress={() => setShowModal(false)}
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
+              variant="secondary"
+              size="large"
+              fullWidth
+            />
           </View>
         </View>
       </Modal>
@@ -169,49 +176,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginBottom: 16,
   },
-  optionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 8,
-    borderWidth: 1,
-  },
-  googleButton: {
-    backgroundColor: '#f3f4f6',
-    borderColor: '#d1d5db',
-  },
-  appleButton: {
-    backgroundColor: '#f3f4f6',
-    borderColor: '#d1d5db',
-  },
-  copyButton: {
-    backgroundColor: '#f3f4f6',
-    borderColor: '#d1d5db',
-  },
-  optionIcon: {
-    fontSize: 20,
-    marginRight: 12,
-  },
-  optionText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#111827',
-    flex: 1,
-  },
-  cancelButton: {
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: '#f9fafb',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  cancelText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#6b7280',
-    textAlign: 'center',
-  },
+
 });
 
 export default AddressAction; 

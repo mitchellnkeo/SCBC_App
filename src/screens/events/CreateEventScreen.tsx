@@ -319,18 +319,20 @@ const CreateEventScreen: React.FC = () => {
                   
                   {Platform.OS === 'ios' && (
                     <View style={styles.datePickerButtons}>
-                      <TouchableOpacity 
-                        style={[styles.dateActionButton, styles.cancelButton]}
+                      <Button
+                        title="Cancel"
                         onPress={cancelDateSelection}
-                      >
-                        <Text style={styles.cancelButtonText}>Cancel</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity 
-                        style={[styles.dateActionButton, styles.confirmButton]}
+                        variant="error"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      />
+                      <Button
+                        title="Confirm"
                         onPress={confirmDateSelection}
-                      >
-                        <Text style={styles.confirmButtonText}>Confirm</Text>
-                      </TouchableOpacity>
+                        variant="primary"
+                        size="medium"
+                        style={{ flex: 1, marginLeft: 12 }}
+                      />
                     </View>
                   )}
                 </View>
@@ -509,20 +511,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
   },
-  cancelButton: {
-    backgroundColor: '#ef4444', // red-500
-  },
-  confirmButton: {
-    backgroundColor: '#2563eb', // blue-500
-  },
-  cancelButtonText: {
-    color: 'white',
-    fontWeight: '600',
-  },
-  confirmButtonText: {
-    color: 'white',
-    fontWeight: '600',
-  },
+
   dateButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -561,13 +550,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
   },
-  dateActionButton: {
-    flex: 1,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#d1d5db', // gray-300
-    borderRadius: 8,
-  },
+
 });
 
 export default CreateEventScreen; 

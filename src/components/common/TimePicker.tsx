@@ -7,6 +7,7 @@ import {
   Platform,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Button } from './Button';
 
 interface TimePickerProps {
   startTime: string;
@@ -230,18 +231,20 @@ const TimePicker: React.FC<TimePickerProps> = ({
                 />
                 
                 <View style={styles.pickerButtons}>
-                  <TouchableOpacity 
-                    style={[styles.pickerButton, styles.cancelButton]}
+                  <Button
+                    title="Cancel"
                     onPress={cancelStartTime}
-                  >
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={[styles.pickerButton, styles.confirmButton]}
+                    variant="secondary"
+                    size="large"
+                    style={{ flex: 1 }}
+                  />
+                  <Button
+                    title="Confirm"
                     onPress={confirmStartTime}
-                  >
-                    <Text style={styles.confirmButtonText}>Confirm</Text>
-                  </TouchableOpacity>
+                    variant="error"
+                    size="large"
+                    style={{ flex: 1 }}
+                  />
                 </View>
               </View>
             </View>
@@ -277,18 +280,20 @@ const TimePicker: React.FC<TimePickerProps> = ({
                 />
                 
                 <View style={styles.pickerButtons}>
-                  <TouchableOpacity 
-                    style={[styles.pickerButton, styles.cancelButton]}
+                  <Button
+                    title="Cancel"
                     onPress={cancelEndTime}
-                  >
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={[styles.pickerButton, styles.confirmButton]}
+                    variant="secondary"
+                    size="large"
+                    style={{ flex: 1 }}
+                  />
+                  <Button
+                    title="Confirm"
                     onPress={confirmEndTime}
-                  >
-                    <Text style={styles.confirmButtonText}>Confirm</Text>
-                  </TouchableOpacity>
+                    variant="error"
+                    size="large"
+                    style={{ flex: 1 }}
+                  />
                 </View>
               </View>
             </View>
@@ -403,30 +408,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 16,
     gap: 12,
-  },
-  pickerButton: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#f3f4f6',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-  },
-  confirmButton: {
-    backgroundColor: '#ec4899',
-  },
-  cancelButtonText: {
-    color: '#374151',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  confirmButtonText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 16,
   },
 });
 
