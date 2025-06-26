@@ -25,6 +25,7 @@ import {
   UpdateMonthlyBookData 
 } from '../../services/monthlyBookService';
 import { useAuthStore } from '../../stores/authStore';
+import LoadingState from '../../components/common/LoadingState';
 
 type NavigationProp = StackNavigationProp<MainStackParamList>;
 type RouteProps = RouteProp<MainStackParamList, 'EditMonthlyBook'>;
@@ -244,10 +245,7 @@ const EditMonthlyBookScreen: React.FC = () => {
     return (
       <View style={styles.container}>
         <TopNavbar title={isNewBook ? 'Add Monthly Book' : 'Edit Monthly Book'} />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ec4899" />
-          <Text style={styles.loadingText}>Loading...</Text>
-        </View>
+        <LoadingState text="Loading..." color="#ec4899" />
       </View>
     );
   }
@@ -551,16 +549,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#6b7280',
-    marginTop: 16,
-  },
+
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',

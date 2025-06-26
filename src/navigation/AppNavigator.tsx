@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AuthNavigator from './AuthNavigator';
 import MainNavigator from './MainNavigator';
 import { useAuthStore } from '../stores/authStore';
+import LoadingState from '../components/common/LoadingState';
 
 const Stack = createStackNavigator();
 
@@ -14,9 +15,8 @@ const AppNavigator: React.FC = () => {
   // Show loading screen while initializing auth
   if (isLoading) {
     return (
-      <View className="flex-1 justify-center items-center bg-white">
-        <ActivityIndicator size="large" color="#ec4899" />
-        <Text className="mt-4 text-gray-600">Loading...</Text>
+      <View style={{ flex: 1, backgroundColor: 'white' }}>
+        <LoadingState text="Loading..." color="#ec4899" />
       </View>
     );
   }

@@ -28,6 +28,7 @@ import {
   getFAQStats,
   createDefaultFAQs
 } from '../../services/faqService';
+import LoadingState from '../../components/common/LoadingState';
 
 interface FAQStats {
   totalFAQs: number;
@@ -260,10 +261,7 @@ const FAQScreen: React.FC = () => {
     return (
       <View style={styles.container}>
         <TopNavbar title="Frequently Asked Questions" />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={styles.loadingText}>Loading FAQs...</Text>
-        </View>
+        <LoadingState text="Loading FAQs..." />
       </View>
     );
   }
@@ -410,16 +408,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: theme.textSecondary,
-  },
+
   headerSection: {
     padding: 20,
     backgroundColor: theme.surface,

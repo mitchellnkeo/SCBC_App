@@ -20,6 +20,7 @@ import TopNavbar from '../../components/navigation/TopNavbar';
 import { monthlyBookService, MonthlyBook } from '../../services/monthlyBookService';
 import { useAuthStore } from '../../stores/authStore';
 import { useTheme } from '../../contexts/ThemeContext';
+import LoadingState from '../../components/common/LoadingState';
 
 type NavigationProp = StackNavigationProp<MainStackParamList>;
 
@@ -457,18 +458,7 @@ const MonthlyBookScreen: React.FC = () => {
     bottomSpacer: {
       height: 32,
     },
-    // Loading states
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 40,
-    },
-    loadingText: {
-      fontSize: 16,
-      color: theme.textSecondary,
-      marginTop: 16,
-    },
+
     // Empty states
     emptyContainer: {
       flex: 1,
@@ -667,10 +657,7 @@ const MonthlyBookScreen: React.FC = () => {
     return (
       <View style={dynamicStyles.container}>
         <TopNavbar title="Monthly Meeting Details" />
-        <View style={dynamicStyles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={dynamicStyles.loadingText}>Loading current book...</Text>
-        </View>
+        <LoadingState text="Loading current book..." />
       </View>
     );
   }

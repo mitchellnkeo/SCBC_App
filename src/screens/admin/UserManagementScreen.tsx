@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../../stores/authStore';
 import TopNavbar from '../../components/navigation/TopNavbar';
 import { Button } from '../../components/common/Button';
+import LoadingState from '../../components/common/LoadingState';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getAllUsers, updateUserRole, getUserStats } from '../../services/userService';
 import { User } from '../../types';
@@ -209,10 +210,7 @@ const UserManagementScreen: React.FC = () => {
     return (
       <View style={styles.container}>
         <TopNavbar title="User Management" />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={styles.loadingText}>Loading users...</Text>
-        </View>
+        <LoadingState text="Loading users..." />
       </View>
     );
   }
@@ -311,16 +309,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     padding: 16,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: theme.textSecondary,
-  },
+
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',

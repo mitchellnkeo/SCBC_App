@@ -34,6 +34,7 @@ import { formatFullDate, formatTimeRange } from '../../utils/dateTimeUtils';
 import { Button } from '../../components/common/Button';
 import { useTheme } from '../../contexts/ThemeContext';
 import { createCommonStyles } from '../../styles/commonStyles';
+import LoadingState from '../../components/common/LoadingState';
 
 type RouteParams = {
   EventDetails: {
@@ -57,17 +58,7 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#6b7280',
-  },
+
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -917,10 +908,7 @@ const EventDetailsScreen: React.FC = memo(() => {
         >
           {/* Loading State */}
           {isLoading && !currentEvent && (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#ec4899" />
-              <Text style={styles.loadingText}>Loading event...</Text>
-            </View>
+            <LoadingState text="Loading event..." color="#ec4899" />
           )}
 
           {/* Error State */}

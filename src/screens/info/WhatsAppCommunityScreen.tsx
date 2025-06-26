@@ -17,6 +17,7 @@ import TopNavbar from '../../components/navigation/TopNavbar';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuthStore } from '../../stores/authStore';
 import { whatsappService } from '../../services/whatsappService';
+import LoadingState from '../../components/common/LoadingState';
 
 const WhatsAppCommunityScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -255,16 +256,7 @@ const WhatsAppCommunityScreen: React.FC = () => {
       fontSize: 16,
       fontWeight: '600',
     },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    loadingText: {
-      marginTop: 16,
-      fontSize: 16,
-      color: theme.textSecondary,
-    },
+
     modalOverlay: {
       flex: 1,
       backgroundColor: theme.overlay,
@@ -344,10 +336,7 @@ const WhatsAppCommunityScreen: React.FC = () => {
     return (
       <SafeAreaView style={dynamicStyles.container}>
         <TopNavbar title="WhatsApp Community Chat" />
-        <View style={dynamicStyles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={dynamicStyles.loadingText}>Loading...</Text>
-        </View>
+        <LoadingState text="Loading..." />
       </SafeAreaView>
     );
   }
