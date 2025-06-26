@@ -20,6 +20,7 @@ import { MainStackParamList } from '../../navigation/MainNavigator';
 import { formatPSTDate, getEventStatus } from '../../utils/timezone';
 import { formatTimeRange } from '../../utils/dateTimeUtils';
 import { Button } from '../common/Button';
+import EmptyState from '../common/EmptyState';
 
 const AllEventsTab: React.FC = () => {
   const navigation = useNavigation<NavigationProp<MainStackParamList>>();
@@ -189,41 +190,7 @@ const AllEventsTab: React.FC = () => {
       fontSize: 12,
       fontWeight: '500',
     },
-    emptyState: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 32,
-    },
-    emptyEmoji: {
-      fontSize: 64,
-      marginBottom: 16,
-    },
-    emptyTitle: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: theme.text,
-      marginBottom: 8,
-      textAlign: 'center',
-    },
-    emptySubtitle: {
-      fontSize: 16,
-      color: theme.textSecondary,
-      textAlign: 'center',
-      marginBottom: 32,
-      lineHeight: 24,
-    },
-    createButton: {
-      backgroundColor: theme.primary,
-      paddingHorizontal: 32,
-      paddingVertical: 16,
-      borderRadius: 12,
-    },
-    createButtonText: {
-      color: 'white',
-      fontWeight: 'bold',
-      fontSize: 18,
-    },
+
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -474,22 +441,15 @@ const AllEventsTab: React.FC = () => {
     </TouchableOpacity>
   );
 
-  const EmptyState = () => (
-    <View style={dynamicStyles.emptyState}>
-      <Text style={dynamicStyles.emptyTitle}>
-        No Events Yet
-      </Text>
-      <Text style={dynamicStyles.emptySubtitle}>
-        Be the first to create an event for the book club! Share reading discussions, meetups, and literary adventures.
-      </Text>
-      
-      <Button
-        title="Create First Event"
-        onPress={navigateToCreateEvent}
-        variant="primary"
-        size="large"
-      />
-    </View>
+  const renderEmptyState = () => (
+    <EmptyState
+      emoji="📚"
+      title="No Events Yet"
+      subtitle="Be the first to create an event for the book club! Share reading discussions, meetups, and literary adventures."
+      buttonTitle="Create First Event"
+      onButtonPress={navigateToCreateEvent}
+      buttonVariant="error"
+    />
   );
 
   if (isLoading && events.length === 0) {
@@ -507,7 +467,7 @@ const AllEventsTab: React.FC = () => {
   return (
     <View style={dynamicStyles.container}>
       {events.length === 0 ? (
-        <EmptyState />
+        renderEmptyState()
       ) : (
         <>
           {/* Header with View Toggle */}

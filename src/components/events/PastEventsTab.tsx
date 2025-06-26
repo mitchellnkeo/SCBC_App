@@ -11,6 +11,7 @@ import {
   StyleSheet
 } from 'react-native';
 import EventCardSkeleton from '../common/EventCardSkeleton';
+import EmptyState from '../common/EmptyState';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
@@ -270,29 +271,7 @@ const PastEventsTab: React.FC = () => {
       color: theme.textTertiary,
       fontWeight: '500',
     },
-    emptyState: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 32,
-    },
-    emptyEmoji: {
-      fontSize: 64,
-      marginBottom: 16,
-    },
-    emptyTitle: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: theme.text,
-      marginBottom: 8,
-      textAlign: 'center',
-    },
-    emptySubtitle: {
-      fontSize: 16,
-      color: theme.textSecondary,
-      textAlign: 'center',
-      lineHeight: 24,
-    },
+
     activeToggle: {
       backgroundColor: theme.primary,
     },
@@ -418,13 +397,12 @@ const PastEventsTab: React.FC = () => {
   );
 
   // Empty state component
-  const EmptyState = () => (
-    <View style={dynamicStyles.emptyState}>
-      <Text style={dynamicStyles.emptyTitle}>No Past Events</Text>
-      <Text style={dynamicStyles.emptySubtitle}>
-        Past events will appear here once they've been completed. Check back after attending some book club events!
-      </Text>
-    </View>
+  const renderEmptyState = () => (
+    <EmptyState
+      emoji="📖"
+      title="No Past Events"
+      subtitle="Past events will appear here once they've been completed. Check back after attending some book club events!"
+    />
   );
 
   // Loading skeleton
@@ -495,7 +473,7 @@ const PastEventsTab: React.FC = () => {
         }
       >
         {pastEvents.length === 0 ? (
-          <EmptyState />
+          renderEmptyState()
         ) : (
           pastEvents.map((event) => (
             viewMode === 'card' ? (

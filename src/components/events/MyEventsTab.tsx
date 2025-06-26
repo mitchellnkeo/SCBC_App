@@ -20,6 +20,7 @@ import { getUserEvents, subscribeToUserEvents } from '../../services/eventServic
 import { formatPSTDate, getEventStatus as getTimezoneEventStatus } from '../../utils/timezone';
 import { formatTimeRange } from '../../utils/dateTimeUtils';
 import { Button } from '../common/Button';
+import EmptyState from '../common/EmptyState';
 
 const MyEventsTab: React.FC = () => {
   const navigation = useNavigation<NavigationProp<MainStackParamList>>();
@@ -247,41 +248,7 @@ const MyEventsTab: React.FC = () => {
       fontSize: 12,
       fontWeight: '500',
     },
-    emptyState: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 32,
-    },
-    emptyEmoji: {
-      fontSize: 64,
-      marginBottom: 16,
-    },
-    emptyTitle: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: theme.text,
-      marginBottom: 8,
-      textAlign: 'center',
-    },
-    emptySubtitle: {
-      fontSize: 16,
-      color: theme.textSecondary,
-      textAlign: 'center',
-      marginBottom: 32,
-      lineHeight: 24,
-    },
-    createButton: {
-      backgroundColor: theme.primary,
-      paddingHorizontal: 32,
-      paddingVertical: 16,
-      borderRadius: 12,
-    },
-    createButtonText: {
-      color: 'white',
-      fontWeight: 'bold',
-      fontSize: 18,
-    },
+
     statsContainer: {
       backgroundColor: theme.card,
       borderRadius: 12,
@@ -661,22 +628,15 @@ const MyEventsTab: React.FC = () => {
     );
   };
 
-  const EmptyState = () => (
-    <View style={dynamicStyles.emptyState}>
-      <Text style={dynamicStyles.emptyTitle}>
-        No Events Yet
-      </Text>
-      <Text style={dynamicStyles.emptySubtitle}>
-        You haven't RSVP'd to any events or created any events yet. Start by browsing all events or creating your own!
-      </Text>
-      
-      <Button
-        title="Create Your First Event"
-        onPress={navigateToCreateEvent}
-        variant="primary"
-        size="large"
-      />
-    </View>
+  const renderEmptyState = () => (
+    <EmptyState
+      emoji="📅"
+      title="No Events Yet"
+      subtitle="You haven't RSVP'd to any events or created any events yet. Start by browsing all events or creating your own!"
+      buttonTitle="Create Your First Event"
+      onButtonPress={navigateToCreateEvent}
+      buttonVariant="error"
+    />
   );
 
   if (isLoading) {
@@ -694,7 +654,7 @@ const MyEventsTab: React.FC = () => {
   return (
     <View style={dynamicStyles.container}>
       {userEvents.length === 0 ? (
-        <EmptyState />
+        renderEmptyState()
       ) : (
         <>
           {/* Header with View Toggle */}

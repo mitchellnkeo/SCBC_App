@@ -72,6 +72,14 @@ export const createCommonStyles = (theme: Theme) => StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
+    paddingVertical: 48,
+  } as ViewStyle,
+
+  emptyStateCard: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+    marginTop: 40,
   } as ViewStyle,
 
   emptyEmoji: {
@@ -94,6 +102,10 @@ export const createCommonStyles = (theme: Theme) => StyleSheet.create({
     marginBottom: 32,
     lineHeight: 24,
   } as TextStyle,
+
+  emptyButtonContainer: {
+    minWidth: 200,
+  } as ViewStyle,
 
   // Header styles
   header: {
