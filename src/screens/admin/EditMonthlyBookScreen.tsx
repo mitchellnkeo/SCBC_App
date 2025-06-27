@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TextInput,
   TouchableOpacity,
   Alert,
   Image,
@@ -26,6 +25,8 @@ import {
 } from '../../services/monthlyBookService';
 import { useAuthStore } from '../../stores/authStore';
 import LoadingState from '../../components/common/LoadingState';
+import Input from '../../components/common/Input';
+import { Form, FormSection, FormRow } from '../../components/common/Form';
 
 type NavigationProp = StackNavigationProp<MainStackParamList>;
 type RouteProps = RouteProp<MainStackParamList, 'EditMonthlyBook'>;
@@ -304,212 +305,153 @@ const EditMonthlyBookScreen: React.FC = () => {
         </View>
 
         {/* Form Fields */}
-        <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>Book Details</Text>
+        <FormSection title="Book Details" style={styles.formSection}>
+          <Input
+            label="Month/Year"
+            value={formData.month}
+            onChangeText={(text: string) => setFormData({ ...formData, month: text })}
+            placeholder="e.g., January 2024"
+            required
+          />
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Month/Year *</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.month}
-              onChangeText={(text) => setFormData({ ...formData, month: text })}
-              placeholder="e.g., January 2024"
-              placeholderTextColor="#9ca3af"
+          <Input
+            label="Book Title"
+            value={formData.title}
+            onChangeText={(text: string) => setFormData({ ...formData, title: text })}
+            placeholder="Enter book title"
+            required
+          />
+
+          <Input
+            label="Author"
+            value={formData.author}
+            onChangeText={(text: string) => setFormData({ ...formData, author: text })}
+            placeholder="Enter author name"
+            required
+          />
+
+          <Input
+            label="Description"
+            value={formData.description}
+            onChangeText={(text: string) => setFormData({ ...formData, description: text })}
+            placeholder="Enter book description"
+            multiline
+            numberOfLines={4}
+          />
+
+          <FormRow>
+            <Input
+              label="Genre"
+              value={formData.genre}
+              onChangeText={(text: string) => setFormData({ ...formData, genre: text })}
+              placeholder="e.g., Fiction"
+              containerStyle={styles.halfWidth}
             />
-          </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Book Title *</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.title}
-              onChangeText={(text) => setFormData({ ...formData, title: text })}
-              placeholder="Enter book title"
-              placeholderTextColor="#9ca3af"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Author *</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.author}
-              onChangeText={(text) => setFormData({ ...formData, author: text })}
-              placeholder="Enter author name"
-              placeholderTextColor="#9ca3af"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Description</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={formData.description}
-              onChangeText={(text) => setFormData({ ...formData, description: text })}
-              placeholder="Enter book description"
-              placeholderTextColor="#9ca3af"
-              multiline
-              numberOfLines={4}
-            />
-          </View>
-
-          <View style={styles.row}>
-            <View style={[styles.inputGroup, styles.halfWidth]}>
-              <Text style={styles.label}>Genre</Text>
-              <TextInput
-                style={styles.input}
-                value={formData.genre}
-                onChangeText={(text) => setFormData({ ...formData, genre: text })}
-                placeholder="e.g., Fiction"
-                placeholderTextColor="#9ca3af"
-              />
-            </View>
-
-            <View style={[styles.inputGroup, styles.halfWidth]}>
-              <Text style={styles.label}>Pages</Text>
-              <TextInput
-                style={styles.input}
-                value={formData.pages}
-                onChangeText={(text) => setFormData({ ...formData, pages: text })}
-                placeholder="e.g., 300"
-                placeholderTextColor="#9ca3af"
-                keyboardType="numeric"
-              />
-            </View>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Published Year</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.publishedYear}
-              onChangeText={(text) => setFormData({ ...formData, publishedYear: text })}
-              placeholder="e.g., 2023"
-              placeholderTextColor="#9ca3af"
+            <Input
+              label="Pages"
+              value={formData.pages}
+              onChangeText={(text: string) => setFormData({ ...formData, pages: text })}
+              placeholder="e.g., 300"
               keyboardType="numeric"
+              containerStyle={styles.halfWidth}
             />
-          </View>
+          </FormRow>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Awards</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.awards}
-              onChangeText={(text) => setFormData({ ...formData, awards: text })}
-              placeholder="Separate multiple awards with commas"
-              placeholderTextColor="#9ca3af"
-            />
-          </View>
+          <Input
+            label="Published Year"
+            value={formData.publishedYear}
+            onChangeText={(text: string) => setFormData({ ...formData, publishedYear: text })}
+            placeholder="e.g., 2023"
+            keyboardType="numeric"
+          />
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Why We Selected This Book</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={formData.whySelected}
-              onChangeText={(text) => setFormData({ ...formData, whySelected: text })}
-              placeholder="Explain why this book was chosen for the book club"
-              placeholderTextColor="#9ca3af"
-              multiline
-              numberOfLines={4}
-            />
-          </View>
+          <Input
+            label="Awards"
+            value={formData.awards}
+            onChangeText={(text: string) => setFormData({ ...formData, awards: text })}
+            placeholder="Separate multiple awards with commas"
+          />
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Discussion Sheet URL</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.discussionSheetUrl}
-              onChangeText={(text) => setFormData({ ...formData, discussionSheetUrl: text })}
-              placeholder="https://docs.google.com/document/..."
-              placeholderTextColor="#9ca3af"
-              keyboardType="url"
-              autoCapitalize="none"
-              returnKeyType="done"
-              onSubmitEditing={() => Keyboard.dismiss()}
-            />
-          </View>
-        </View>
+          <Input
+            label="Why We Selected This Book"
+            value={formData.whySelected}
+            onChangeText={(text: string) => setFormData({ ...formData, whySelected: text })}
+            placeholder="Explain why this book was chosen for the book club"
+            multiline
+            numberOfLines={4}
+          />
+
+          <Input
+            label="Discussion Sheet URL"
+            value={formData.discussionSheetUrl}
+            onChangeText={(text: string) => setFormData({ ...formData, discussionSheetUrl: text })}
+            placeholder="https://docs.google.com/document/..."
+            keyboardType="url"
+            autoCapitalize="none"
+            returnKeyType="done"
+            onSubmitEditing={() => Keyboard.dismiss()}
+          />
+        </FormSection>
 
         {/* Meeting Details */}
-        <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>Meeting Details</Text>
-
+        <FormSection title="Meeting Details" style={styles.formSection}>
           {/* In-Person Meeting */}
           <Text style={styles.label}>In-Person Meeting</Text>
           
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Location</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.inPersonLocation}
-              onChangeText={(text) => setFormData({ ...formData, inPersonLocation: text })}
-              placeholder="e.g., Central Library, Room 204"
-              placeholderTextColor="#9ca3af"
-            />
-          </View>
+          <Input
+            label="Location"
+            value={formData.inPersonLocation}
+            onChangeText={(text: string) => setFormData({ ...formData, inPersonLocation: text })}
+            placeholder="e.g., Central Library, Room 204"
+          />
 
-          <View style={styles.row}>
-            <View style={[styles.inputGroup, styles.halfWidth]}>
-              <Text style={styles.label}>Day</Text>
-              <TextInput
-                style={styles.input}
-                value={formData.inPersonDay}
-                onChangeText={(text) => setFormData({ ...formData, inPersonDay: text })}
-                placeholder="e.g., Saturday, Jan 15th"
-                placeholderTextColor="#9ca3af"
-              />
-            </View>
-            <View style={[styles.inputGroup, styles.halfWidth]}>
-              <Text style={styles.label}>Time</Text>
-              <TextInput
-                style={styles.input}
-                value={formData.inPersonTime}
-                onChangeText={(text) => setFormData({ ...formData, inPersonTime: text })}
-                placeholder="e.g., 2:00 PM - 4:00 PM"
-                placeholderTextColor="#9ca3af"
-              />
-            </View>
-          </View>
+          <FormRow>
+            <Input
+              label="Day"
+              value={formData.inPersonDay}
+              onChangeText={(text: string) => setFormData({ ...formData, inPersonDay: text })}
+              placeholder="e.g., Saturday, Jan 15th"
+              containerStyle={styles.halfWidth}
+            />
+            <Input
+              label="Time"
+              value={formData.inPersonTime}
+              onChangeText={(text: string) => setFormData({ ...formData, inPersonTime: text })}
+              placeholder="e.g., 2:00 PM - 4:00 PM"
+              containerStyle={styles.halfWidth}
+            />
+          </FormRow>
 
           {/* Virtual Meeting */}
           <Text style={styles.label}>Virtual Meeting</Text>
           
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Zoom Link</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.virtualZoomLink}
-              onChangeText={(text) => setFormData({ ...formData, virtualZoomLink: text })}
-              placeholder="https://zoom.us/j/..."
-              placeholderTextColor="#9ca3af"
-              keyboardType="url"
-              autoCapitalize="none"
-            />
-          </View>
+          <Input
+            label="Zoom Link"
+            value={formData.virtualZoomLink}
+            onChangeText={(text: string) => setFormData({ ...formData, virtualZoomLink: text })}
+            placeholder="https://zoom.us/j/..."
+            keyboardType="url"
+            autoCapitalize="none"
+          />
 
-          <View style={styles.row}>
-            <View style={[styles.inputGroup, styles.halfWidth]}>
-              <Text style={styles.label}>Day</Text>
-              <TextInput
-                style={styles.input}
-                value={formData.virtualDay}
-                onChangeText={(text) => setFormData({ ...formData, virtualDay: text })}
-                placeholder="e.g., Sunday, Jan 16th"
-                placeholderTextColor="#9ca3af"
-              />
-            </View>
-            <View style={[styles.inputGroup, styles.halfWidth]}>
-              <Text style={styles.label}>Time</Text>
-              <TextInput
-                style={styles.input}
-                value={formData.virtualTime}
-                onChangeText={(text) => setFormData({ ...formData, virtualTime: text })}
-                placeholder="e.g., 7:00 PM - 9:00 PM"
-                placeholderTextColor="#9ca3af"
-              />
-            </View>
-          </View>
-        </View>
+          <FormRow>
+            <Input
+              label="Day"
+              value={formData.virtualDay}
+              onChangeText={(text: string) => setFormData({ ...formData, virtualDay: text })}
+              placeholder="e.g., Sunday, Jan 16th"
+              containerStyle={styles.halfWidth}
+            />
+            <Input
+              label="Time"
+              value={formData.virtualTime}
+              onChangeText={(text: string) => setFormData({ ...formData, virtualTime: text })}
+              placeholder="e.g., 7:00 PM - 9:00 PM"
+              containerStyle={styles.halfWidth}
+            />
+          </FormRow>
+        </FormSection>
 
         {/* Save Button */}
         <TouchableOpacity
@@ -631,32 +573,11 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  inputGroup: {
-    marginBottom: 20,
-  },
   label: {
     fontSize: 16,
     fontWeight: '600',
     color: '#374151',
     marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#1f2937',
-    backgroundColor: 'white',
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
   },
   halfWidth: {
     flex: 1,

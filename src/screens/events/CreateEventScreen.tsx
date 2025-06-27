@@ -21,54 +21,8 @@ import ImagePicker from '../../components/common/ImagePicker';
 import TimePicker from '../../components/common/TimePicker';
 import { formatFullDate } from '../../utils/dateTimeUtils';
 import { Button } from '../../components/common/Button';
-
-// Move InputField outside the main component to prevent re-creation on each render
-const InputField: React.FC<{
-  label: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  placeholder: string;
-  multiline?: boolean;
-  numberOfLines?: number;
-  error?: string;
-  keyboardType?: 'default' | 'numeric' | 'url';
-  returnKeyType?: 'done' | 'next' | 'default';
-  onSubmitEditing?: () => void;
-  inputRef?: React.RefObject<TextInput | null>;
-}> = ({ 
-  label, 
-  value, 
-  onChangeText, 
-  placeholder, 
-  multiline, 
-  numberOfLines, 
-  error, 
-  keyboardType = 'default',
-  returnKeyType = 'default',
-  onSubmitEditing,
-  inputRef
-}) => (
-  <View style={styles.inputContainer} className="mb-4">
-    <Text style={styles.label} className="text-gray-700 font-medium mb-2">{label}</Text>
-    <TextInput
-      value={value}
-      onChangeText={onChangeText}
-      placeholder={placeholder}
-      multiline={multiline}
-      numberOfLines={numberOfLines}
-      keyboardType={keyboardType}
-      style={[styles.input, error && styles.inputError]}
-      className={`border rounded-lg p-3 text-gray-900 ${
-        error ? 'border-red-500' : 'border-gray-300'
-      }`}
-      textAlignVertical={multiline ? 'top' : 'center'}
-      returnKeyType={returnKeyType}
-      onSubmitEditing={onSubmitEditing}
-      ref={inputRef}
-    />
-    {error && <Text style={styles.errorText} className="text-red-500 text-sm mt-1">{error}</Text>}
-  </View>
-);
+import Input from '../../components/common/Input';
+import { Form } from '../../components/common/Form';
 
 const CreateEventScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -262,28 +216,30 @@ const CreateEventScreen: React.FC = () => {
             placeholder="Add a photo to make your event stand out!"
           />
 
-          <InputField
+          <Input
             label="Event Title"
             value={formData.title}
-            onChangeText={(text) => setFormData({ ...formData, title: text })}
+            onChangeText={(text: string) => setFormData({ ...formData, title: text })}
             placeholder="e.g., Book Discussion: Pride and Prejudice"
             error={errors.title}
-            inputRef={titleRef}
+            ref={titleRef}
             returnKeyType="next"
             onSubmitEditing={() => descriptionRef.current?.focus()}
+            required
           />
 
-          <InputField
+          <Input
             label="Description"
             value={formData.description}
-            onChangeText={(text) => setFormData({ ...formData, description: text })}
+            onChangeText={(text: string) => setFormData({ ...formData, description: text })}
             placeholder="Tell us about your event..."
             multiline
             numberOfLines={4}
             error={errors.description}
-            inputRef={descriptionRef}
+            ref={descriptionRef}
             returnKeyType="next"
             onSubmitEditing={() => locationRef.current?.focus()}
+            required
           />
 
           {/* Date Picker - Direct Calendar Selection */}
@@ -349,38 +305,40 @@ const CreateEventScreen: React.FC = () => {
             eventDate={formData.date}
           />
 
-          <InputField
+          <Input
             label="Location Name"
             value={formData.location}
-            onChangeText={(text) => setFormData({ ...formData, location: text })}
+            onChangeText={(text: string) => setFormData({ ...formData, location: text })}
             placeholder="e.g., Central Library"
             error={errors.location}
-            inputRef={locationRef}
+            ref={locationRef}
             returnKeyType="next"
             onSubmitEditing={() => addressRef.current?.focus()}
+            required
           />
 
-          <InputField
+          <Input
             label="Address"
             value={formData.address}
-            onChangeText={(text) => setFormData({ ...formData, address: text })}
+            onChangeText={(text: string) => setFormData({ ...formData, address: text })}
             placeholder="e.g., 1000 4th Ave, Seattle, WA 98104"
             error={errors.address}
-            inputRef={addressRef}
+            ref={addressRef}
             returnKeyType="next"
             onSubmitEditing={() => maxAttendeesRef.current?.focus()}
+            required
           />
 
-          <InputField
+          <Input
             label="Max Attendees (Optional)"
             value={formData.maxAttendees?.toString() || ''}
-            onChangeText={(text) => setFormData({ 
+            onChangeText={(text: string) => setFormData({ 
               ...formData, 
               maxAttendees: text ? parseInt(text) : undefined 
             })}
             placeholder="e.g., 25"
             keyboardType="numeric"
-            inputRef={maxAttendeesRef}
+            ref={maxAttendeesRef}
             returnKeyType="done"
             onSubmitEditing={() => Keyboard.dismiss()}
           />
@@ -450,23 +408,7 @@ const styles = StyleSheet.create({
     color: '#374151', // gray-700
     marginBottom: 8,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db', // gray-300
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: '#111827', // gray-900
-    backgroundColor: 'white',
-  },
-  inputError: {
-    borderColor: '#ef4444', // red-500
-  },
-  errorText: {
-    color: '#ef4444', // red-500
-    fontSize: 14,
-    marginTop: 4,
-  },
+
   dateButton: {
     borderWidth: 1,
     borderColor: '#d1d5db', // gray-300

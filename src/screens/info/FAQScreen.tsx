@@ -8,7 +8,6 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
-  TextInput,
   Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,6 +28,7 @@ import {
   createDefaultFAQs
 } from '../../services/faqService';
 import LoadingState from '../../components/common/LoadingState';
+import { Input } from '../../components/common/Input';
 
 interface FAQStats {
   totalFAQs: number;
@@ -372,26 +372,24 @@ const FAQScreen: React.FC = () => {
           </View>
           
           <ScrollView style={styles.modalContent}>
-            <Text style={styles.inputLabel}>Question</Text>
-            <TextInput
-              style={styles.questionInput}
+            <Input
+              label="Question"
               value={questionText}
               onChangeText={setQuestionText}
               placeholder="Enter the question..."
-              placeholderTextColor={theme.textSecondary}
               multiline
-              returnKeyType="next"
+              numberOfLines={3}
+              variant="outlined"
             />
             
-            <Text style={styles.inputLabel}>Answer</Text>
-            <TextInput
-              style={styles.answerInput}
+            <Input
+              label="Answer"
               value={answerText}
               onChangeText={setAnswerText}
               placeholder="Enter the answer..."
-              placeholderTextColor={theme.textSecondary}
               multiline
-              returnKeyType="done"
+              numberOfLines={5}
+              variant="outlined"
             />
           </ScrollView>
         </View>
@@ -623,36 +621,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     padding: 20,
   },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.text,
-    marginBottom: 8,
-  },
-  questionInput: {
-    backgroundColor: theme.surface,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: theme.text,
-    borderWidth: 1,
-    borderColor: theme.border,
-    marginBottom: 20,
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-  answerInput: {
-    backgroundColor: theme.surface,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: theme.text,
-    borderWidth: 1,
-    borderColor: theme.border,
-    marginBottom: 20,
-    minHeight: 120,
-    textAlignVertical: 'top',
-  },
+
 });
 
 export default FAQScreen; 

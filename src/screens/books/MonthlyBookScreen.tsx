@@ -9,7 +9,6 @@ import {
   Alert,
   Image,
   ActivityIndicator,
-  TextInput,
   Modal,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
@@ -23,6 +22,8 @@ import { useTheme } from '../../contexts/ThemeContext';
 import LoadingState from '../../components/common/LoadingState';
 import { InfoCard } from '../../components/common/Card';
 import { CenterModal } from '../../components/common/Modal';
+import { Input } from '../../components/common/Input';
+import { createCommonStyles } from '../../styles/commonStyles';
 
 type NavigationProp = StackNavigationProp<MainStackParamList>;
 
@@ -30,6 +31,7 @@ const MonthlyBookScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuthStore();
   const { theme } = useTheme();
+  const commonStyles = createCommonStyles(theme);
   const [currentBook, setCurrentBook] = useState<MonthlyBook | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingMeeting, setEditingMeeting] = useState<'inPerson' | 'virtual' | null>(null);
@@ -561,24 +563,7 @@ const MonthlyBookScreen: React.FC = () => {
       marginBottom: 20,
       textAlign: 'center',
     },
-    inputGroup: {
-      marginBottom: 16,
-    },
-    inputLabel: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: theme.text,
-      marginBottom: 8,
-    },
-    textInput: {
-      borderWidth: 1,
-      borderColor: theme.border,
-      borderRadius: 8,
-      padding: 12,
-      fontSize: 16,
-      color: theme.text,
-      backgroundColor: theme.surface,
-    },
+
     modalButtons: {
       flexDirection: 'row',
       gap: 12,
@@ -837,88 +822,70 @@ const MonthlyBookScreen: React.FC = () => {
               
               {editingMeeting === 'inPerson' ? (
                 <>
-                  <View style={dynamicStyles.inputGroup}>
-                    <Text style={dynamicStyles.inputLabel}>Location</Text>
-                    <TextInput
-                      style={dynamicStyles.textInput}
-                      value={meetingFormData.inPerson.location}
-                      onChangeText={(text) => setMeetingFormData({
-                        ...meetingFormData,
-                        inPerson: { ...meetingFormData.inPerson, location: text }
-                      })}
-                      placeholder="e.g., Central Library, Room 204"
-                      placeholderTextColor={theme.textTertiary}
-                    />
-                  </View>
-                  <View style={dynamicStyles.inputGroup}>
-                    <Text style={dynamicStyles.inputLabel}>Day</Text>
-                    <TextInput
-                      style={dynamicStyles.textInput}
-                      value={meetingFormData.inPerson.day}
-                      onChangeText={(text) => setMeetingFormData({
-                        ...meetingFormData,
-                        inPerson: { ...meetingFormData.inPerson, day: text }
-                      })}
-                      placeholder="e.g., Saturday, January 15th"
-                      placeholderTextColor={theme.textTertiary}
-                    />
-                  </View>
-                  <View style={dynamicStyles.inputGroup}>
-                    <Text style={dynamicStyles.inputLabel}>Time</Text>
-                    <TextInput
-                      style={dynamicStyles.textInput}
-                      value={meetingFormData.inPerson.time}
-                      onChangeText={(text) => setMeetingFormData({
-                        ...meetingFormData,
-                        inPerson: { ...meetingFormData.inPerson, time: text }
-                      })}
-                      placeholder="e.g., 2:00 PM - 4:00 PM"
-                      placeholderTextColor={theme.textTertiary}
-                    />
-                  </View>
+                  <Input
+                    label="Location"
+                    value={meetingFormData.inPerson.location}
+                    onChangeText={(text) => setMeetingFormData({
+                      ...meetingFormData,
+                      inPerson: { ...meetingFormData.inPerson, location: text }
+                    })}
+                    placeholder="e.g., Central Library, Room 204"
+                    variant="outlined"
+                  />
+                  <Input
+                    label="Day"
+                    value={meetingFormData.inPerson.day}
+                    onChangeText={(text) => setMeetingFormData({
+                      ...meetingFormData,
+                      inPerson: { ...meetingFormData.inPerson, day: text }
+                    })}
+                    placeholder="e.g., Saturday, January 15th"
+                    variant="outlined"
+                  />
+                  <Input
+                    label="Time"
+                    value={meetingFormData.inPerson.time}
+                    onChangeText={(text) => setMeetingFormData({
+                      ...meetingFormData,
+                      inPerson: { ...meetingFormData.inPerson, time: text }
+                    })}
+                    placeholder="e.g., 2:00 PM - 4:00 PM"
+                    variant="outlined"
+                  />
                 </>
               ) : (
                 <>
-                  <View style={dynamicStyles.inputGroup}>
-                    <Text style={dynamicStyles.inputLabel}>Zoom Link</Text>
-                    <TextInput
-                      style={dynamicStyles.textInput}
-                      value={meetingFormData.virtual.zoomLink}
-                      onChangeText={(text) => setMeetingFormData({
-                        ...meetingFormData,
-                        virtual: { ...meetingFormData.virtual, zoomLink: text }
-                      })}
-                      placeholder="https://zoom.us/j/..."
-                      placeholderTextColor={theme.textTertiary}
-                      autoCapitalize="none"
-                    />
-                  </View>
-                  <View style={dynamicStyles.inputGroup}>
-                    <Text style={dynamicStyles.inputLabel}>Day</Text>
-                    <TextInput
-                      style={dynamicStyles.textInput}
-                      value={meetingFormData.virtual.day}
-                      onChangeText={(text) => setMeetingFormData({
-                        ...meetingFormData,
-                        virtual: { ...meetingFormData.virtual, day: text }
-                      })}
-                      placeholder="e.g., Sunday, January 16th"
-                      placeholderTextColor={theme.textTertiary}
-                    />
-                  </View>
-                  <View style={dynamicStyles.inputGroup}>
-                    <Text style={dynamicStyles.inputLabel}>Time</Text>
-                    <TextInput
-                      style={dynamicStyles.textInput}
-                      value={meetingFormData.virtual.time}
-                      onChangeText={(text) => setMeetingFormData({
-                        ...meetingFormData,
-                        virtual: { ...meetingFormData.virtual, time: text }
-                      })}
-                      placeholder="e.g., 7:00 PM - 9:00 PM"
-                      placeholderTextColor={theme.textTertiary}
-                    />
-                  </View>
+                  <Input
+                    label="Zoom Link"
+                    value={meetingFormData.virtual.zoomLink}
+                    onChangeText={(text) => setMeetingFormData({
+                      ...meetingFormData,
+                      virtual: { ...meetingFormData.virtual, zoomLink: text }
+                    })}
+                    placeholder="https://zoom.us/j/..."
+                    autoCapitalize="none"
+                    variant="outlined"
+                  />
+                  <Input
+                    label="Day"
+                    value={meetingFormData.virtual.day}
+                    onChangeText={(text) => setMeetingFormData({
+                      ...meetingFormData,
+                      virtual: { ...meetingFormData.virtual, day: text }
+                    })}
+                    placeholder="e.g., Sunday, January 16th"
+                    variant="outlined"
+                  />
+                  <Input
+                    label="Time"
+                    value={meetingFormData.virtual.time}
+                    onChangeText={(text) => setMeetingFormData({
+                      ...meetingFormData,
+                      virtual: { ...meetingFormData.virtual, time: text }
+                    })}
+                    placeholder="e.g., 7:00 PM - 9:00 PM"
+                    variant="outlined"
+                  />
                 </>
               )}
               

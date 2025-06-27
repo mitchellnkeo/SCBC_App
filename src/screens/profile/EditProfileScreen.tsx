@@ -20,6 +20,8 @@ import { useAuthStore } from '../../stores/authStore';
 import { updateUserProfile, updateProfilePicture, removeProfilePicture } from '../../services';
 import ProfilePicture from '../../components/common/ProfilePicture';
 import { Button } from '../../components/common/Button';
+import Input from '../../components/common/Input';
+import { Form } from '../../components/common/Form';
 
 interface EditProfileFormData {
   displayName: string;
@@ -233,8 +235,8 @@ export const EditProfileScreen: React.FC = () => {
 
         <View style={styles.form}>
           {/* Profile Picture */}
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Profile Picture</Text>
+          <View style={styles.profilePictureSection}>
+            <Text style={styles.profilePictureLabel}>Profile Picture</Text>
             <View style={styles.profilePictureContainer}>
               <TouchableOpacity 
                 onPress={handleProfilePicturePress}
@@ -260,119 +262,98 @@ export const EditProfileScreen: React.FC = () => {
           </View>
 
           {/* Display Name */}
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Display Name *</Text>
-            <Controller
-              control={control}
-              name="displayName"
-              rules={{
-                required: 'Display name is required',
-                minLength: { value: 2, message: 'Name must be at least 2 characters' },
-                maxLength: { value: 50, message: 'Name must be less than 50 characters' },
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={[styles.input, errors.displayName && styles.inputError]}
-                  placeholder="Enter your display name"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  autoCapitalize="words"
-                  maxLength={50}
-                  ref={displayNameRef}
-                  returnKeyType="next"
-                  onSubmitEditing={() => bioRef.current?.focus()}
-                />
-              )}
-            />
-            {errors.displayName && (
-              <Text style={styles.errorText}>{errors.displayName.message}</Text>
+          <Controller
+            control={control}
+            name="displayName"
+            rules={{
+              required: 'Display name is required',
+              minLength: { value: 2, message: 'Name must be at least 2 characters' },
+              maxLength: { value: 50, message: 'Name must be less than 50 characters' },
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label="Display Name"
+                placeholder="Enter your display name"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                autoCapitalize="words"
+                characterLimit={50}
+                showCharacterCount={false}
+                error={errors.displayName?.message}
+                required
+                ref={displayNameRef}
+                returnKeyType="next"
+                onSubmitEditing={() => bioRef.current?.focus()}
+              />
             )}
-          </View>
+          />
 
           {/* Bio */}
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Bio</Text>
-            <Controller
-              control={control}
-              name="bio"
-              rules={{
-                maxLength: { value: 500, message: 'Bio must be less than 500 characters' },
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={[styles.textArea, errors.bio && styles.inputError]}
-                  placeholder="Tell us a bit about yourself..."
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                  maxLength={500}
-                  ref={bioRef}
-                  returnKeyType="next"
-                  onSubmitEditing={() => hobbiesRef.current?.focus()}
-                />
-              )}
-            />
-            {errors.bio && (
-              <Text style={styles.errorText}>{errors.bio.message}</Text>
+          <Controller
+            control={control}
+            name="bio"
+            rules={{
+              maxLength: { value: 500, message: 'Bio must be less than 500 characters' },
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label="Bio"
+                placeholder="Tell us a bit about yourself..."
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                multiline
+                numberOfLines={4}
+                characterLimit={500}
+                showCharacterCount={true}
+                error={errors.bio?.message}
+                ref={bioRef}
+                returnKeyType="next"
+                onSubmitEditing={() => hobbiesRef.current?.focus()}
+              />
             )}
-            <Text style={styles.characterCount}>
-              {control._formValues.bio?.length || 0}/500
-            </Text>
-          </View>
+          />
 
           {/* Hobbies */}
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Hobbies & Interests</Text>
-            <Controller
-              control={control}
-              name="hobbies"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={styles.input}
-                  placeholder="e.g., reading, hiking, cooking (separate with commas)"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  multiline
-                  ref={hobbiesRef}
-                  returnKeyType="next"
-                  onSubmitEditing={() => favoriteBooksRef.current?.focus()}
-                />
-              )}
-            />
-            <Text style={styles.helpText}>
-              Separate multiple hobbies with commas
-            </Text>
-          </View>
+          <Controller
+            control={control}
+            name="hobbies"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label="Hobbies & Interests"
+                placeholder="e.g., reading, hiking, cooking (separate with commas)"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                multiline
+                helpText="Separate multiple hobbies with commas"
+                ref={hobbiesRef}
+                returnKeyType="next"
+                onSubmitEditing={() => favoriteBooksRef.current?.focus()}
+              />
+            )}
+          />
 
           {/* Favorite Books */}
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Favorite Books</Text>
-            <Controller
-              control={control}
-              name="favoriteBooks"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={styles.input}
-                  placeholder="e.g., 1984, To Kill a Mockingbird (separate with commas)"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  multiline
-                  ref={favoriteBooksRef}
-                  returnKeyType="done"
-                  onSubmitEditing={() => Keyboard.dismiss()}
-                />
-              )}
-            />
-            <Text style={styles.helpText}>
-              Separate multiple books with commas
-            </Text>
-          </View>
+          <Controller
+            control={control}
+            name="favoriteBooks"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label="Favorite Books"
+                placeholder="e.g., 1984, To Kill a Mockingbird (separate with commas)"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                multiline
+                helpText="Separate multiple books with commas"
+                ref={favoriteBooksRef}
+                returnKeyType="done"
+                onSubmitEditing={() => Keyboard.dismiss()}
+              />
+            )}
+          />
         </View>
 
         {/* Action Buttons */}
@@ -426,52 +407,14 @@ const styles = StyleSheet.create({
   form: {
     paddingHorizontal: 24,
   },
-  fieldContainer: {
+  profilePictureSection: {
     marginBottom: 24,
   },
-  label: {
+  profilePictureLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1f2937',
     marginBottom: 8,
-  },
-  input: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    color: '#1f2937',
-  },
-  textArea: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    color: '#1f2937',
-    minHeight: 100,
-  },
-  inputError: {
-    borderColor: '#ef4444',
-  },
-  errorText: {
-    color: '#ef4444',
-    fontSize: 14,
-    marginTop: 4,
-  },
-  helpText: {
-    color: '#6b7280',
-    fontSize: 14,
-    marginTop: 4,
-  },
-  characterCount: {
-    color: '#9ca3af',
-    fontSize: 12,
-    textAlign: 'right',
-    marginTop: 4,
   },
   actions: {
     flexDirection: 'row',

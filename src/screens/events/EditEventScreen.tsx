@@ -1,59 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  TouchableOpacity, 
-  TextInput,
-  Alert, 
-  StyleSheet,
+import {
+  View,
+  Text,
+  Alert,
+  ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
+import { useEventStore } from '../../stores/eventStore';
 import { CreateEventFormData } from '../../types';
-import { handleError } from '../../utils/errorHandler';
-import ImagePicker from '../../components/common/ImagePicker';
-import TimePicker from '../../components/common/TimePicker';
 import { formatFullDate } from '../../utils/dateTimeUtils';
+import { handleError } from '../../utils/errorHandler';
 import { Button } from '../../components/common/Button';
+import TimePicker from '../../components/common/TimePicker';
+import ImagePicker from '../../components/common/ImagePicker';
+import LoadingState from '../../components/common/LoadingState';
+import { Input } from '../../components/common/Input';
+import { Form, FormSection } from '../../components/common/Form';
+import { createCommonStyles } from '../../styles/commonStyles';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type RouteParams = {
   EditEvent: {
     eventId: string;
   };
 };
-
-// Move InputField outside the main component to prevent re-creation on each render
-const InputField: React.FC<{
-  label: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  placeholder?: string;
-  multiline?: boolean;
-  numberOfLines?: number;
-  keyboardType?: 'default' | 'numeric' | 'url';
-  error?: string;
-}> = ({ label, value, onChangeText, placeholder, multiline, numberOfLines, keyboardType, error }) => (
-  <View style={styles.inputContainer}>
-    <Text style={styles.label}>{label}</Text>
-    <TextInput
-      style={[styles.input, multiline && styles.textArea, error && styles.inputError]}
-      value={value}
-      onChangeText={onChangeText}
-      placeholder={placeholder}
-      placeholderTextColor="#9ca3af"
-      multiline={multiline}
-      numberOfLines={numberOfLines}
-      keyboardType={keyboardType}
-    />
-    {error && <Text style={styles.errorText}>{error}</Text>}
-  </View>
-);
 
 const EditEventScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -62,6 +39,8 @@ const EditEventScreen: React.FC = () => {
   
   const { user } = useAuthStore();
   const { currentEvent, updateEvent, loadEvent, isLoading } = useEventStore();
+  const { theme } = useTheme();
+  const commonStyles = createCommonStyles(theme);
 
   const [formData, setFormData] = useState<CreateEventFormData>({
     title: '',
@@ -236,14 +215,10 @@ const EditEventScreen: React.FC = () => {
     setShowDatePicker(true);
   };
 
-
-
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading event...</Text>
-        </View>
+        <LoadingState text="Loading event..." />
       </SafeAreaView>
     );
   }
@@ -252,7 +227,7 @@ const EditEventScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Event not found</Text>
+          <Text style={commonStyles.errorText}>Event not found</Text>
           <TouchableOpacity 
             style={styles.backButton}
             onPress={() => navigation.goBack()}
@@ -296,122 +271,135 @@ const EditEventScreen: React.FC = () => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Move ImagePicker to the top */}
-          <ImagePicker
-            value={formData.headerPhoto || ''}
-            onImageSelected={(uri) => setFormData({ ...formData, headerPhoto: uri })}
-            onImageRemoved={() => setFormData({ ...formData, headerPhoto: '' })}
-            label="Event Header Photo (Optional)"
-            placeholder="Add or change the event photo"
-          />
+          <Form>
+            <FormSection title="Event Details">
+              <ImagePicker
+                value={formData.headerPhoto || ''}
+                onImageSelected={(uri: string) => setFormData({ ...formData, headerPhoto: uri })}
+                onImageRemoved={() => setFormData({ ...formData, headerPhoto: '' })}
+                label="Event Header Photo (Optional)"
+                placeholder="Add or change the event photo"
+              />
 
-          <InputField
-            label="Event Title"
-            value={formData.title}
-            onChangeText={(text) => setFormData({ ...formData, title: text })}
-            placeholder="Enter event title"
-            error={errors.title}
-          />
+              <Input
+                label="Event Title"
+                value={formData.title}
+                onChangeText={(text) => setFormData({ ...formData, title: text })}
+                placeholder="Enter event title"
+                error={errors.title}
+                variant="outlined"
+              />
 
-          <InputField
-            label="Description"
-            value={formData.description}
-            onChangeText={(text) => setFormData({ ...formData, description: text })}
-            placeholder="Describe your event..."
-            multiline
-            numberOfLines={4}
-            error={errors.description}
-          />
+              <Input
+                label="Description"
+                value={formData.description}
+                onChangeText={(text) => setFormData({ ...formData, description: text })}
+                placeholder="Describe your event..."
+                multiline
+                numberOfLines={4}
+                error={errors.description}
+                variant="outlined"
+              />
+            </FormSection>
 
-          {/* Date Picker - Direct Calendar Selection */}
-          <View style={styles.inputContainer} className="mb-4">
-            <Text style={styles.label} className="text-gray-700 font-medium mb-2">Date</Text>
-            <TouchableOpacity
-              onPress={openDatePicker}
-              style={styles.dateButton}
-              className="border border-gray-300 rounded-lg p-3"
-            >
-              <View style={styles.dateButtonContent}>
-                <Text style={styles.dateText} className="text-gray-900">{formatFullDate(formData.date)}</Text>
-                <Text style={styles.calendarIcon}>📅</Text>
-              </View>
-            </TouchableOpacity>
-            
-            {/* Calendar Picker - Shows directly when tapped */}
-            {showDatePicker && (
-              <View style={styles.datePickerOverlay}>
-                <View style={styles.datePickerModal}>
-                  <View style={styles.datePickerHeader}>
-                    <Text style={styles.datePickerTitle}>Select Event Date</Text>
+            <FormSection title="Date & Time">
+              {/* Date Picker - Direct Calendar Selection */}
+              <View style={commonStyles.formRow}>
+                <Text style={commonStyles.inputLabel}>Date</Text>
+                <TouchableOpacity
+                  onPress={openDatePicker}
+                  style={styles.dateButton}
+                >
+                  <View style={styles.dateButtonContent}>
+                    <Text style={styles.dateText}>{formatFullDate(formData.date)}</Text>
+                    <Text style={styles.calendarIcon}>📅</Text>
                   </View>
-                  
-                  <DateTimePicker
-                    value={tempDate}
-                    mode="date"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
-                    onChange={onDateChange}
-                    minimumDate={new Date()}
-                    style={styles.datePicker}
-                  />
-                  
-                  {Platform.OS === 'ios' && (
-                    <View style={styles.datePickerButtons}>
-                      <Button
-                        title="Cancel"
-                        onPress={cancelDateSelection}
-                        variant="error"
-                        size="medium"
-                        style={{ flex: 1 }}
+                </TouchableOpacity>
+                
+                {/* Calendar Picker - Shows directly when tapped */}
+                {showDatePicker && (
+                  <View style={styles.datePickerOverlay}>
+                    <View style={styles.datePickerModal}>
+                      <View style={styles.datePickerHeader}>
+                        <Text style={styles.datePickerTitle}>Select Event Date</Text>
+                      </View>
+                      
+                      <DateTimePicker
+                        value={tempDate}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                        onChange={onDateChange}
+                        minimumDate={new Date()}
+                        style={styles.datePicker}
                       />
-                      <Button
-                        title="Confirm"
-                        onPress={confirmDateSelection}
-                        variant="primary"
-                        size="medium"
-                        style={{ flex: 1, marginLeft: 12 }}
-                      />
+                      
+                      {Platform.OS === 'ios' && (
+                        <View style={styles.datePickerButtons}>
+                          <Button
+                            title="Cancel"
+                            onPress={cancelDateSelection}
+                            variant="error"
+                            size="medium"
+                            style={{ flex: 1 }}
+                          />
+                          <Button
+                            title="Confirm"
+                            onPress={confirmDateSelection}
+                            variant="primary"
+                            size="medium"
+                            style={{ flex: 1, marginLeft: 12 }}
+                          />
+                        </View>
+                      )}
                     </View>
-                  )}
-                </View>
+                  </View>
+                )}
               </View>
-            )}
-          </View>
 
-          <TimePicker
-            startTime={formData.startTime}
-            endTime={formData.endTime}
-            onStartTimeChange={(time) => setFormData({ ...formData, startTime: time })}
-            onEndTimeChange={(time) => setFormData({ ...formData, endTime: time })}
-            error={errors.startTime || errors.endTime}
-            eventDate={formData.date}
-          />
+              <TimePicker
+                startTime={formData.startTime}
+                endTime={formData.endTime}
+                onStartTimeChange={(time: string) => setFormData({ ...formData, startTime: time })}
+                onEndTimeChange={(time: string) => setFormData({ ...formData, endTime: time })}
+                error={errors.startTime || errors.endTime}
+                eventDate={formData.date}
+              />
+            </FormSection>
 
-          <InputField
-            label="Location Name"
-            value={formData.location}
-            onChangeText={(text) => setFormData({ ...formData, location: text })}
-            placeholder="e.g., Central Library"
-            error={errors.location}
-          />
+            <FormSection title="Location">
+              <Input
+                label="Location Name"
+                value={formData.location}
+                onChangeText={(text) => setFormData({ ...formData, location: text })}
+                placeholder="e.g., Central Library"
+                error={errors.location}
+                variant="outlined"
+              />
 
-          <InputField
-            label="Address"
-            value={formData.address}
-            onChangeText={(text) => setFormData({ ...formData, address: text })}
-            placeholder="e.g., 1000 4th Ave, Seattle, WA 98104"
-            error={errors.address}
-          />
+              <Input
+                label="Address"
+                value={formData.address}
+                onChangeText={(text) => setFormData({ ...formData, address: text })}
+                placeholder="e.g., 1000 4th Ave, Seattle, WA 98104"
+                error={errors.address}
+                variant="outlined"
+              />
+            </FormSection>
 
-          <InputField
-            label="Max Attendees (Optional)"
-            value={formData.maxAttendees?.toString() || ''}
-            onChangeText={(text) => setFormData({ 
-              ...formData, 
-              maxAttendees: text ? parseInt(text) : undefined 
-            })}
-            placeholder="e.g., 25"
-            keyboardType="numeric"
-          />
+            <FormSection title="Capacity">
+              <Input
+                label="Max Attendees (Optional)"
+                value={formData.maxAttendees?.toString() || ''}
+                onChangeText={(text) => setFormData({ 
+                  ...formData, 
+                  maxAttendees: text ? parseInt(text) : undefined 
+                })}
+                placeholder="e.g., 25"
+                keyboardType="numeric"
+                variant="outlined"
+              />
+            </FormSection>
+          </Form>
 
           {/* Edit Notice */}
           <View style={styles.editNotice}>
@@ -468,36 +456,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 24,
   },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    color: '#1f2937',
-  },
-  textArea: {
-    height: 120,
-    textAlignVertical: 'top',
-  },
-  inputError: {
-    borderColor: '#ef4444',
-  },
-  errorText: {
-    color: '#ef4444',
-    fontSize: 14,
-    marginTop: 4,
-  },
   dateButton: {
     backgroundColor: 'white',
     borderWidth: 1,
@@ -530,15 +488,6 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 40,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#6b7280',
   },
   errorContainer: {
     flex: 1,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   Linking,
   Alert,
   ActivityIndicator,
-  TextInput,
   Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,6 +19,7 @@ import { whatsappService } from '../../services/whatsappService';
 import LoadingState from '../../components/common/LoadingState';
 import { InfoCard } from '../../components/common/Card';
 import { CenterModal } from '../../components/common/Modal';
+import { Input } from '../../components/common/Input';
 
 const WhatsAppCommunityScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -267,23 +267,7 @@ const WhatsAppCommunityScreen: React.FC = () => {
       marginBottom: 20,
       textAlign: 'center',
     },
-    label: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.text,
-      marginBottom: 8,
-    },
-    textInput: {
-      backgroundColor: theme.background,
-      borderWidth: 1,
-      borderColor: theme.border,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 12,
-      fontSize: 16,
-      color: theme.text,
-      marginBottom: 20,
-    },
+
     modalButtons: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -393,15 +377,14 @@ const WhatsAppCommunityScreen: React.FC = () => {
       >
         <Text style={dynamicStyles.modalTitle}>Edit WhatsApp Community Link</Text>
         
-        <Text style={dynamicStyles.label}>WhatsApp Invite Link</Text>
-        <TextInput
-          style={dynamicStyles.textInput}
+        <Input
+          label="WhatsApp Invite Link"
           value={editLink}
           onChangeText={setEditLink}
           placeholder="https://chat.whatsapp.com/..."
-          placeholderTextColor={theme.textTertiary}
           autoCapitalize="none"
           keyboardType="url"
+          variant="outlined"
         />
 
         <View style={dynamicStyles.modalButtons}>

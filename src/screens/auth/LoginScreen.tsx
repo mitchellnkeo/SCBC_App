@@ -8,6 +8,8 @@ import { useAuthStore } from '../../stores/authStore';
 import { LoginCredentials } from '../../types';
 import { handleError } from '../../utils/errorHandler';
 import { Button } from '../../components/common/Button';
+import Input from '../../components/common/Input';
+import { Form } from '../../components/common/Form';
 
 type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -57,81 +59,71 @@ const LoginScreen: React.FC = () => {
           Seattle Chinatown Book Club
         </Text>
 
-        <View style={styles.form}>
+        <Form style={styles.form}>
           {/* Email Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
-            <Controller
-              control={control}
-              name="email"
-              rules={{
-                required: 'Email is required',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Please enter a valid email address',
-                },
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={[styles.input, errors.email && styles.inputError]}
-                  placeholder="Enter your email"
-                  placeholderTextColor="#9ca3af"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  returnKeyType="next"
-                  onSubmitEditing={() => {
-                    passwordRef.current?.focus();
-                  }}
-                  ref={emailRef}
-                />
-              )}
-            />
-            {errors.email && (
-              <Text style={styles.errorText}>{errors.email.message}</Text>
+          <Controller
+            control={control}
+            name="email"
+            rules={{
+              required: 'Email is required',
+              pattern: {
+                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                message: 'Please enter a valid email address',
+              },
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label="Email"
+                placeholder="Enter your email"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="next"
+                onSubmitEditing={() => {
+                  passwordRef.current?.focus();
+                }}
+                ref={emailRef}
+                error={errors.email?.message}
+                required
+              />
             )}
-          </View>
+          />
 
           {/* Password Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
-            <Controller
-              control={control}
-              name="password"
-              rules={{
-                required: 'Password is required',
-                minLength: {
-                  value: 6,
-                  message: 'Password must be at least 6 characters',
-                },
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={[styles.input, errors.password && styles.inputError]}
-                  placeholder="Enter your password"
-                  placeholderTextColor="#9ca3af"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  secureTextEntry
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  returnKeyType="done"
-                  onSubmitEditing={() => {
-                    Keyboard.dismiss();
-                    handleSubmit(onSubmit)();
-                  }}
-                  ref={passwordRef}
-                />
-              )}
-            />
-            {errors.password && (
-              <Text style={styles.errorText}>{errors.password.message}</Text>
+          <Controller
+            control={control}
+            name="password"
+            rules={{
+              required: 'Password is required',
+              minLength: {
+                value: 6,
+                message: 'Password must be at least 6 characters',
+              },
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label="Password"
+                placeholder="Enter your password"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={() => {
+                  Keyboard.dismiss();
+                  handleSubmit(onSubmit)();
+                }}
+                ref={passwordRef}
+                error={errors.password?.message}
+                required
+              />
             )}
-          </View>
+          />
 
           {/* Login Button */}
           <Button
@@ -150,7 +142,7 @@ const LoginScreen: React.FC = () => {
               <Text style={styles.errorText}>{error}</Text>
             </View>
           )}
-        </View>
+        </Form>
 
         <TouchableOpacity 
           style={styles.linkButton}
@@ -192,32 +184,6 @@ const styles = StyleSheet.create({
     width: '100%',
     gap: 20,
   },
-  inputContainer: {
-    width: '100%',
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    color: '#1f2937',
-  },
-  inputError: {
-    borderColor: '#ef4444',
-  },
-  errorText: {
-    color: '#ef4444',
-    fontSize: 14,
-    marginTop: 4,
-  },
   errorContainer: {
     backgroundColor: '#fef2f2',
     borderColor: '#fecaca',
@@ -225,6 +191,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     marginTop: 8,
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 14,
+    marginTop: 4,
   },
 
   linkButton: {

@@ -21,6 +21,9 @@ import { format } from 'date-fns';
 import AddressAction from '../../components/common/AddressAction';
 import { Button } from '../../components/common/Button';
 import { BottomSheetModal } from '../../components/common/Modal';
+import { Input } from '../../components/common/Input';
+import { formatDate, formatTimeRange } from '../../utils/dateTimeUtils';
+import TopNavbar from '../../components/navigation/TopNavbar';
 
 const PendingEventsScreen: React.FC = () => {
   const { user } = useAuthStore();
@@ -236,21 +239,15 @@ const PendingEventsScreen: React.FC = () => {
               )}
 
               {actionType === 'reject' && (
-                <View className="mb-4">
-                  <Text style={styles.inputLabel} className="text-gray-700 font-medium mb-2">
-                    Rejection Reason (optional):
-                  </Text>
-                  <TextInput
-                    value={rejectionReason}
-                    onChangeText={setRejectionReason}
-                    placeholder="e.g., Inappropriate content, duplicate event, etc."
-                    multiline
-                    numberOfLines={3}
-                    style={styles.textInput}
-                    className="border border-gray-300 rounded-lg p-3 text-gray-900"
-                    textAlignVertical="top"
-                  />
-                </View>
+                <Input
+                  label="Rejection Reason (optional)"
+                  value={rejectionReason}
+                  onChangeText={setRejectionReason}
+                  placeholder="e.g., Inappropriate content, duplicate event, etc."
+                  multiline
+                  numberOfLines={3}
+                  variant="outlined"
+                />
               )}
 
               <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -315,21 +312,7 @@ const styles = StyleSheet.create({
     color: '#374151', // gray-700
     marginBottom: 16,
   },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#374151', // gray-700
-    marginBottom: 8,
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#d1d5db', // gray-300
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: '#111827', // gray-900
-    backgroundColor: 'white',
-  },
+
 
 
 });

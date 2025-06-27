@@ -1,15 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Alert,
   ScrollView,
-  TextInput,
   StyleSheet,
+  Platform,
 } from 'react-native';
-import { useNotifications } from '../hooks/useNotifications';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
+import * as Clipboard from 'expo-clipboard';
+import TopNavbar from '../components/navigation/TopNavbar';
+import { Input } from '../components/common/Input';
+import { useNotifications } from '../hooks/useNotifications';
 
 export const NotificationDemoScreen = () => {
   const {
@@ -150,26 +154,23 @@ export const NotificationDemoScreen = () => {
           </Text>
         </TouchableOpacity>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Notification Title:</Text>
-          <TextInput
-            style={styles.input}
-            value={notificationTitle}
-            onChangeText={setNotificationTitle}
-            placeholder="Enter notification title"
-          />
-        </View>
+        <Input
+          label="Notification Title"
+          value={notificationTitle}
+          onChangeText={setNotificationTitle}
+          placeholder="Enter notification title"
+          variant="outlined"
+        />
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Notification Body:</Text>
-          <TextInput
-            style={styles.input}
-            value={notificationBody}
-            onChangeText={setNotificationBody}
-            placeholder="Enter notification body"
-            multiline
-          />
-        </View>
+        <Input
+          label="Notification Body"
+          value={notificationBody}
+          onChangeText={setNotificationBody}
+          placeholder="Enter notification body"
+          multiline
+          numberOfLines={3}
+          variant="outlined"
+        />
 
         <TouchableOpacity
           style={styles.button}
@@ -185,16 +186,14 @@ export const NotificationDemoScreen = () => {
           <Text style={styles.buttonText}>Schedule Notification (5s)</Text>
         </TouchableOpacity>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Badge Count:</Text>
-          <TextInput
-            style={styles.input}
-            value={badgeCount}
-            onChangeText={setBadgeCountInput}
-            placeholder="Enter badge count"
-            keyboardType="numeric"
-          />
-        </View>
+        <Input
+          label="Badge Count"
+          value={badgeCount}
+          onChangeText={setBadgeCountInput}
+          placeholder="Enter badge count"
+          keyboardType="numeric"
+          variant="outlined"
+        />
 
         <TouchableOpacity
           style={styles.button}
@@ -273,21 +272,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 4,
   },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 6,
-    padding: 12,
-    fontSize: 16,
-  },
+
   button: {
     backgroundColor: '#2196F3',
     padding: 16,

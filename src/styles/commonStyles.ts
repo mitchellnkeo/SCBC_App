@@ -157,6 +157,43 @@ export const createCommonStyles = (theme: Theme) => StyleSheet.create({
     marginTop: 4,
   } as TextStyle,
 
+  helpText: {
+    color: theme.textSecondary,
+    fontSize: 14,
+    marginTop: 4,
+  } as TextStyle,
+
+  characterCount: {
+    color: theme.textTertiary,
+    fontSize: 12,
+    textAlign: 'right',
+    marginTop: 4,
+  } as TextStyle,
+
+  // Form layout helpers
+  formRow: {
+    flexDirection: 'row',
+    gap: 12,
+  } as ViewStyle,
+
+  formHalfWidth: {
+    flex: 1,
+  } as ViewStyle,
+
+  formSection: {
+    backgroundColor: theme.card,
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: theme.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: theme.border,
+  } as ViewStyle,
+
   // Section styles
   section: {
     marginBottom: 24,
