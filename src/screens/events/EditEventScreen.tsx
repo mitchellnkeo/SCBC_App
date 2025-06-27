@@ -299,27 +299,36 @@ const EditEventScreen: React.FC = () => {
             </FormSection>
 
             <FormSection title="Date & Time">
-              {/* Date Picker - Direct Calendar Selection */}
-              <View style={commonStyles.formRow}>
-                <Text style={commonStyles.inputLabel}>Date</Text>
+              {/* Date Selection */}
+              <View style={styles.dateFieldContainer}>
+                <Text style={styles.dateFieldLabel}>Event Date</Text>
                 <TouchableOpacity
                   onPress={openDatePicker}
-                  style={styles.dateButton}
+                  style={styles.dateField}
                 >
-                  <View style={styles.dateButtonContent}>
-                    <Text style={styles.dateText}>{formatFullDate(formData.date)}</Text>
-                    <Text style={styles.calendarIcon}>📅</Text>
-                  </View>
+                  <Text style={styles.dateFieldText}>
+                    {formatFullDate(formData.date)}
+                  </Text>
+                  <Text style={styles.dateFieldIcon}>📅</Text>
                 </TouchableOpacity>
+              </View>
                 
-                {/* Calendar Picker - Shows directly when tapped */}
-                {showDatePicker && (
-                  <View style={styles.datePickerOverlay}>
-                    <View style={styles.datePickerModal}>
-                      <View style={styles.datePickerHeader}>
-                        <Text style={styles.datePickerTitle}>Select Event Date</Text>
-                      </View>
-                      
+              {/* Calendar Modal */}
+              {showDatePicker && (
+                <View style={styles.datePickerOverlay}>
+                  <TouchableOpacity 
+                    style={styles.datePickerBackdrop}
+                    onPress={cancelDateSelection}
+                    activeOpacity={1}
+                  />
+                  <View style={styles.datePickerModal}>
+                    {/* Header Section */}
+                    <View style={styles.datePickerHeader}>
+                      <Text style={styles.datePickerTitle}>Select Event Date</Text>
+                    </View>
+                    
+                    {/* Picker Section with Consistent Background */}
+                    <View style={styles.datePickerContent}>
                       <DateTimePicker
                         value={tempDate}
                         mode="date"
@@ -328,30 +337,32 @@ const EditEventScreen: React.FC = () => {
                         minimumDate={new Date()}
                         style={styles.datePicker}
                       />
-                      
-                      {Platform.OS === 'ios' && (
-                        <View style={styles.datePickerButtons}>
-                          <Button
-                            title="Cancel"
-                            onPress={cancelDateSelection}
-                            variant="error"
-                            size="medium"
-                            style={{ flex: 1 }}
-                          />
-                          <Button
-                            title="Confirm"
-                            onPress={confirmDateSelection}
-                            variant="primary"
-                            size="medium"
-                            style={{ flex: 1, marginLeft: 12 }}
-                          />
-                        </View>
-                      )}
                     </View>
+                    
+                    {/* Buttons Section */}
+                    {Platform.OS === 'ios' && (
+                      <View style={styles.datePickerButtons}>
+                        <Button
+                          title="Cancel"
+                          onPress={cancelDateSelection}
+                          variant="secondary"
+                          size="medium"
+                          style={{ flex: 1 }}
+                        />
+                        <Button
+                          title="Confirm"
+                          onPress={confirmDateSelection}
+                          variant="primary"
+                          size="medium"
+                          style={{ flex: 1, marginLeft: 12 }}
+                        />
+                      </View>
+                    )}
                   </View>
-                )}
-              </View>
+                </View>
+              )}
 
+              {/* Time Selection */}
               <TimePicker
                 startTime={formData.startTime}
                 endTime={formData.endTime}
@@ -427,17 +438,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 24,
   },
-  dateButton: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    padding: 16,
-  },
-  dateButtonText: {
-    fontSize: 16,
-    color: '#1f2937',
-  },
+
   editNotice: {
     backgroundColor: '#dbeafe',
     borderLeftWidth: 4,
@@ -478,24 +479,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  datePickerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
 
-  dateButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dateText: {
-    fontSize: 16,
-    color: '#1f2937',
-  },
-  calendarIcon: {
-    fontSize: 16,
-    color: '#1f2937',
-    marginLeft: 8,
-  },
   datePickerOverlay: {
     position: 'absolute',
     top: 0,
@@ -503,6 +487,15 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 9999,
+    elevation: 9999,
+  },
+  datePickerBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   datePickerModal: {
     position: 'absolute',
@@ -512,29 +505,81 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    padding: 24,
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 24,
   },
   datePickerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
   },
   datePickerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1f2937',
+    textAlign: 'center',
+  },
+  datePickerContent: {
+    backgroundColor: 'white',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
   datePicker: {
     width: '100%',
     height: 300,
+    backgroundColor: 'white',
   },
   datePickerButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 16,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 40,
+    backgroundColor: 'white',
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
   },
-
+  dateFieldContainer: {
+    marginBottom: 20,
+  },
+  dateFieldLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  dateField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    padding: 16,
+    minHeight: 56,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  dateFieldText: {
+    fontSize: 16,
+    color: '#1f2937',
+    flex: 1,
+    fontWeight: '500',
+  },
+  dateFieldIcon: {
+    fontSize: 18,
+    color: '#6b7280',
+  },
 });
 
 export default EditEventScreen; 
