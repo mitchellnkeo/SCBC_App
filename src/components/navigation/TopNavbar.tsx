@@ -14,6 +14,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuthStore } from '../../stores/authStore';
 import { useTheme } from '../../contexts/ThemeContext';
 import ProfilePicture from '../common/ProfilePicture';
+import { Button } from '../common/Button';
 import { MainStackParamList } from '../../navigation/MainNavigator';
 
 type NavigationProp = StackNavigationProp<MainStackParamList>;
@@ -21,18 +22,59 @@ type NavigationProp = StackNavigationProp<MainStackParamList>;
 const { width: screenWidth } = Dimensions.get('window');
 const MENU_WIDTH = screenWidth * 0.75; // 75% of screen width
 
+interface ActionButton {
+  title: string;
+  onPress: () => void;
+  variant?: 'primary' | 'secondary' | 'success' | 'error' | 'warning';
+  loading?: boolean;
+  disabled?: boolean;
+  size?: 'small' | 'medium' | 'large';
+}
+
 interface TopNavbarProps {
   title?: string;
+  variant?: 'default' | 'modal' | 'back' | 'custom';
+  showBackButton?: boolean;
+  showMenu?: boolean;
+  showProfile?: boolean;
+  onBackPress?: () => void;
+  backButtonText?: string;
+  actionButton?: ActionButton;
+  leftAction?: {
+    text: string;
+    onPress: () => void;
+  };
+  rightAction?: {
+    text: string;
+    onPress: () => void;
+  };
 }
 
 const TopNavbar: React.FC<TopNavbarProps> = ({ 
-  title = 'Seattle Chinatown Book Club'
+  title = 'Seattle Chinatown Book Club',
+  variant = 'default',
+  showBackButton = false,
+  showMenu = true,
+  showProfile = true,
+  onBackPress,
+  backButtonText = '← Back',
+  actionButton,
+  leftAction,
+  rightAction,
 }) => {
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuthStore();
   const { theme } = useTheme();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [slideAnim] = useState(new Animated.Value(-MENU_WIDTH));
+
+  const handleBackPress = () => {
+    if (onBackPress) {
+      onBackPress();
+    } else {
+      navigation.goBack();
+    }
+  };
 
   const openMenu = () => {
     setIsMenuVisible(true);
@@ -137,8 +179,37 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
       fontSize: 18,
       fontWeight: 'bold',
       color: theme.text,
-      textAlign: 'center',
+      textAlign: variant === 'back' || variant === 'modal' ? 'center' : 'center',
       marginHorizontal: 12,
+    },
+    backButton: {
+      paddingHorizontal: 8,
+      paddingVertical: 8,
+      minWidth: 60,
+    },
+    backButtonText: {
+      fontSize: 16,
+      color: variant === 'modal' ? theme.textSecondary : theme.primary,
+      fontWeight: '500',
+    },
+    leftActionButton: {
+      paddingHorizontal: 8,
+      paddingVertical: 8,
+      minWidth: 60,
+    },
+    leftActionText: {
+      fontSize: 16,
+      color: theme.textSecondary,
+    },
+    rightActionButton: {
+      paddingHorizontal: 8,
+      paddingVertical: 8,
+      minWidth: 60,
+    },
+    rightActionText: {
+      fontSize: 16,
+      color: theme.primary,
+      fontWeight: '600',
     },
     modalOverlay: {
       flex: 1,
@@ -218,20 +289,101 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
     },
   });
 
+  const renderLeftContent = () => {
+    if (leftAction) {
+      return (
+        <TouchableOpacity
+          style={dynamicStyles.leftActionButton}
+          onPress={leftAction.onPress}
+          activeOpacity={0.7}
+        >
+          <Text style={dynamicStyles.leftActionText}>{leftAction.text}</Text>
+        </TouchableOpacity>
+      );
+    }
+    
+    if (showBackButton || variant === 'back' || variant === 'modal') {
+      return (
+        <TouchableOpacity
+          style={dynamicStyles.backButton}
+          onPress={handleBackPress}
+          activeOpacity={0.7}
+        >
+          <Text style={dynamicStyles.backButtonText}>
+            {variant === 'modal' ? '✕' : backButtonText}
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+    
+    if (showMenu) {
+      return (
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={openMenu}
+          activeOpacity={0.7}
+        >
+          <View style={dynamicStyles.hamburgerLine} />
+          <View style={dynamicStyles.hamburgerLine} />
+          <View style={dynamicStyles.hamburgerLine} />
+        </TouchableOpacity>
+      );
+    }
+    
+    return <View style={{ minWidth: 60 }} />;
+  };
+
+  const renderRightContent = () => {
+    if (actionButton) {
+      return (
+        <Button
+          title={actionButton.title}
+          onPress={actionButton.onPress}
+          variant={actionButton.variant || 'primary'}
+          size={actionButton.size || 'small'}
+          loading={actionButton.loading}
+          disabled={actionButton.disabled}
+        />
+      );
+    }
+    
+    if (rightAction) {
+      return (
+        <TouchableOpacity
+          style={dynamicStyles.rightActionButton}
+          onPress={rightAction.onPress}
+          activeOpacity={0.7}
+        >
+          <Text style={dynamicStyles.rightActionText}>{rightAction.text}</Text>
+        </TouchableOpacity>
+      );
+    }
+    
+    if (showProfile && user) {
+      return (
+        <TouchableOpacity
+          style={styles.profileButton}
+          onPress={handleProfilePress}
+          activeOpacity={0.7}
+        >
+          <ProfilePicture
+            imageUrl={user?.profilePicture}
+            displayName={user?.displayName || 'User'}
+            size="small"
+            showBorder
+          />
+        </TouchableOpacity>
+      );
+    }
+    
+    return <View style={{ minWidth: 60 }} />;
+  };
+
   return (
     <>
       <SafeAreaView style={dynamicStyles.safeArea}>
         <View style={dynamicStyles.navbar}>
-          {/* Hamburger Menu Button */}
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={openMenu}
-            activeOpacity={0.7}
-          >
-            <View style={dynamicStyles.hamburgerLine} />
-            <View style={dynamicStyles.hamburgerLine} />
-            <View style={dynamicStyles.hamburgerLine} />
-          </TouchableOpacity>
+          {renderLeftContent()}
 
           {/* Title */}
           <Text 
@@ -243,131 +395,121 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
             {title}
           </Text>
 
-          {/* Profile Picture */}
-          <TouchableOpacity
-            style={styles.profileButton}
-            onPress={handleProfilePress}
-            activeOpacity={0.7}
-          >
-            <ProfilePicture
-              imageUrl={user?.profilePicture}
-              displayName={user?.displayName || 'User'}
-              size="small"
-              showBorder
-            />
-          </TouchableOpacity>
+          {renderRightContent()}
         </View>
       </SafeAreaView>
 
-      {/* Side Menu Modal */}
-      <Modal
-        visible={isMenuVisible}
-        transparent
-        animationType="none"
-        onRequestClose={closeMenu}
-      >
-        <View style={dynamicStyles.modalOverlay}>
-          {/* Backdrop */}
-          <TouchableOpacity
-            style={dynamicStyles.backdrop}
-            onPress={closeMenu}
-            activeOpacity={1}
-          />
+      {/* Side Menu Modal - Only show if menu is enabled */}
+      {showMenu && (
+        <Modal
+          visible={isMenuVisible}
+          transparent
+          animationType="none"
+          onRequestClose={closeMenu}
+        >
+          <View style={dynamicStyles.modalOverlay}>
+            {/* Backdrop */}
+            <TouchableOpacity
+              style={dynamicStyles.backdrop}
+              onPress={closeMenu}
+              activeOpacity={1}
+            />
 
-          {/* Menu Content */}
-          <Animated.View
-            style={[
-              dynamicStyles.menuContainer,
-              {
-                transform: [{ translateX: slideAnim }],
-              },
-            ]}
-          >
-            <SafeAreaView style={styles.menuSafeArea}>
-              {/* Menu Header */}
-              <View style={dynamicStyles.menuHeader}>
-                <Text style={dynamicStyles.menuTitle}>Menu</Text>
-                <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={closeMenu}
-                  activeOpacity={0.7}
-                >
-                  <Text style={dynamicStyles.closeButtonText}>✕</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Menu Items */}
-              <View style={styles.menuItems}>
-                {menuItems.map((item, index) => (
+            {/* Menu Content */}
+            <Animated.View
+              style={[
+                dynamicStyles.menuContainer,
+                {
+                  transform: [{ translateX: slideAnim }],
+                },
+              ]}
+            >
+              <SafeAreaView style={styles.menuSafeArea}>
+                {/* Menu Header */}
+                <View style={dynamicStyles.menuHeader}>
+                  <Text style={dynamicStyles.menuTitle}>Menu</Text>
                   <TouchableOpacity
-                    key={index}
-                    style={dynamicStyles.menuItem}
-                    onPress={item.onPress}
+                    style={styles.closeButton}
+                    onPress={closeMenu}
                     activeOpacity={0.7}
                   >
-                    <Text style={dynamicStyles.menuItemText}>{item.title}</Text>
+                    <Text style={dynamicStyles.closeButtonText}>✕</Text>
                   </TouchableOpacity>
-                ))}
-              </View>
+                </View>
 
-              {/* User Info at Bottom */}
-              {user && (
-                <View style={dynamicStyles.userInfoSection}>
-                  <View style={dynamicStyles.userInfo}>
-                    <ProfilePicture
-                      imageUrl={user.profilePicture}
-                      displayName={user.displayName}
-                      size="medium"
-                      showBorder
-                    />
-                    <View style={styles.userDetails}>
-                      <Text style={dynamicStyles.userName}>{user.displayName}</Text>
-                      <Text style={dynamicStyles.userEmail}>{user.email}</Text>
+                {/* Menu Items */}
+                <View style={styles.menuItems}>
+                  {menuItems.map((item, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={dynamicStyles.menuItem}
+                      onPress={item.onPress}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={dynamicStyles.menuItemText}>{item.title}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                {/* User Info at Bottom */}
+                {user && (
+                  <View style={dynamicStyles.userInfoSection}>
+                    <View style={dynamicStyles.userInfo}>
+                      <ProfilePicture
+                        imageUrl={user.profilePicture}
+                        displayName={user.displayName}
+                        size="medium"
+                        showBorder
+                      />
+                      <View style={styles.userDetails}>
+                        <Text style={dynamicStyles.userName}>{user.displayName}</Text>
+                        <Text style={dynamicStyles.userEmail}>{user.email}</Text>
+                      </View>
                     </View>
-                  </View>
-                  
-                  {/* User Action Buttons */}
-                  <View style={styles.userActions}>
-                    <TouchableOpacity
-                      style={styles.userActionButton}
-                      onPress={() => handleMenuItemPress(() => {
-                        if (user) {
-                          navigation.navigate('UserProfile', { userId: user.id });
-                        }
-                      })}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.userActionText}>My Profile</Text>
-                    </TouchableOpacity>
                     
-                    <TouchableOpacity
-                      style={styles.userActionButton}
-                      onPress={() => handleMenuItemPress(() => {
-                        navigation.navigate('Settings');
-                      })}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.userActionText}>Settings</Text>
-                    </TouchableOpacity>
-                    
-                    {user.role === 'admin' && (
+                    {/* User Action Buttons */}
+                    <View style={styles.userActions}>
                       <TouchableOpacity
                         style={styles.userActionButton}
                         onPress={() => handleMenuItemPress(() => {
-                          navigation.navigate('Admin');
+                          if (user) {
+                            navigation.navigate('UserProfile', { userId: user.id });
+                          }
                         })}
                         activeOpacity={0.7}
                       >
-                        <Text style={styles.userActionText}>Admin Panel</Text>
+                        <Text style={styles.userActionText}>My Profile</Text>
                       </TouchableOpacity>
-                    )}
+                      
+                      <TouchableOpacity
+                        style={styles.userActionButton}
+                        onPress={() => handleMenuItemPress(() => {
+                          navigation.navigate('Settings');
+                        })}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.userActionText}>Settings</Text>
+                      </TouchableOpacity>
+                      
+                      {user.role === 'admin' && (
+                        <TouchableOpacity
+                          style={styles.userActionButton}
+                          onPress={() => handleMenuItemPress(() => {
+                            navigation.navigate('Admin');
+                          })}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.userActionText}>Admin Panel</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
                   </View>
-                </View>
-              )}
-            </SafeAreaView>
-          </Animated.View>
-        </View>
-      </Modal>
+                )}
+              </SafeAreaView>
+            </Animated.View>
+          </View>
+        </Modal>
+      )}
     </>
   );
 };

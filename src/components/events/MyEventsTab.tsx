@@ -21,6 +21,7 @@ import { formatPSTDate, getEventStatus as getTimezoneEventStatus } from '../../u
 import { formatTimeRange } from '../../utils/dateTimeUtils';
 import { Button } from '../common/Button';
 import EmptyState from '../common/EmptyState';
+import ProfilePicture from '../common/ProfilePicture';
 
 const MyEventsTab: React.FC = () => {
   const navigation = useNavigation<NavigationProp<MainStackParamList>>();
@@ -218,22 +219,8 @@ const MyEventsTab: React.FC = () => {
       alignItems: 'center',
       justifyContent: 'space-between',
     },
-    hostAvatar: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      marginRight: 8,
-    },
-    hostAvatarPlaceholder: {
-      backgroundColor: theme.primary,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    hostInitial: {
-      color: 'white',
-      fontWeight: 'bold',
-      fontSize: 14,
-    },
+
+
     hostText: {
       fontSize: 14,
       color: theme.textTertiary,
@@ -402,12 +389,7 @@ const MyEventsTab: React.FC = () => {
       alignItems: 'center',
       flex: 1,
     },
-    listHostAvatar: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      marginRight: 6,
-    },
+
     listHostText: {
       fontSize: 12,
       color: theme.textTertiary,
@@ -510,18 +492,11 @@ const MyEventsTab: React.FC = () => {
         {/* Host and Status */}
         <View style={dynamicStyles.listHost}>
           <View style={dynamicStyles.hostInfo}>
-            {event.hostProfilePicture ? (
-              <Image
-                source={{ uri: event.hostProfilePicture }}
-                style={dynamicStyles.listHostAvatar}
-              />
-            ) : (
-              <View style={[dynamicStyles.listHostAvatar, dynamicStyles.hostAvatarPlaceholder]}>
-                <Text style={[dynamicStyles.hostInitial, { fontSize: 10 }]}>
-                  {event.hostName.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-            )}
+            <ProfilePicture
+              imageUrl={event.hostProfilePicture}
+              displayName={event.hostName}
+              size="small"
+            />
             <Text style={dynamicStyles.listHostText}>
               {role === 'hosting' ? 'You are hosting' : event.hostName}
             </Text>
@@ -600,18 +575,11 @@ const MyEventsTab: React.FC = () => {
           {/* Host Info */}
           <View style={dynamicStyles.hostRow}>
             <View style={dynamicStyles.row}>
-              {event.hostProfilePicture ? (
-                <Image
-                  source={{ uri: event.hostProfilePicture }}
-                  style={dynamicStyles.hostAvatar}
-                />
-              ) : (
-                <View style={[dynamicStyles.hostAvatar, dynamicStyles.hostAvatarPlaceholder]}>
-                  <Text style={dynamicStyles.hostInitial}>
-                    {event.hostName.charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-              )}
+              <ProfilePicture
+                imageUrl={event.hostProfilePicture}
+                displayName={event.hostName}
+                size="small"
+              />
               <Text style={dynamicStyles.hostText}>
                 {role === 'hosting' ? 'You are hosting' : `Hosted by ${event.hostName}`}
               </Text>

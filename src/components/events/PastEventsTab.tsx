@@ -20,6 +20,7 @@ import { BookClubEvent } from '../../types';
 import { MainStackParamList } from '../../navigation/MainNavigator';
 import { formatPSTDate, getEventStatus } from '../../utils/timezone';
 import { formatTimeRange } from '../../utils/dateTimeUtils';
+import ProfilePicture from '../common/ProfilePicture';
 
 const PastEventsTab: React.FC = () => {
   const navigation = useNavigation<NavigationProp<MainStackParamList>>();
@@ -226,31 +227,7 @@ const PastEventsTab: React.FC = () => {
       alignItems: 'center',
       justifyContent: 'space-between',
     },
-    hostAvatar: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      marginRight: 8,
-    },
-    hostAvatarSmall: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      marginRight: 6,
-    },
-    hostAvatarPlaceholder: {
-      backgroundColor: theme.primary,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    hostInitial: {
-      color: 'white',
-      fontWeight: 'bold',
-      fontSize: 14,
-    },
-    hostInitialSmall: {
-      fontSize: 10,
-    },
+
     hostText: {
       fontSize: 14,
       color: theme.textTertiary,
@@ -306,15 +283,11 @@ const PastEventsTab: React.FC = () => {
         </View>
         
         <View style={[dynamicStyles.row, { marginLeft: 12 }]}>
-          {event.hostProfilePicture ? (
-            <Image source={{ uri: event.hostProfilePicture }} style={dynamicStyles.hostAvatarSmall} />
-          ) : (
-            <View style={[dynamicStyles.hostAvatarSmall, dynamicStyles.hostAvatarPlaceholder]}>
-              <Text style={[dynamicStyles.hostInitial, dynamicStyles.hostInitialSmall]}>
-                {event.hostName.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-          )}
+          <ProfilePicture
+            imageUrl={event.hostProfilePicture}
+            displayName={event.hostName}
+            size="small"
+          />
           <View style={dynamicStyles.row}>
             <View style={dynamicStyles.statusDot} />
             <Text style={dynamicStyles.statusText}>Completed</Text>
@@ -373,15 +346,11 @@ const PastEventsTab: React.FC = () => {
         {/* Host and Status */}
         <View style={dynamicStyles.hostRow}>
           <View style={dynamicStyles.row}>
-            {event.hostProfilePicture ? (
-              <Image source={{ uri: event.hostProfilePicture }} style={dynamicStyles.hostAvatar} />
-            ) : (
-              <View style={[dynamicStyles.hostAvatar, dynamicStyles.hostAvatarPlaceholder]}>
-                <Text style={dynamicStyles.hostInitial}>
-                  {event.hostName.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-            )}
+            <ProfilePicture
+              imageUrl={event.hostProfilePicture}
+              displayName={event.hostName}
+              size="small"
+            />
             <Text style={dynamicStyles.hostText}>Hosted by {event.hostName}</Text>
           </View>
           

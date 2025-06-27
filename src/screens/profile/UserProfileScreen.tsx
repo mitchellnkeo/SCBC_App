@@ -23,6 +23,7 @@ import ProfilePicture from '../../components/common/ProfilePicture';
 import { handleError } from '../../utils/errorHandler';
 import EventCard from '../../components/common/EventCard';
 import { useTheme } from '../../contexts/ThemeContext';
+import TopNavbar from '../../components/navigation/TopNavbar';
 
 type UserProfileScreenNavigationProp = StackNavigationProp<MainStackParamList>;
 type UserProfileScreenRouteProp = RouteProp<MainStackParamList, 'UserProfile'>;
@@ -194,14 +195,14 @@ const UserProfileScreen: React.FC = () => {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity 
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Text style={styles.backButtonText}>← Back</Text>
-          </TouchableOpacity>
-        </View>
+        <TopNavbar
+          title="Profile"
+          variant="back"
+          showMenu={false}
+          showProfile={false}
+          onBackPress={() => navigation.goBack()}
+          backButtonText="← Back"
+        />
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading profile...</Text>
         </View>
@@ -212,14 +213,14 @@ const UserProfileScreen: React.FC = () => {
   if (!profileUser) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity 
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Text style={styles.backButtonText}>← Back</Text>
-          </TouchableOpacity>
-        </View>
+        <TopNavbar
+          title="Profile"
+          variant="back"
+          showMenu={false}
+          showProfile={false}
+          onBackPress={() => navigation.goBack()}
+          backButtonText="← Back"
+        />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Profile not found</Text>
         </View>
@@ -229,26 +230,18 @@ const UserProfileScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {isOwnProfile ? 'My Profile' : 'Profile'}
-        </Text>
-        {isOwnProfile && (
-          <TouchableOpacity 
-            onPress={() => navigation.navigate('EditProfile')}
-            style={styles.editButton}
-          >
-            <Text style={styles.editButtonText}>Edit</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      <TopNavbar
+        title={isOwnProfile ? 'My Profile' : 'Profile'}
+        variant="back"
+        showMenu={false}
+        showProfile={false}
+        onBackPress={() => navigation.goBack()}
+        backButtonText="← Back"
+        rightAction={isOwnProfile ? {
+          text: 'Edit',
+          onPress: () => navigation.navigate('EditProfile')
+        } : undefined}
+      />
 
       <ScrollView 
         style={styles.scrollView}
@@ -334,41 +327,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     backgroundColor: theme.background,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: theme.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
-  },
-  backButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    minWidth: 60,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: theme.primary,
-    fontWeight: '500',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.text,
-  },
-  editButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: theme.primary,
-    borderRadius: 8,
-  },
-  editButtonText: {
-    color: 'white',
-    fontWeight: '600',
-  },
+
   scrollView: {
     flex: 1,
   },

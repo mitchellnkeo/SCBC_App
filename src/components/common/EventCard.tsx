@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { MainStackParamList } from '../../navigation/MainNavigator';
 import { formatDate, formatTimeRange } from '../../utils/dateTimeUtils';
+import ProfilePicture from './ProfilePicture';
 
 type NavigationProp = StackNavigationProp<MainStackParamList>;
 
@@ -30,8 +31,6 @@ const EventCard: React.FC<EventCardProps> = ({
   const handlePress = () => {
     navigation.navigate('EventDetails', { eventId: event.id });
   };
-
-
 
   const getStatusColor = (status: string): string => {
     switch (status) {
@@ -102,15 +101,11 @@ const EventCard: React.FC<EventCardProps> = ({
 
         {showHost && (
           <View style={styles.hostContainer}>
-            {event.hostProfilePicture ? (
-              <Image source={{ uri: event.hostProfilePicture }} style={styles.hostAvatar} />
-            ) : (
-              <View style={[styles.hostAvatar, styles.defaultAvatar]}>
-                <Text style={styles.avatarText}>
-                  {event.hostName.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-            )}
+            <ProfilePicture
+              imageUrl={event.hostProfilePicture}
+              displayName={event.hostName}
+              size="small"
+            />
             <Text style={styles.hostName}>Hosted by {event.hostName}</Text>
           </View>
         )}
@@ -217,22 +212,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  hostAvatar: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    marginRight: 8,
-  },
-  defaultAvatar: {
-    backgroundColor: '#ec4899',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
+
   hostName: {
     fontSize: 12,
     color: '#6b7280',

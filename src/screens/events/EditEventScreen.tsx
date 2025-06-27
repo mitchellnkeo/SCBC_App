@@ -25,6 +25,7 @@ import { Input } from '../../components/common/Input';
 import { Form, FormSection } from '../../components/common/Form';
 import { createCommonStyles } from '../../styles/commonStyles';
 import { useTheme } from '../../contexts/ThemeContext';
+import TopNavbar from '../../components/navigation/TopNavbar';
 
 type RouteParams = {
   EditEvent: {
@@ -241,26 +242,21 @@ const EditEventScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()}
-          style={styles.headerButton}
-        >
-          <Text style={styles.headerButtonText}>Cancel</Text>
-        </TouchableOpacity>
-        
-        <Text style={styles.headerTitle}>Edit Event</Text>
-        
-        <Button
-          title={isSubmitting ? 'Saving...' : 'Save'}
-          onPress={handleSubmit}
-          disabled={isSubmitting}
-          loading={isSubmitting}
-          variant="primary"
-          size="small"
-        />
-      </View>
+      <TopNavbar
+        title="Edit Event"
+        variant="modal"
+        showMenu={false}
+        showProfile={false}
+        onBackPress={() => navigation.goBack()}
+        actionButton={{
+          title: isSubmitting ? 'Saving...' : 'Save',
+          onPress: handleSubmit,
+          disabled: isSubmitting,
+          loading: isSubmitting,
+          variant: 'primary',
+          size: 'small'
+        }}
+      />
 
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -421,31 +417,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f9fafb',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  headerButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    minWidth: 60,
-  },
-  headerButtonText: {
-    fontSize: 16,
-    color: '#6b7280',
-  },
-
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1f2937',
   },
   keyboardAvoidingView: {
     flex: 1,

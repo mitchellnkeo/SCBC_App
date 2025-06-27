@@ -10,12 +10,12 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Keyboard,
+  SafeAreaView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
-import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
+import { useEventStore } from '../../stores/eventStore';
 import { CreateEventFormData } from '../../types';
 import ImagePicker from '../../components/common/ImagePicker';
 import TimePicker from '../../components/common/TimePicker';
@@ -23,6 +23,7 @@ import { formatFullDate } from '../../utils/dateTimeUtils';
 import { Button } from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import { Form } from '../../components/common/Form';
+import TopNavbar from '../../components/navigation/TopNavbar';
 
 const CreateEventScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -172,29 +173,23 @@ const CreateEventScreen: React.FC = () => {
     setShowDatePicker(true);
   };
 
-
-
   return (
     <SafeAreaView style={styles.container} className="flex-1 bg-gray-50">
-      {/* Header */}
-      <View style={styles.header} className="bg-white border-b border-gray-200 px-4 py-4 flex-row items-center">
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.closeButton}
-          className="mr-4 p-2"
-        >
-          <Text style={styles.closeButtonText} className="text-pink-500 text-lg">✕</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} className="text-xl font-bold text-gray-900 flex-1">Create Event</Text>
-        <Button
-          title={isCreating ? 'Submitting...' : 'Submit'}
-          onPress={handleSubmit}
-          disabled={isCreating}
-          loading={isCreating}
-          variant="primary"
-          size="medium"
-        />
-      </View>
+      <TopNavbar
+        title="Create Event"
+        variant="modal"
+        showMenu={false}
+        showProfile={false}
+        onBackPress={() => navigation.goBack()}
+        actionButton={{
+          title: isCreating ? 'Submitting...' : 'Submit',
+          onPress: handleSubmit,
+          disabled: isCreating,
+          loading: isCreating,
+          variant: 'primary',
+          size: 'medium'
+        }}
+      />
 
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -365,30 +360,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f9fafb', // gray-50
   },
-  header: {
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb', // gray-200
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  closeButton: {
-    marginRight: 16,
-    padding: 8,
-  },
-  closeButtonText: {
-    color: '#ec4899', // pink-500
-    fontSize: 18,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111827', // gray-900
-    flex: 1,
-  },
-
   keyboardAvoidingView: {
     flex: 1,
   },
