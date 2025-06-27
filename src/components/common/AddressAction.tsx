@@ -6,11 +6,12 @@ import {
   Alert,
   Linking,
   StyleSheet,
-  Modal,
+
   Platform,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Button } from './Button';
+import { CenterModal } from './Modal';
 
 interface AddressActionProps {
   address: string;
@@ -84,81 +85,58 @@ const AddressAction: React.FC<AddressActionProps> = ({
         {children}
       </TouchableOpacity>
 
-      <Modal
+      <CenterModal
         visible={showModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowModal(false)}
+        onClose={() => setShowModal(false)}
+        maxWidth={320}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Open Address</Text>
-            <Text style={styles.addressText} numberOfLines={2}>
-              {address}
-            </Text>
+        <Text style={styles.modalTitle}>Open Address</Text>
+        <Text style={styles.addressText} numberOfLines={2}>
+          {address}
+        </Text>
 
-            <View style={styles.buttonContainer}>
-              <Button
-                title="Google Maps"
-                onPress={handleGoogleMaps}
-                variant="outline"
-                size="large"
-                fullWidth
-                style={{ marginBottom: 8 }}
-              />
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Google Maps"
+            onPress={handleGoogleMaps}
+            variant="outline"
+            size="large"
+            fullWidth
+            style={{ marginBottom: 8 }}
+          />
 
-              <Button
-                title="Apple Maps"
-                onPress={handleAppleMaps}
-                variant="outline"
-                size="large"
-                fullWidth
-                style={{ marginBottom: 8 }}
-              />
+          <Button
+            title="Apple Maps"
+            onPress={handleAppleMaps}
+            variant="outline"
+            size="large"
+            fullWidth
+            style={{ marginBottom: 8 }}
+          />
 
-              <Button
-                title="Copy Address"
-                onPress={handleCopyAddress}
-                variant="outline"
-                size="large"
-                fullWidth
-              />
-            </View>
-
-            <Button
-              title="Cancel"
-              onPress={() => setShowModal(false)}
-              variant="secondary"
-              size="large"
-              fullWidth
-            />
-          </View>
+          <Button
+            title="Copy Address"
+            onPress={handleCopyAddress}
+            variant="outline"
+            size="large"
+            fullWidth
+          />
         </View>
-      </Modal>
+
+        <Button
+          title="Cancel"
+          onPress={() => setShowModal(false)}
+          variant="secondary"
+          size="large"
+          fullWidth
+        />
+      </CenterModal>
     </>
   );
 };
 
 const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 24,
-    width: '100%',
-    maxWidth: 320,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
+
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',

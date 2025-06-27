@@ -18,6 +18,8 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useAuthStore } from '../../stores/authStore';
 import { whatsappService } from '../../services/whatsappService';
 import LoadingState from '../../components/common/LoadingState';
+import { InfoCard } from '../../components/common/Card';
+import { CenterModal } from '../../components/common/Modal';
 
 const WhatsAppCommunityScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -257,25 +259,7 @@ const WhatsAppCommunityScreen: React.FC = () => {
       fontWeight: '600',
     },
 
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: theme.overlay,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    modalContainer: {
-      backgroundColor: theme.surface,
-      borderRadius: 16,
-      padding: 24,
-      marginHorizontal: 20,
-      width: '90%',
-      maxWidth: 400,
-      shadowColor: theme.shadow,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.25,
-      shadowRadius: 12,
-      elevation: 8,
-    },
+
     modalTitle: {
       fontSize: 20,
       fontWeight: 'bold',
@@ -403,51 +387,45 @@ const WhatsAppCommunityScreen: React.FC = () => {
         )}
       </ScrollView>
 
-      <Modal
+      <CenterModal
         visible={isEditModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={handleCancelEdit}
+        onClose={handleCancelEdit}
       >
-        <View style={dynamicStyles.modalOverlay}>
-          <View style={dynamicStyles.modalContainer}>
-            <Text style={dynamicStyles.modalTitle}>Edit WhatsApp Community Link</Text>
-            
-            <Text style={dynamicStyles.label}>WhatsApp Invite Link</Text>
-            <TextInput
-              style={dynamicStyles.textInput}
-              value={editLink}
-              onChangeText={setEditLink}
-              placeholder="https://chat.whatsapp.com/..."
-              placeholderTextColor={theme.textTertiary}
-              autoCapitalize="none"
-              keyboardType="url"
-            />
+        <Text style={dynamicStyles.modalTitle}>Edit WhatsApp Community Link</Text>
+        
+        <Text style={dynamicStyles.label}>WhatsApp Invite Link</Text>
+        <TextInput
+          style={dynamicStyles.textInput}
+          value={editLink}
+          onChangeText={setEditLink}
+          placeholder="https://chat.whatsapp.com/..."
+          placeholderTextColor={theme.textTertiary}
+          autoCapitalize="none"
+          keyboardType="url"
+        />
 
-            <View style={dynamicStyles.modalButtons}>
-              <TouchableOpacity
-                style={[dynamicStyles.modalButton, dynamicStyles.cancelButton]}
-                onPress={handleCancelEdit}
-                disabled={isSaving}
-              >
-                <Text style={dynamicStyles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[dynamicStyles.modalButton, dynamicStyles.saveButton]}
-                onPress={handleSaveEdit}
-                disabled={isSaving}
-              >
-                {isSaving ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <Text style={dynamicStyles.saveButtonText}>Save</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
+        <View style={dynamicStyles.modalButtons}>
+          <TouchableOpacity
+            style={[dynamicStyles.modalButton, dynamicStyles.cancelButton]}
+            onPress={handleCancelEdit}
+            disabled={isSaving}
+          >
+            <Text style={dynamicStyles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[dynamicStyles.modalButton, dynamicStyles.saveButton]}
+            onPress={handleSaveEdit}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text style={dynamicStyles.saveButtonText}>Save</Text>
+            )}
+          </TouchableOpacity>
         </View>
-      </Modal>
+      </CenterModal>
     </SafeAreaView>
   );
 };

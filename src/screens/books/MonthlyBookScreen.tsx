@@ -21,6 +21,8 @@ import { monthlyBookService, MonthlyBook } from '../../services/monthlyBookServi
 import { useAuthStore } from '../../stores/authStore';
 import { useTheme } from '../../contexts/ThemeContext';
 import LoadingState from '../../components/common/LoadingState';
+import { InfoCard } from '../../components/common/Card';
+import { CenterModal } from '../../components/common/Modal';
 
 type NavigationProp = StackNavigationProp<MainStackParamList>;
 
@@ -352,19 +354,7 @@ const MonthlyBookScreen: React.FC = () => {
       color: theme.text,
       fontWeight: '600',
     },
-    selectionCard: {
-      backgroundColor: theme.card,
-      borderRadius: 16,
-      padding: 24,
-      marginBottom: 20,
-      shadowColor: theme.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 3,
-      borderWidth: 1,
-      borderColor: theme.border,
-    },
+
     selectionTitle: {
       fontSize: 20,
       fontWeight: 'bold',
@@ -510,20 +500,7 @@ const MonthlyBookScreen: React.FC = () => {
       fontSize: 14,
       fontWeight: '600',
     },
-    // Meeting cards
-    meetingCard: {
-      backgroundColor: theme.card,
-      borderRadius: 16,
-      padding: 20,
-      marginBottom: 16,
-      shadowColor: theme.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 3,
-      borderWidth: 1,
-      borderColor: theme.border,
-    },
+
     meetingHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -576,20 +553,7 @@ const MonthlyBookScreen: React.FC = () => {
       fontStyle: 'italic',
       textAlign: 'center',
     },
-    // Modal styles
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    modalContent: {
-      backgroundColor: theme.card,
-      borderRadius: 16,
-      padding: 24,
-      width: '90%',
-      maxWidth: 400,
-    },
+
     modalTitle: {
       fontSize: 20,
       fontWeight: 'bold',
@@ -750,10 +714,10 @@ const MonthlyBookScreen: React.FC = () => {
         </View>
 
         {/* Why We Selected This Book */}
-        <View style={dynamicStyles.selectionCard}>
+        <InfoCard>
           <Text style={dynamicStyles.selectionTitle}>Why We Selected This Book</Text>
           <Text style={dynamicStyles.selectionText}>{currentBook.whySelected}</Text>
-        </View>
+        </InfoCard>
 
         {/* Discussion Sheet Button */}
         <TouchableOpacity
@@ -773,7 +737,7 @@ const MonthlyBookScreen: React.FC = () => {
         </TouchableOpacity>
 
         {/* In-Person Meeting Details */}
-        <View style={dynamicStyles.meetingCard}>
+        <InfoCard>
           <View style={dynamicStyles.meetingHeader}>
             <Text style={dynamicStyles.meetingTitle}>In-Person Meeting Details</Text>
             {user?.role === 'admin' && (
@@ -814,10 +778,10 @@ const MonthlyBookScreen: React.FC = () => {
               {user?.role === 'admin' ? 'No in-person meeting details set. Tap Edit to add details.' : 'In-person meeting details will be announced soon.'}
             </Text>
           )}
-        </View>
+        </InfoCard>
 
         {/* Virtual Meeting Details */}
-        <View style={dynamicStyles.meetingCard}>
+        <InfoCard>
           <View style={dynamicStyles.meetingHeader}>
             <Text style={dynamicStyles.meetingTitle}>Virtual Meeting Details</Text>
             {user?.role === 'admin' && (
@@ -860,17 +824,13 @@ const MonthlyBookScreen: React.FC = () => {
               {user?.role === 'admin' ? 'No virtual meeting details set. Tap Edit to add details.' : 'Virtual meeting details will be announced soon.'}
             </Text>
           )}
-        </View>
+        </InfoCard>
 
         {/* Edit Meeting Modal */}
-        <Modal
+        <CenterModal
           visible={editingMeeting !== null}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={handleMeetingCancel}
+          onClose={handleMeetingCancel}
         >
-          <View style={dynamicStyles.modalOverlay}>
-            <View style={dynamicStyles.modalContent}>
               <Text style={dynamicStyles.modalTitle}>
                 {editingMeeting === 'inPerson' ? 'Edit In-Person Meeting' : 'Edit Virtual Meeting'}
               </Text>
@@ -978,9 +938,7 @@ const MonthlyBookScreen: React.FC = () => {
                   <Text style={[dynamicStyles.modalButtonText, dynamicStyles.saveButtonText]}>Save</Text>
                 </TouchableOpacity>
               </View>
-            </View>
-          </View>
-        </Modal>
+        </CenterModal>
 
         <View style={dynamicStyles.bottomSpacer} />
       </ScrollView>

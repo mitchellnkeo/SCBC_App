@@ -6,6 +6,7 @@ import { useAuthStore } from '../../stores/authStore';
 import type { MainStackParamList } from '../../navigation/MainNavigator';
 import ProfilePicture from '../../components/common/ProfilePicture';
 import ProfileSkeleton from '../../components/common/ProfileSkeleton';
+import { ProfileCard, ListCard } from '../../components/common/Card';
 
 type ProfileScreenNavigationProp = StackNavigationProp<MainStackParamList>;
 
@@ -49,7 +50,7 @@ const ProfileScreen: React.FC = () => {
       {/* User Information */}
       {user && (
         <View style={styles.userInfoSection}>
-          <View style={styles.userCard}>
+          <ProfileCard>
             <View style={styles.userHeader}>
               <ProfilePicture
                 imageUrl={user.profilePicture}
@@ -113,41 +114,42 @@ const ProfileScreen: React.FC = () => {
             >
               <Text style={styles.viewProfileButtonText}>View My Profile</Text>
             </TouchableOpacity>
-          </View>
+          </ProfileCard>
         </View>
       )}
       
       {/* Profile Actions */}
       <View style={styles.actionsSection}>
-        <TouchableOpacity style={styles.actionItem}>
-          <Text style={styles.actionText}>Reading History</Text>
-        </TouchableOpacity>
+        <ListCard>
+          <TouchableOpacity>
+            <Text style={styles.actionText}>Reading History</Text>
+          </TouchableOpacity>
+        </ListCard>
         
-        <TouchableOpacity 
-          style={styles.actionItem}
-          onPress={() => navigation.navigate('Settings')}
-        >
-          <Text style={styles.actionText}>Settings</Text>
-        </TouchableOpacity>
+        <ListCard>
+          <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+            <Text style={styles.actionText}>Settings</Text>
+          </TouchableOpacity>
+        </ListCard>
         
-        <TouchableOpacity style={styles.actionItem}>
-          <Text style={styles.actionText}>My Books</Text>
-        </TouchableOpacity>
+        <ListCard>
+          <TouchableOpacity>
+            <Text style={styles.actionText}>My Books</Text>
+          </TouchableOpacity>
+        </ListCard>
         
-        <TouchableOpacity 
-          style={styles.actionItem}
-          onPress={() => navigation.navigate('EditProfile')}
-        >
-          <Text style={styles.actionText}>Edit Profile</Text>
-        </TouchableOpacity>
+        <ListCard>
+          <TouchableOpacity onPress={() => navigation.navigate('EditProfile')}>
+            <Text style={styles.actionText}>Edit Profile</Text>
+          </TouchableOpacity>
+        </ListCard>
         
-        <TouchableOpacity 
-          style={styles.actionItem}
-          onPress={() => navigation.navigate('NotificationDemo')}
-        >
-          <Text style={styles.actionText}>Push Notifications</Text>
-          <Text style={styles.actionSubtext}>Test notification features</Text>
-        </TouchableOpacity>
+        <ListCard>
+          <TouchableOpacity onPress={() => navigation.navigate('NotificationDemo')}>
+            <Text style={styles.actionText}>Push Notifications</Text>
+            <Text style={styles.actionSubtext}>Test notification features</Text>
+          </TouchableOpacity>
+        </ListCard>
       </View>
       
       {/* Logout Button */}
@@ -187,16 +189,7 @@ const styles = StyleSheet.create({
   userInfoSection: {
     marginBottom: 32,
   },
-  userCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
+
   userHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -260,17 +253,7 @@ const styles = StyleSheet.create({
   actionsSection: {
     flex: 1,
   },
-  actionItem: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
+
   actionText: {
     fontSize: 16,
     fontWeight: '600',

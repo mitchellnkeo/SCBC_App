@@ -7,10 +7,10 @@ import {
   TouchableOpacity, 
   Alert, 
   TextInput,
-  Modal,
+
   RefreshControl,
   StyleSheet,
-  KeyboardAvoidingView,
+
   Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,6 +20,7 @@ import { BookClubEvent, ApprovalFormData } from '../../types';
 import { format } from 'date-fns';
 import AddressAction from '../../components/common/AddressAction';
 import { Button } from '../../components/common/Button';
+import { BottomSheetModal } from '../../components/common/Modal';
 
 const PendingEventsScreen: React.FC = () => {
   const { user } = useAuthStore();
@@ -219,18 +220,11 @@ const PendingEventsScreen: React.FC = () => {
       </ScrollView>
 
       {/* Approval Modal */}
-      <Modal
+      <BottomSheetModal
         visible={showApprovalModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowApprovalModal(false)}
+        onClose={() => setShowApprovalModal(false)}
+        keyboardAvoiding={true}
       >
-        <View style={styles.modalOverlay} className="flex-1 bg-black/50 justify-end">
-          <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.keyboardAvoidingView}
-          >
-            <View style={styles.modalContent} className="bg-white rounded-t-3xl p-6">
               <Text style={styles.modalTitle} className="text-xl font-bold text-gray-900 mb-4">
                 {actionType === 'approve' ? 'Approve Event' : 'Reject Event'}
               </Text>
@@ -280,10 +274,7 @@ const PendingEventsScreen: React.FC = () => {
                   style={{ flex: 1 }}
                 />
               </View>
-            </View>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
+      </BottomSheetModal>
     </SafeAreaView>
   );
 };
@@ -312,17 +303,7 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-  },
+
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -350,9 +331,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
 
-  keyboardAvoidingView: {
-    flex: 1,
-  },
+
 });
 
 export default PendingEventsScreen; 

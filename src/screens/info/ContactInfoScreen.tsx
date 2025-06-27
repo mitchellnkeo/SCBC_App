@@ -13,6 +13,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { MainStackParamList } from '../../navigation/MainNavigator';
 import TopNavbar from '../../components/navigation/TopNavbar';
 import { useTheme } from '../../contexts/ThemeContext';
+import Card from '../../components/common/Card';
 
 type NavigationProp = StackNavigationProp<MainStackParamList>;
 

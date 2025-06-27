@@ -311,4 +311,79 @@ export const createShadowStyle = (theme: Theme, elevation: 'small' | 'medium' | 
   };
 
   return shadows[elevation];
-}; 
+};
+
+// Standardized card styles for backward compatibility
+export const createCardStyles = (theme: Theme) => ({
+  // Basic card styles
+  cardSmall: {
+    backgroundColor: theme.card,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: theme.border,
+    ...createShadowStyle(theme, 'small'),
+  } as ViewStyle,
+
+  cardMedium: {
+    backgroundColor: theme.card,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: theme.border,
+    ...createShadowStyle(theme, 'medium'),
+  } as ViewStyle,
+
+  cardLarge: {
+    backgroundColor: theme.card,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: theme.border,
+    ...createShadowStyle(theme, 'medium'),
+  } as ViewStyle,
+
+  cardXLarge: {
+    backgroundColor: theme.card,
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: theme.border,
+    ...createShadowStyle(theme, 'large'),
+  } as ViewStyle,
+
+  // Specialized card types
+  eventCard: {
+    backgroundColor: theme.card,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: theme.border,
+    overflow: 'hidden',
+    ...createShadowStyle(theme, 'medium'),
+  } as ViewStyle,
+
+  profileCard: {
+    backgroundColor: theme.card,
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: theme.border,
+    ...createShadowStyle(theme, 'medium'),
+  } as ViewStyle,
+
+  infoCard: {
+    backgroundColor: theme.card,
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: theme.border,
+    ...createShadowStyle(theme, 'large'),
+  } as ViewStyle,
+}); 

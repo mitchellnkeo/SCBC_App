@@ -11,6 +11,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { MainStackParamList } from '../../navigation/MainNavigator';
 import TopNavbar from '../../components/navigation/TopNavbar';
 import { useTheme } from '../../contexts/ThemeContext';
+import { InfoCard } from '../../components/common/Card';
 
 type NavigationProp = StackNavigationProp<MainStackParamList>;
 
@@ -45,19 +46,7 @@ const AboutSCBCScreen: React.FC = () => {
       textAlign: 'center',
       lineHeight: 36,
     },
-    contentCard: {
-      backgroundColor: theme.card,
-      borderRadius: 16,
-      padding: 24,
-      marginBottom: 20,
-      shadowColor: theme.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 3,
-      borderWidth: 1,
-      borderColor: theme.border,
-    },
+
     description: {
       fontSize: 18,
       color: theme.textSecondary,
@@ -78,19 +67,7 @@ const AboutSCBCScreen: React.FC = () => {
       marginBottom: 8,
       lineHeight: 24,
     },
-    missionCard: {
-      backgroundColor: theme.card,
-      borderRadius: 16,
-      padding: 24,
-      marginBottom: 20,
-      shadowColor: theme.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 3,
-      borderWidth: 1,
-      borderColor: theme.border,
-    },
+
     sectionTitle: {
       fontSize: 22,
       fontWeight: 'bold',
@@ -104,19 +81,7 @@ const AboutSCBCScreen: React.FC = () => {
       lineHeight: 26,
       textAlign: 'center',
     },
-    locationCard: {
-      backgroundColor: theme.card,
-      borderRadius: 16,
-      padding: 24,
-      marginBottom: 20,
-      shadowColor: theme.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 3,
-      borderWidth: 1,
-      borderColor: theme.border,
-    },
+
     locationInfo: {
       alignItems: 'center',
     },
@@ -153,19 +118,19 @@ const AboutSCBCScreen: React.FC = () => {
         </View>
 
         {/* Main Content */}
-        <View style={dynamicStyles.contentCard}>
+        <InfoCard>
           <Text style={dynamicStyles.description}>
             Seattle Chinatown Book Club is an AANHPI centered book club found in the heart of Seattle's Chinatown International-District at Mam's Bookstore. We are more than a book club -- we are a community.
           </Text>
-        </View>
+        </InfoCard>
 
         {/* Mission Section */}
-        <View style={dynamicStyles.missionCard}>
+        <InfoCard>
           <Text style={dynamicStyles.sectionTitle}>Our Mission</Text>
           <Text style={dynamicStyles.missionText}>
             We bring together Seattle to explore diverse voices, share stories, and build community through the power of literature. Our focus on AANHPI (Asian American, Native Hawaiian, and Pacific Islander) perspectives helps amplify underrepresented voices while creating meaningful connections in our neighborhood and beyond the book club itself.
           </Text>
-        </View>
+        </InfoCard>
 
         <View style={dynamicStyles.bottomSpacer} />
       </ScrollView>

@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TopNavbar from '../../components/navigation/TopNavbar';
 import { useTheme } from '../../contexts/ThemeContext';
+import Card from '../../components/common/Card';
 
 const FeedbackScreen: React.FC = () => {
   const { theme } = useTheme();
