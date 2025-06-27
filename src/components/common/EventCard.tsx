@@ -211,6 +211,7 @@ const styles = StyleSheet.create({
   hostContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
 
   hostName: {

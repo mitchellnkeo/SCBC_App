@@ -143,6 +143,7 @@ const AllEventsTab: React.FC = () => {
     row: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: 8,
     },
     emoji: {
       fontSize: 18,
@@ -270,6 +271,7 @@ const AllEventsTab: React.FC = () => {
       flexDirection: 'row',
       alignItems: 'center',
       flex: 1,
+      gap: 8,
     },
 
     listHostText: {

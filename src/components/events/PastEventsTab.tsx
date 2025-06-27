@@ -194,6 +194,7 @@ const PastEventsTab: React.FC = () => {
     row: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: 8,
     },
     spaceBetween: {
       justifyContent: 'space-between',
