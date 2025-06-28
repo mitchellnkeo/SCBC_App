@@ -11,12 +11,13 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+
 import { useAuthStore } from '../../stores/authStore';
 import { useEventStore } from '../../stores/eventStore';
 import { CreateEventFormData } from '../../types';
 import { formatFullDate } from '../../utils/dateTimeUtils';
 import { handleError } from '../../utils/errorHandler';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Button } from '../../components/common/Button';
 import TimePicker from '../../components/common/TimePicker';
 import ImagePicker from '../../components/common/ImagePicker';
@@ -300,52 +301,42 @@ const EditEventScreen: React.FC = () => {
 
             <FormSection title="Date & Time">
               {/* Date Selection */}
-              <View style={styles.dateFieldContainer}>
-                <Text style={styles.dateFieldLabel}>Event Date</Text>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Event Date</Text>
                 <TouchableOpacity
                   onPress={openDatePicker}
-                  style={styles.dateField}
+                  style={styles.dateButton}
                 >
-                  <Text style={styles.dateFieldText}>
-                    {formatFullDate(formData.date)}
-                  </Text>
-                  <Text style={styles.dateFieldIcon}>📅</Text>
+                  <View style={styles.dateButtonContent}>
+                    <Text style={styles.dateText}>{formatFullDate(formData.date)}</Text>
+                    <Text style={styles.calendarIcon}>📅</Text>
+                  </View>
                 </TouchableOpacity>
               </View>
                 
-              {/* Calendar Modal */}
+              {/* Calendar Picker - Shows directly when tapped */}
               {showDatePicker && (
-                <View style={styles.datePickerOverlay}>
-                  <TouchableOpacity 
-                    style={styles.datePickerBackdrop}
-                    onPress={cancelDateSelection}
-                    activeOpacity={1}
-                  />
-                  <View style={styles.datePickerContainer}>
-                    <View style={styles.datePickerModal}>
-                      {/* Header Section */}
-                      <View style={styles.datePickerHeader}>
-                        <Text style={styles.datePickerTitle}>Select Event Date</Text>
-                      </View>
-                      
-                      {/* Picker Section with Forced Container */}
-                      <View style={styles.datePickerContent}>
-                        <DateTimePicker
-                          value={tempDate}
-                          mode="date"
-                          display={Platform.OS === 'ios' ? 'compact' : 'calendar'}
-                          onChange={onDateChange}
-                          minimumDate={new Date()}
-                          style={styles.datePicker}
-                        />
-                      </View>
-                      
-                      {/* Buttons Section - Always Show */}
+                <View style={styles.datePickerContainer}>
+                  <View style={styles.datePickerModal}>
+                    <View style={styles.datePickerHeader}>
+                      <Text style={styles.datePickerTitle}>Select Event Date</Text>
+                    </View>
+                    
+                    <DateTimePicker
+                      value={tempDate}
+                      mode="date"
+                      display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                      onChange={onDateChange}
+                      minimumDate={new Date()}
+                      style={styles.datePicker}
+                    />
+                    
+                    {Platform.OS === 'ios' && (
                       <View style={styles.datePickerButtons}>
                         <Button
                           title="Cancel"
                           onPress={cancelDateSelection}
-                          variant="outline"
+                          variant="error"
                           size="medium"
                           style={{ flex: 1 }}
                         />
@@ -354,10 +345,10 @@ const EditEventScreen: React.FC = () => {
                           onPress={confirmDateSelection}
                           variant="primary"
                           size="medium"
-                          style={{ flex: 1 }}
+                          style={{ flex: 1, marginLeft: 12 }}
                         />
                       </View>
-                    </View>
+                    )}
                   </View>
                 </View>
               )}
@@ -478,121 +469,72 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
-  },
+    },
 
-  datePickerOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    zIndex: 9999,
-    elevation: 9999,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 60,
+  inputContainer: {
+    marginBottom: 16,
   },
-  datePickerBackdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#374151', // gray-700
+    marginBottom: 8,
+  },
+  dateButton: {
+    borderWidth: 1,
+    borderColor: '#d1d5db', // gray-300
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: 'white',
+  },
+  dateButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dateText: {
+    fontSize: 16,
+    color: '#111827', // gray-900
+  },
+  calendarIcon: {
+    marginLeft: 8,
   },
   datePickerContainer: {
-    width: '100%',
-    maxWidth: 400,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#000000',
+    marginBottom: 16,
     backgroundColor: 'white',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 20,
-    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   datePickerModal: {
     backgroundColor: 'white',
-    width: '100%',
+    padding: 16,
+    borderRadius: 12,
   },
   datePickerHeader: {
-    paddingHorizontal: 32,
-    paddingTop: 32,
-    paddingBottom: 24,
-    borderBottomWidth: 2,
-    borderBottomColor: '#e5e7eb',
-    backgroundColor: '#f8fafc',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
   },
   datePickerTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
-    textAlign: 'center',
-    letterSpacing: 0.5,
-  },
-  datePickerContent: {
-    backgroundColor: 'white',
-    paddingHorizontal: 32,
-    paddingVertical: 32,
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
+    color: '#111827', // gray-900
   },
   datePicker: {
     width: '100%',
-    height: 300,
-    backgroundColor: 'transparent',
+    height: 200,
   },
   datePickerButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 28,
-    backgroundColor: '#f8fafc',
-    borderTopWidth: 2,
-    borderTopColor: '#e5e7eb',
-    gap: 12,
+    paddingTop: 16,
   },
-  dateFieldContainer: {
-    marginBottom: 20,
-  },
-  dateFieldLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  dateField: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    padding: 16,
-    minHeight: 56,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  dateFieldText: {
-    fontSize: 16,
-    color: '#1f2937',
-    flex: 1,
-    fontWeight: '500',
-  },
-  dateFieldIcon: {
-    fontSize: 18,
-    color: '#6b7280',
-  },
-});
+  });
 
 export default EditEventScreen; 

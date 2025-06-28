@@ -12,11 +12,12 @@ import {
   Keyboard,
   SafeAreaView,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+
 import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../../stores/authStore';
 import { useEventStore } from '../../stores/eventStore';
 import { CreateEventFormData } from '../../types';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import ImagePicker from '../../components/common/ImagePicker';
 import TimePicker from '../../components/common/TimePicker';
 import { formatFullDate } from '../../utils/dateTimeUtils';
@@ -379,7 +380,6 @@ const styles = StyleSheet.create({
     color: '#374151', // gray-700
     marginBottom: 8,
   },
-
   dateButton: {
     borderWidth: 1,
     borderColor: '#d1d5db', // gray-300
@@ -387,47 +387,13 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: 'white',
   },
-  dateText: {
-    fontSize: 16,
-    color: '#111827', // gray-900
-  },
-  approvalNotice: {
-    backgroundColor: '#fefce8', // yellow-50
-    borderWidth: 1,
-    borderColor: '#fde047', // yellow-200
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 24,
-  },
-  approvalTitle: {
-    color: '#92400e', // yellow-800
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  approvalText: {
-    color: '#a16207', // yellow-700
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  bottomSpacer: {
-    paddingBottom: 32,
-  },
-  datePickerContainer: {
-    position: 'relative',
-  },
-  datePickerButtons: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 16,
-  },
-
   dateButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  dateText: {
+    fontSize: 16,
+    color: '#111827', // gray-900
   },
   calendarIcon: {
     marginLeft: 8,
@@ -462,6 +428,33 @@ const styles = StyleSheet.create({
   datePicker: {
     width: '100%',
     height: 200,
+  },
+  datePickerButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 16,
+  },
+
+  approvalNotice: {
+    backgroundColor: '#fefce8', // yellow-50
+    borderWidth: 1,
+    borderColor: '#fde047', // yellow-200
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 24,
+  },
+  approvalTitle: {
+    color: '#92400e', // yellow-800
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  approvalText: {
+    color: '#a16207', // yellow-700
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  bottomSpacer: {
+    paddingBottom: 32,
   },
 
 });
