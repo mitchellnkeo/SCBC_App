@@ -262,15 +262,27 @@ export const sendPasswordReset = async (email: string): Promise<void> => {
 
 /**
  * Check if an email is registered in the system
+ * Note: We'll try multiple approaches since fetchSignInMethodsForEmail can be unreliable
  */
 export const checkEmailExists = async (email: string): Promise<boolean> => {
   try {
+    // First try fetching sign-in methods
     const signInMethods = await fetchSignInMethodsForEmail(auth, email);
-    return signInMethods.length > 0;
+    if (signInMethods.length > 0) {
+      return true;
+    }
+
+    // Fallback: Check if user exists in Firestore
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('email', '==', email));
+    const querySnapshot = await getDocs(q);
+    
+    return !querySnapshot.empty;
   } catch (error: any) {
     console.error('Error checking email:', error);
-    // If there's an error, we'll assume the email doesn't exist
-    return false;
+    // If there's an error with both methods, we'll return true to let Firebase handle it
+    // This prevents false negatives and allows the reset email to be sent
+    return true;
   }
 };
 

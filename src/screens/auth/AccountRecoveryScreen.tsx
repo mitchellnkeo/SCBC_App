@@ -17,7 +17,6 @@ import { useForm, Controller } from 'react-hook-form';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import {
   sendPasswordReset,
-  checkEmailExists,
   findUserByDisplayName,
   searchUsersByDisplayName,
 } from '../../services/authService';
@@ -73,24 +72,13 @@ const AccountRecoveryScreen: React.FC = () => {
     try {
       setIsLoading(true);
 
-      // First check if email exists
-      const emailExists = await checkEmailExists(data.email);
-      if (!emailExists) {
-        Alert.alert(
-          'Email Not Found',
-          'No account found with this email address. Please check your email or register for a new account.',
-          [{ text: 'OK' }]
-        );
-        return;
-      }
-
-      // Send password reset email
+      // Send password reset email directly - Firebase will handle email validation
       await sendPasswordReset(data.email);
       setPasswordResetSent(true);
 
       Alert.alert(
         'Password Reset Email Sent',
-        `A password reset link has been sent to ${data.email}. Please check your email and follow the instructions to reset your password.`,
+        `If an account with ${data.email} exists, a password reset link has been sent. Please check your email (including spam folder) and follow the instructions to reset your password.`,
         [
           {
             text: 'OK',
@@ -102,11 +90,20 @@ const AccountRecoveryScreen: React.FC = () => {
         ]
       );
     } catch (error: any) {
-      await handleError(error, {
-        showAlert: true,
-        logError: true,
-        autoRetry: false,
-      });
+      // Handle specific Firebase errors
+      if (error.message?.includes('user-not-found') || error.message?.includes('invalid-email')) {
+        Alert.alert(
+          'Invalid Email',
+          'Please enter a valid email address.',
+          [{ text: 'OK' }]
+        );
+      } else {
+        await handleError(error, {
+          showAlert: true,
+          logError: true,
+          autoRetry: false,
+        });
+      }
     } finally {
       setIsLoading(false);
     }
