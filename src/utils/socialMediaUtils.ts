@@ -1,9 +1,11 @@
-export type SocialPlatform = 'instagram' | 'twitter' | 'linkedin';
+export type SocialPlatform = 'instagram' | 'x' | 'linkedin';
 
 export interface SocialMediaConfig {
   baseUrl: string;
   appScheme?: string;
   usernamePrefix?: string;
+  displayName: string;
+  iconName: string; // For FontAwesome icons
 }
 
 const SOCIAL_MEDIA_CONFIGS: Record<SocialPlatform, SocialMediaConfig> = {
@@ -11,14 +13,20 @@ const SOCIAL_MEDIA_CONFIGS: Record<SocialPlatform, SocialMediaConfig> = {
     baseUrl: 'https://instagram.com/',
     appScheme: 'instagram://user?username=',
     usernamePrefix: '@',
+    displayName: 'Instagram',
+    iconName: 'instagram',
   },
-  twitter: {
-    baseUrl: 'https://twitter.com/',
-    appScheme: 'twitter://user?screen_name=',
+  x: {
+    baseUrl: 'https://x.com/',
+    appScheme: 'twitter://user?screen_name=', // Still uses twitter:// scheme
     usernamePrefix: '@',
+    displayName: 'X',
+    iconName: 'x-twitter', // FontAwesome 6 has x-twitter icon
   },
   linkedin: {
     baseUrl: 'https://linkedin.com/in/',
+    displayName: 'LinkedIn',
+    iconName: 'linkedin',
     // LinkedIn doesn't have a reliable app scheme for profiles
   },
 };
@@ -45,6 +53,14 @@ export const cleanUsername = (username: string, platform: SocialPlatform): strin
     const urlParts = cleaned.split(baseUrl);
     if (urlParts.length > 1) {
       cleaned = urlParts[1].split('/')[0].split('?')[0];
+    }
+  }
+  
+  // Handle legacy twitter.com URLs for X
+  if (platform === 'x' && cleaned.includes('twitter.com')) {
+    const parts = cleaned.split('twitter.com/');
+    if (parts.length > 1) {
+      cleaned = parts[1].split('/')[0].split('?')[0];
     }
   }
   
@@ -117,8 +133,8 @@ export const isValidUsername = (username: string, platform: SocialPlatform): boo
       // Instagram usernames: 1-30 characters, letters, numbers, periods, underscores
       return /^[a-zA-Z0-9._]{1,30}$/.test(cleaned);
     
-    case 'twitter':
-      // Twitter usernames: 1-15 characters, letters, numbers, underscores
+    case 'x':
+      // X/Twitter usernames: 1-15 characters, letters, numbers, underscores
       return /^[a-zA-Z0-9_]{1,15}$/.test(cleaned);
     
     case 'linkedin':
@@ -134,27 +150,25 @@ export const isValidUsername = (username: string, platform: SocialPlatform): boo
  * Get platform name for display
  */
 export const getPlatformDisplayName = (platform: SocialPlatform): string => {
-  switch (platform) {
-    case 'instagram':
-      return 'Instagram';
-    case 'twitter':
-      return 'Twitter';
-    case 'linkedin':
-      return 'LinkedIn';
-    default:
-      return platform;
-  }
+  return SOCIAL_MEDIA_CONFIGS[platform].displayName;
 };
 
 /**
- * Get platform emoji
+ * Get platform icon name for FontAwesome
+ */
+export const getPlatformIconName = (platform: SocialPlatform): string => {
+  return SOCIAL_MEDIA_CONFIGS[platform].iconName;
+};
+
+/**
+ * Get platform emoji (fallback for when icons aren't available)
  */
 export const getPlatformEmoji = (platform: SocialPlatform): string => {
   switch (platform) {
     case 'instagram':
       return '📷';
-    case 'twitter':
-      return '🐦';
+    case 'x':
+      return '𝕏'; // X logo as Unicode character
     case 'linkedin':
       return '💼';
     default:

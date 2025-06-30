@@ -10,7 +10,7 @@ export interface User {
     favoriteBooks?: string[];
     socialLinks?: {
       instagram?: string;
-      twitter?: string;
+      x?: string;
       linkedin?: string;
     };
     createdAt: Date;
@@ -29,7 +29,7 @@ export interface User {
     favoriteBooks?: string[];
     socialLinks?: {
       instagram?: string;
-      twitter?: string;
+      x?: string;
       linkedin?: string;
     };
   }

@@ -12,7 +12,7 @@ export interface ProfileUpdateData {
   profilePicture?: string;
   socialLinks?: {
     instagram?: string;
-    twitter?: string;
+    x?: string;
     linkedin?: string;
   };
 }

@@ -30,7 +30,7 @@ interface EditProfileFormData {
   hobbies: string;
   favoriteBooks: string;
   instagram: string;
-  twitter: string;
+  x: string;
   linkedin: string;
 }
 
@@ -46,7 +46,7 @@ export const EditProfileScreen: React.FC = () => {
   const hobbiesRef = useRef<TextInput>(null);
   const favoriteBooksRef = useRef<TextInput>(null);
   const instagramRef = useRef<TextInput>(null);
-  const twitterRef = useRef<TextInput>(null);
+  const xRef = useRef<TextInput>(null);
   const linkedinRef = useRef<TextInput>(null);
 
   const {
@@ -61,7 +61,7 @@ export const EditProfileScreen: React.FC = () => {
       hobbies: '',
       favoriteBooks: '',
       instagram: '',
-      twitter: '',
+      x: '',
       linkedin: '',
     },
   });
@@ -82,7 +82,7 @@ export const EditProfileScreen: React.FC = () => {
         hobbies: Array.isArray(user.hobbies) ? user.hobbies.join(', ') : '',
         favoriteBooks: Array.isArray(user.favoriteBooks) ? user.favoriteBooks.join(', ') : '',
         instagram: user.socialLinks?.instagram || '',
-        twitter: user.socialLinks?.twitter || '',
+        x: user.socialLinks?.x || '',
         linkedin: user.socialLinks?.linkedin || '',
       });
     }
@@ -119,7 +119,7 @@ export const EditProfileScreen: React.FC = () => {
 
       // Clean and validate social media usernames
       const cleanedInstagram = data.instagram.trim() ? cleanUsername(data.instagram.trim(), 'instagram') : '';
-      const cleanedTwitter = data.twitter.trim() ? cleanUsername(data.twitter.trim(), 'twitter') : '';
+      const cleanedX = data.x.trim() ? cleanUsername(data.x.trim(), 'x') : '';
       const cleanedLinkedin = data.linkedin.trim() ? cleanUsername(data.linkedin.trim(), 'linkedin') : '';
 
       // Validate usernames if provided
@@ -127,8 +127,8 @@ export const EditProfileScreen: React.FC = () => {
         Alert.alert('Invalid Username', 'Please enter a valid Instagram username (1-30 characters, letters, numbers, periods, underscores only).');
         return;
       }
-      if (cleanedTwitter && !isValidUsername(cleanedTwitter, 'twitter')) {
-        Alert.alert('Invalid Username', 'Please enter a valid Twitter username (1-15 characters, letters, numbers, underscores only).');
+      if (cleanedX && !isValidUsername(cleanedX, 'x')) {
+        Alert.alert('Invalid Username', 'Please enter a valid X username (1-15 characters, letters, numbers, underscores only).');
         return;
       }
       if (cleanedLinkedin && !isValidUsername(cleanedLinkedin, 'linkedin')) {
@@ -143,7 +143,7 @@ export const EditProfileScreen: React.FC = () => {
         favoriteBooks,
         socialLinks: {
           instagram: cleanedInstagram || undefined,
-          twitter: cleanedTwitter || undefined,
+          x: cleanedX || undefined,
           linkedin: cleanedLinkedin || undefined,
         },
       };
@@ -413,18 +413,18 @@ export const EditProfileScreen: React.FC = () => {
                   helpText="Just your username (without @ or URLs)"
                   ref={instagramRef}
                   returnKeyType="next"
-                  onSubmitEditing={() => twitterRef.current?.focus()}
+                  onSubmitEditing={() => xRef.current?.focus()}
                 />
               )}
             />
 
-            {/* Twitter */}
+            {/* X (formerly Twitter) */}
             <Controller
               control={control}
-              name="twitter"
+              name="x"
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
-                  label="🐦 Twitter"
+                  label="𝕏 X"
                   placeholder="mitchellkeo"
                   value={value}
                   onChangeText={onChange}
@@ -432,7 +432,7 @@ export const EditProfileScreen: React.FC = () => {
                   autoCapitalize="none"
                   autoCorrect={false}
                   helpText="Just your username (without @ or URLs)"
-                  ref={twitterRef}
+                  ref={xRef}
                   returnKeyType="next"
                   onSubmitEditing={() => linkedinRef.current?.focus()}
                 />

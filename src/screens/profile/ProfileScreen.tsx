@@ -7,6 +7,7 @@ import type { MainStackParamList } from '../../navigation/MainNavigator';
 import ProfilePicture from '../../components/common/ProfilePicture';
 import ProfileSkeleton from '../../components/common/ProfileSkeleton';
 import { ProfileCard, ListCard } from '../../components/common/Card';
+import SocialIcon from '../../components/common/SocialIcon';
 import { 
   getUserWebUrl, 
   getUserAppUrl, 
@@ -156,19 +157,25 @@ const ProfileScreen: React.FC = () => {
                       style={styles.socialLink}
                       onPress={() => handleSocialLinkPress(user.socialLinks!.instagram!, 'instagram')}
                     >
-                      <Text style={styles.socialLinkText}>
-                        📷 {getDisplayUsername(user.socialLinks!.instagram!, 'instagram')}
-                      </Text>
+                      <View style={styles.socialLinkContent}>
+                        <SocialIcon platform="instagram" size={14} />
+                        <Text style={styles.socialLinkText}>
+                          {getDisplayUsername(user.socialLinks!.instagram!, 'instagram')}
+                        </Text>
+                      </View>
                     </TouchableOpacity>
                   )}
-                  {user.socialLinks.twitter && (
+                  {user.socialLinks.x && (
                     <TouchableOpacity
                       style={styles.socialLink}
-                      onPress={() => handleSocialLinkPress(user.socialLinks!.twitter!, 'twitter')}
+                      onPress={() => handleSocialLinkPress(user.socialLinks!.x!, 'x')}
                     >
-                      <Text style={styles.socialLinkText}>
-                        🐦 {getDisplayUsername(user.socialLinks!.twitter!, 'twitter')}
-                      </Text>
+                      <View style={styles.socialLinkContent}>
+                        <SocialIcon platform="x" size={14} />
+                        <Text style={styles.socialLinkText}>
+                          {getDisplayUsername(user.socialLinks!.x!, 'x')}
+                        </Text>
+                      </View>
                     </TouchableOpacity>
                   )}
                   {user.socialLinks.linkedin && (
@@ -176,9 +183,12 @@ const ProfileScreen: React.FC = () => {
                       style={styles.socialLink}
                       onPress={() => handleSocialLinkPress(user.socialLinks!.linkedin!, 'linkedin')}
                     >
-                      <Text style={styles.socialLinkText}>
-                        💼 {getDisplayUsername(user.socialLinks!.linkedin!, 'linkedin')}
-                      </Text>
+                      <View style={styles.socialLinkContent}>
+                        <SocialIcon platform="linkedin" size={14} />
+                        <Text style={styles.socialLinkText}>
+                          {getDisplayUsername(user.socialLinks!.linkedin!, 'linkedin')}
+                        </Text>
+                      </View>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -424,7 +434,11 @@ const styles = StyleSheet.create({
     borderColor: '#e2e8f0',
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
+  },
+  socialLinkContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   socialLinkText: {
     fontSize: 14,
