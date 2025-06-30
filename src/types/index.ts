@@ -8,6 +8,11 @@ export interface User {
     bio?: string;
     hobbies?: string[];
     favoriteBooks?: string[];
+    socialLinks?: {
+      instagram?: string;
+      twitter?: string;
+      linkedin?: string;
+    };
     createdAt: Date;
     updatedAt: Date;
   }
@@ -22,6 +27,11 @@ export interface User {
     bio?: string;
     hobbies?: string[];
     favoriteBooks?: string[];
+    socialLinks?: {
+      instagram?: string;
+      twitter?: string;
+      linkedin?: string;
+    };
   }
   
   export interface LoginCredentials {

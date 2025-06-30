@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useAuthStore } from '../../stores/authStore';
@@ -33,6 +33,34 @@ const ProfileScreen: React.FC = () => {
         },
       ]
     );
+  };
+
+  const handleSocialLinkPress = async (url: string, platform: string) => {
+    try {
+      // Ensure URL has proper protocol
+      let formattedUrl = url;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        // Add https:// prefix for better compatibility
+        formattedUrl = `https://${url}`;
+      }
+
+      const canOpen = await Linking.canOpenURL(formattedUrl);
+      if (canOpen) {
+        await Linking.openURL(formattedUrl);
+      } else {
+        Alert.alert(
+          'Cannot Open Link',
+          `Unable to open ${platform} link. Please check the URL.`,
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        `Failed to open ${platform} link.`,
+        [{ text: 'OK' }]
+      );
+    }
   };
 
   // Show skeleton while loading or user data is not available
@@ -99,6 +127,39 @@ const ProfileScreen: React.FC = () => {
                       <Text style={styles.tagText}>{book}</Text>
                     </View>
                   ))}
+                </View>
+              </View>
+            )}
+
+            {/* Social Media Links */}
+            {user.socialLinks && Object.values(user.socialLinks).some(link => link) && (
+              <View style={styles.socialLinksSection}>
+                <Text style={styles.interestsLabel}>Connect</Text>
+                <View style={styles.socialLinksContainer}>
+                  {user.socialLinks.instagram && (
+                    <TouchableOpacity
+                      style={styles.socialLink}
+                      onPress={() => handleSocialLinkPress(user.socialLinks!.instagram!, 'Instagram')}
+                    >
+                      <Text style={styles.socialLinkText}>📷 Instagram</Text>
+                    </TouchableOpacity>
+                  )}
+                  {user.socialLinks.twitter && (
+                    <TouchableOpacity
+                      style={styles.socialLink}
+                      onPress={() => handleSocialLinkPress(user.socialLinks!.twitter!, 'Twitter')}
+                    >
+                      <Text style={styles.socialLinkText}>🐦 Twitter</Text>
+                    </TouchableOpacity>
+                  )}
+                  {user.socialLinks.linkedin && (
+                    <TouchableOpacity
+                      style={styles.socialLink}
+                      onPress={() => handleSocialLinkPress(user.socialLinks!.linkedin!, 'LinkedIn')}
+                    >
+                      <Text style={styles.socialLinkText}>💼 LinkedIn</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
             )}
@@ -323,6 +384,30 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: 14,
     color: '#1e40af',
+    fontWeight: '500',
+  },
+  socialLinksSection: {
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+    paddingTop: 16,
+    marginBottom: 16,
+  },
+  socialLinksContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  socialLink: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  socialLinkText: {
+    fontSize: 14,
+    color: '#475569',
     fontWeight: '500',
   },
 });

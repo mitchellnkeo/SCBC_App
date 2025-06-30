@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   RefreshControl,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -110,6 +111,34 @@ const UserProfileScreen: React.FC = () => {
       year: 'numeric',
       month: 'long',
     });
+  };
+
+  const handleSocialLinkPress = async (url: string, platform: string) => {
+    try {
+      // Ensure URL has proper protocol
+      let formattedUrl = url;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        // Add https:// prefix for better compatibility
+        formattedUrl = `https://${url}`;
+      }
+
+      const canOpen = await Linking.canOpenURL(formattedUrl);
+      if (canOpen) {
+        await Linking.openURL(formattedUrl);
+      } else {
+        Alert.alert(
+          'Cannot Open Link',
+          `Unable to open ${platform} link. Please check the URL.`,
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        `Failed to open ${platform} link.`,
+        [{ text: 'OK' }]
+      );
+    }
   };
 
 
@@ -273,6 +302,39 @@ const UserProfileScreen: React.FC = () => {
           <Text style={styles.joinDate}>
             Member since {formatJoinDate(profileUser.createdAt)}
           </Text>
+
+          {/* Social Media Links */}
+          {profileUser.socialLinks && Object.values(profileUser.socialLinks).some(link => link) && (
+            <View style={styles.socialLinksContainer}>
+              <Text style={styles.socialLinksTitle}>Connect</Text>
+              <View style={styles.socialLinksRow}>
+                {profileUser.socialLinks.instagram && (
+                  <TouchableOpacity
+                    style={styles.socialLink}
+                    onPress={() => handleSocialLinkPress(profileUser.socialLinks!.instagram!, 'Instagram')}
+                  >
+                    <Text style={styles.socialLinkText}>📷 Instagram</Text>
+                  </TouchableOpacity>
+                )}
+                {profileUser.socialLinks.twitter && (
+                  <TouchableOpacity
+                    style={styles.socialLink}
+                    onPress={() => handleSocialLinkPress(profileUser.socialLinks!.twitter!, 'Twitter')}
+                  >
+                    <Text style={styles.socialLinkText}>🐦 Twitter</Text>
+                  </TouchableOpacity>
+                )}
+                {profileUser.socialLinks.linkedin && (
+                  <TouchableOpacity
+                    style={styles.socialLink}
+                    onPress={() => handleSocialLinkPress(profileUser.socialLinks!.linkedin!, 'LinkedIn')}
+                  >
+                    <Text style={styles.socialLinkText}>💼 LinkedIn</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Bio Section */}
@@ -394,6 +456,35 @@ const createStyles = (theme: any) => StyleSheet.create({
   joinDate: {
     fontSize: 14,
     color: theme.textTertiary,
+  },
+  socialLinksContainer: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  socialLinksTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.textSecondary,
+    marginBottom: 8,
+  },
+  socialLinksRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'center',
+  },
+  socialLink: {
+    backgroundColor: theme.surface,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  socialLinkText: {
+    fontSize: 12,
+    color: theme.textSecondary,
+    fontWeight: '500',
   },
   bioCard: {
     backgroundColor: theme.card,

@@ -28,6 +28,9 @@ interface EditProfileFormData {
   bio: string;
   hobbies: string;
   favoriteBooks: string;
+  instagram: string;
+  twitter: string;
+  linkedin: string;
 }
 
 export const EditProfileScreen: React.FC = () => {
@@ -41,6 +44,9 @@ export const EditProfileScreen: React.FC = () => {
   const bioRef = useRef<TextInput>(null);
   const hobbiesRef = useRef<TextInput>(null);
   const favoriteBooksRef = useRef<TextInput>(null);
+  const instagramRef = useRef<TextInput>(null);
+  const twitterRef = useRef<TextInput>(null);
+  const linkedinRef = useRef<TextInput>(null);
 
   const {
     control,
@@ -53,6 +59,9 @@ export const EditProfileScreen: React.FC = () => {
       bio: '',
       hobbies: '',
       favoriteBooks: '',
+      instagram: '',
+      twitter: '',
+      linkedin: '',
     },
   });
 
@@ -71,6 +80,9 @@ export const EditProfileScreen: React.FC = () => {
         bio: user.bio || '',
         hobbies: Array.isArray(user.hobbies) ? user.hobbies.join(', ') : '',
         favoriteBooks: Array.isArray(user.favoriteBooks) ? user.favoriteBooks.join(', ') : '',
+        instagram: user.socialLinks?.instagram || '',
+        twitter: user.socialLinks?.twitter || '',
+        linkedin: user.socialLinks?.linkedin || '',
       });
     }
   }, [user, reset]);
@@ -109,6 +121,11 @@ export const EditProfileScreen: React.FC = () => {
         bio: data.bio.trim(),
         hobbies,
         favoriteBooks,
+        socialLinks: {
+          instagram: data.instagram.trim() || undefined,
+          twitter: data.twitter.trim() || undefined,
+          linkedin: data.linkedin.trim() || undefined,
+        },
       };
 
       await updateUserProfile(user.id, updateData);
@@ -349,11 +366,80 @@ export const EditProfileScreen: React.FC = () => {
                 multiline
                 helpText="Separate multiple books with commas"
                 ref={favoriteBooksRef}
-                returnKeyType="done"
-                onSubmitEditing={() => Keyboard.dismiss()}
+                returnKeyType="next"
+                onSubmitEditing={() => instagramRef.current?.focus()}
               />
             )}
           />
+
+          {/* Social Media Links Section */}
+          <View style={styles.socialSection}>
+            <Text style={styles.socialSectionTitle}>Social Media Links</Text>
+            <Text style={styles.socialSectionSubtitle}>Connect with other members</Text>
+
+            {/* Instagram */}
+            <Controller
+              control={control}
+              name="instagram"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  label="📷 Instagram"
+                  placeholder="Username or full URL"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  helpText="e.g., @username or instagram.com/username"
+                  ref={instagramRef}
+                  returnKeyType="next"
+                  onSubmitEditing={() => twitterRef.current?.focus()}
+                />
+              )}
+            />
+
+            {/* Twitter */}
+            <Controller
+              control={control}
+              name="twitter"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  label="🐦 Twitter"
+                  placeholder="Username or full URL"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  helpText="e.g., @username or twitter.com/username"
+                  ref={twitterRef}
+                  returnKeyType="next"
+                  onSubmitEditing={() => linkedinRef.current?.focus()}
+                />
+              )}
+            />
+
+            {/* LinkedIn */}
+            <Controller
+              control={control}
+              name="linkedin"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  label="💼 LinkedIn"
+                  placeholder="Profile URL or username"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  helpText="e.g., linkedin.com/in/username"
+                  ref={linkedinRef}
+                  returnKeyType="done"
+                  onSubmitEditing={() => Keyboard.dismiss()}
+                />
+              )}
+            />
+          </View>
         </View>
 
         {/* Action Buttons */}
@@ -444,5 +530,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 8,
     textAlign: 'center',
+  },
+  socialSection: {
+    marginTop: 24,
+    paddingTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  socialSectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  socialSectionSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 16,
   },
 }); 

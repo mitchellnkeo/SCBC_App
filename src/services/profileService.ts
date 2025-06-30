@@ -10,6 +10,11 @@ export interface ProfileUpdateData {
   hobbies?: string[];
   favoriteBooks?: string[];
   profilePicture?: string;
+  socialLinks?: {
+    instagram?: string;
+    twitter?: string;
+    linkedin?: string;
+  };
 }
 
 /**
@@ -160,6 +165,7 @@ export const getUserProfile = async (userId: string): Promise<AuthUser | null> =
         bio: data.bio,
         hobbies: data.hobbies,
         favoriteBooks: data.favoriteBooks,
+        socialLinks: data.socialLinks,
       } as AuthUser;
     }
 
