@@ -17,71 +17,11 @@
 
 The Seattle Chinatown Book Club App is a production-ready React Native application designed for a growing community of 300+ members. Built with modern technologies and scalable architecture, it provides a complete platform for book club management, community interaction, and event coordination.
 
-## 🆕 **Recent Updates (June 2025)**
-
-### **Meeting Details Management**
-- **In-Person & Virtual Meeting Details** - Admin-editable meeting information for monthly book discussions
-- **Zoom Integration** - Enhanced Zoom link handling with email, phone, and clipboard options
-- **Meeting Cards Interface** - Clean card-based design for displaying meeting information
-- **Admin-Only Editing** - Role-based permissions for meeting details management
-
-### **User Interface Improvements**
-- **Navigation Updates** - Cleaner menu item names ("About Us", "Contact Us", "Leave Feedback")
-- **Page Rename** - "Monthly Book" → "Monthly Meeting Details" for clarity
-- **Emoji Removal** - Comprehensive removal of emojis throughout the application for professional appearance
-- **Color Scheme Update** - Modern red color scheme (#dc2626) replacing purple/pink for better accessibility
-
-### **Event System Enhancements**
-- **Event Status Synchronization** - Fixed inconsistencies between "My Events" and "Upcoming Events"
-- **Timezone Handling** - Proper PST timezone support across all event displays
-- **Status Indicators** - Consistent "Event in Progress", "Upcoming Event", and "Past Event" statuses
-- **View Styling** - Synchronized list view styling between event tabs
-
-### **Admin Panel Streamlining**
-- **FAQ Management** - Removed publish/draft complexity, all FAQs auto-published
-- **Statistics Removal** - Cleaner interfaces with removal of statistical summary boxes
-- **Notification Fixes** - Resolved TypeScript errors and improved notification handling
 
 ### **Accessibility & UX**
 - **WCAG AA Compliance** - Color-blind friendly red color scheme with proper contrast ratios
 - **508 Compliance** - Accessible color choices for government and enterprise use
 - **Professional Design** - Removed decorative elements for cleaner, more professional appearance
-
-### **Critical Bug Fixes**
-- **Event Duration Calculation** - Fixed hardcoded 4-hour assumption to use actual event start/end times
-- **Event Status Accuracy** - Events now correctly transition from "Event in Progress" to "Past Event" based on actual duration
-- **Past Events Header Images** - Fixed missing header images in Past Events card view
-- **Time String Parsing** - Enhanced error handling for malformed time data with graceful fallbacks
-- **Event Filtering** - Resolved inconsistencies in event categorization across all tabs
-
-## 🚀 **Major Code Optimization (January 2025)**
-
-### **Comprehensive Codebase Refactoring**
-Successfully completed a major optimization initiative that **eliminated ~381 lines of duplicate code** across 30 components while maintaining 100% functionality and security. This refactoring significantly improved maintainability, consistency, and performance.
-
-### **Phase 1: Date/Time Utils Consolidation**
-- **88 lines eliminated** across 7 components
-- **Centralized utilities** in `src/utils/dateTimeUtils.ts`:
-  - `formatDate()` - Short format: "Tue, Dec 3"
-  - `formatFullDate()` - Full format: "Tuesday, December 3, 2024"  
-  - `formatTimeRange()` - Time range: "2:00 PM - 4:00 PM" or "Time TBD"
-- **Components optimized:** AllEventsTab, PastEventsTab, MyEventsTab, EventDetailsScreen, CreateEventScreen, EditEventScreen, EventCard
-- **Result:** 100% consistent date/time formatting across the entire application
-
-### **Phase 2: Button Consolidation** 
-- **210 lines eliminated** across 13 components
-- **Enhanced Button component** with comprehensive variants (primary, secondary, success, error, warning, outline, ghost) and sizes (small, medium, large)
-- **Common styles creation** in `src/styles/commonStyles.ts` with reusable patterns for containers, cards, loading states, forms, and UI elements
-- **Components optimized:** CreateEventScreen, EditEventScreen, AllEventsTab, MyEventsTab, LoginScreen, RegisterScreen, PendingEventsScreen, EditProfileScreen, UserManagementScreen, TimePicker, AddressAction
-- **Result:** Consistent button styling and behavior throughout the application
-
-### **Phase 3: Layout Pattern Standardization**
-- **83 lines eliminated** across 10 components
-- **EmptyState component** created (`src/components/common/EmptyState.tsx`) - Reusable empty state with emoji, title, subtitle, and optional button
-- **LoadingState component** created (`src/components/common/LoadingState.tsx`) - Standardized loading spinner with customizable text, size, and color
-- **Empty state consolidation:** AllEventsTab, MyEventsTab, PastEventsTab (~32 lines saved)
-- **Loading state consolidation:** UserManagementScreen, AppNavigator, FAQScreen, WhatsAppCommunityScreen, EditMonthlyBookScreen, EventDetailsScreen, MonthlyBookScreen (~51 lines saved)
-- **Result:** Uniform user experience for loading and empty states across all screens
 
 ### **Optimization Benefits**
 - **🏗️ Maintainability:** Centralized utilities and components reduce technical debt
@@ -90,12 +30,6 @@ Successfully completed a major optimization initiative that **eliminated ~381 li
 - **👩‍💻 Developer Experience:** Reusable components and utilities speed up development
 - **👤 User Experience:** Consistent interactions and visual language throughout the app
 - **🔒 Security:** Zero compromises - all functionality and security measures preserved
-
-### **Future Optimization Opportunities Identified**
-- **Card Pattern Standardization:** 50+ instances with white backgrounds + 8px/12px border radius
-- **Header Pattern Unification:** Common screen header structures across components
-- **Form Input Standardization:** Consistent form field patterns and validation
-- **Shadow/Elevation Patterns:** Standardized depth effects for visual hierarchy
 
 ## ✨ **Key Features**
 
@@ -112,6 +46,14 @@ Successfully completed a major optimization initiative that **eliminated ~381 li
 - **Rich Profiles** - Bio, hobbies, favorite books, profile pictures
 - **@Mention System** - Tag users in comments with real-time notifications
 - **User Discovery** - Search and view other member profiles
+
+### 🔐 **Account Recovery System**
+- **Password Reset** - Email-based password recovery with Firebase Auth integration
+- **Username Recovery** - Find accounts by display name with smart search
+- **Email Validation** - Prevents sending reset emails to non-existent accounts
+- **Security Features** - Rate limiting, secure reset links, and anti-abuse measures
+- **Dual Recovery Methods** - Both email and username-based account recovery
+- **User-Friendly Interface** - Clean tabbed interface with helpful guidance
 
 ### 📖 **Monthly Meeting Details**
 - **Admin-Editable Books** - Complete monthly book selection management
@@ -197,6 +139,100 @@ Successfully completed a major optimization initiative that **eliminated ~381 li
 - ✅ Upload profile pictures
 - ✅ View monthly book selections
 - ✅ Receive real-time notifications
+
+## 🔐 **Account Recovery System**
+
+The SCBC app includes a comprehensive account recovery system to help users regain access to their accounts when they forget their password or username.
+
+### **🔑 Password Recovery**
+
+**How it works:**
+1. User clicks "Forgot Password?" on the login screen
+2. User enters their email address
+3. System validates that the email exists in Firebase Auth
+4. Password reset email is sent via Firebase's secure system
+5. User follows the email instructions to reset their password
+
+**Security Features:**
+- ✅ **Email Validation** - Only sends reset emails to registered accounts
+- ✅ **Firebase Integration** - Uses Firebase Auth's secure password reset system
+- ✅ **Time-Limited Links** - Reset links expire automatically for security
+- ✅ **Rate Limiting** - Firebase automatically prevents spam requests
+
+### **👤 Username Recovery**
+
+**How it works:**
+1. User switches to the "Find Username" tab in account recovery
+2. User enters their display name (exact or partial)
+3. System searches Firestore for matching accounts
+4. If accounts are found, user can send password reset emails directly
+5. User receives reset email and can regain access to their account
+
+**Search Features:**
+- ✅ **Exact Matching** - Searches for exact display name matches first
+- ✅ **Partial Matching** - Falls back to partial name matching for better UX
+- ✅ **Multiple Results** - Handles cases where multiple accounts might match
+- ✅ **Search Limits** - Results limited to 10 matches to prevent database abuse
+- ✅ **Minimum Length** - Requires at least 2 characters for partial searches
+
+### **🛡️ Security & Privacy**
+
+**Data Protection:**
+- No sensitive data is exposed in search results
+- Only display names and email addresses are shown (data users already share publicly)
+- Password reset emails are handled entirely by Firebase
+- No plaintext passwords are ever stored or transmitted
+
+**Anti-Abuse Measures:**
+- Firebase's built-in rate limiting prevents spam
+- Search results are limited to prevent database abuse
+- No account enumeration attacks (email validation is done securely)
+- Reset links expire automatically for security
+
+### **📱 User Experience**
+
+**Interface Features:**
+- **Tabbed Design** - Clean separation between password and username recovery
+- **Progress Indicators** - Loading states during API calls
+- **Success Feedback** - Clear confirmation when reset emails are sent
+- **Helpful Guidance** - Instructions and tips for users throughout the process
+- **Easy Navigation** - Simple back-to-login functionality
+
+**Accessibility:**
+- Proper form validation and error messaging
+- Keyboard navigation support
+- Screen reader friendly labels and descriptions
+- Touch-friendly button sizes and spacing
+
+### **🔧 Technical Implementation**
+
+**Auth Service Functions:**
+```typescript
+// Send password reset email
+sendPasswordReset(email: string): Promise<void>
+
+// Check if email exists in Firebase Auth
+checkEmailExists(email: string): Promise<boolean>
+
+// Find exact display name matches
+findUserByDisplayName(displayName: string): Promise<string[]>
+
+// Search for partial display name matches
+searchUsersByDisplayName(partialName: string): Promise<UserMatch[]>
+```
+
+**Error Handling:**
+- Comprehensive error messages for different failure scenarios
+- Network error handling with retry options
+- User-friendly error messages that don't reveal sensitive information
+- Rate limiting protection with appropriate user feedback
+
+**Files Modified:**
+- `src/services/authService.ts` - Added recovery functions
+- `src/screens/auth/AccountRecoveryScreen.tsx` - New recovery screen
+- `src/navigation/AuthNavigator.tsx` - Added recovery route
+- `src/screens/auth/LoginScreen.tsx` - Added "Forgot Password?" link
+- `src/types/errors.ts` - Enhanced error handling for recovery scenarios
 
 ## 🚀 **Getting Started**
 
