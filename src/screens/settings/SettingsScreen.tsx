@@ -10,11 +10,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TopNavbar from '../../components/navigation/TopNavbar';
 import { useSettingsStore } from '../../stores/settingsStore';
+import { useAuthStore } from '../../stores/authStore';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AppSettings } from '../../types/settings';
 
 const SettingsScreen: React.FC = () => {
   const { settings, isLoading, error, loadSettings, updateSetting, resetSettings, clearError } = useSettingsStore();
+  const { logout } = useAuthStore();
   const { theme } = useTheme();
 
   useEffect(() => {
@@ -43,6 +45,27 @@ const SettingsScreen: React.FC = () => {
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Reset', style: 'destructive', onPress: resetSettings },
+      ]
+    );
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Log Out',
+      'Are you sure you want to log out of your account?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Log Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+            } catch (error: any) {
+              Alert.alert('Error', 'Failed to log out. Please try again.');
+            }
+          },
+        },
       ]
     );
   };
@@ -179,6 +202,17 @@ const SettingsScreen: React.FC = () => {
             activeOpacity={0.7}
           >
             <Text style={styles.resetButtonText}>Reset to Defaults</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Logout Section */}
+        <View style={styles.resetSection}>
+          <TouchableOpacity
+            style={styles.resetButton}
+            onPress={handleLogout}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.resetButtonText}>Log Out</Text>
           </TouchableOpacity>
         </View>
 
