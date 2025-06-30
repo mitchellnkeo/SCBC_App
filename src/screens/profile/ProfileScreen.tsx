@@ -7,6 +7,12 @@ import type { MainStackParamList } from '../../navigation/MainNavigator';
 import ProfilePicture from '../../components/common/ProfilePicture';
 import ProfileSkeleton from '../../components/common/ProfileSkeleton';
 import { ProfileCard, ListCard } from '../../components/common/Card';
+import { 
+  getUserWebUrl, 
+  getUserAppUrl, 
+  getDisplayUsername,
+  type SocialPlatform 
+} from '../../utils/socialMediaUtils';
 
 type ProfileScreenNavigationProp = StackNavigationProp<MainStackParamList>;
 
@@ -35,29 +41,38 @@ const ProfileScreen: React.FC = () => {
     );
   };
 
-  const handleSocialLinkPress = async (url: string, platform: string) => {
+  const handleSocialLinkPress = async (username: string, platform: SocialPlatform) => {
     try {
-      // Ensure URL has proper protocol
-      let formattedUrl = url;
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        // Add https:// prefix for better compatibility
-        formattedUrl = `https://${url}`;
+      // First try to open the app (mobile deep link)
+      const appUrl = getUserAppUrl(username, platform);
+      if (appUrl) {
+        const canOpenApp = await Linking.canOpenURL(appUrl);
+        if (canOpenApp) {
+          await Linking.openURL(appUrl);
+          return;
+        }
       }
 
-      const canOpen = await Linking.canOpenURL(formattedUrl);
-      if (canOpen) {
-        await Linking.openURL(formattedUrl);
-      } else {
-        Alert.alert(
-          'Cannot Open Link',
-          `Unable to open ${platform} link. Please check the URL.`,
-          [{ text: 'OK' }]
-        );
+      // Fall back to web URL
+      const webUrl = getUserWebUrl(username, platform);
+      if (webUrl) {
+        const canOpenWeb = await Linking.canOpenURL(webUrl);
+        if (canOpenWeb) {
+          await Linking.openURL(webUrl);
+          return;
+        }
       }
+
+      // If both fail, show error
+      Alert.alert(
+        'Cannot Open Link',
+        `Unable to open ${platform} profile. Please check the username.`,
+        [{ text: 'OK' }]
+      );
     } catch (error) {
       Alert.alert(
         'Error',
-        `Failed to open ${platform} link.`,
+        `Failed to open ${platform} profile.`,
         [{ text: 'OK' }]
       );
     }
@@ -139,25 +154,31 @@ const ProfileScreen: React.FC = () => {
                   {user.socialLinks.instagram && (
                     <TouchableOpacity
                       style={styles.socialLink}
-                      onPress={() => handleSocialLinkPress(user.socialLinks!.instagram!, 'Instagram')}
+                      onPress={() => handleSocialLinkPress(user.socialLinks!.instagram!, 'instagram')}
                     >
-                      <Text style={styles.socialLinkText}>📷 Instagram</Text>
+                      <Text style={styles.socialLinkText}>
+                        📷 {getDisplayUsername(user.socialLinks!.instagram!, 'instagram')}
+                      </Text>
                     </TouchableOpacity>
                   )}
                   {user.socialLinks.twitter && (
                     <TouchableOpacity
                       style={styles.socialLink}
-                      onPress={() => handleSocialLinkPress(user.socialLinks!.twitter!, 'Twitter')}
+                      onPress={() => handleSocialLinkPress(user.socialLinks!.twitter!, 'twitter')}
                     >
-                      <Text style={styles.socialLinkText}>🐦 Twitter</Text>
+                      <Text style={styles.socialLinkText}>
+                        🐦 {getDisplayUsername(user.socialLinks!.twitter!, 'twitter')}
+                      </Text>
                     </TouchableOpacity>
                   )}
                   {user.socialLinks.linkedin && (
                     <TouchableOpacity
                       style={styles.socialLink}
-                      onPress={() => handleSocialLinkPress(user.socialLinks!.linkedin!, 'LinkedIn')}
+                      onPress={() => handleSocialLinkPress(user.socialLinks!.linkedin!, 'linkedin')}
                     >
-                      <Text style={styles.socialLinkText}>💼 LinkedIn</Text>
+                      <Text style={styles.socialLinkText}>
+                        💼 {getDisplayUsername(user.socialLinks!.linkedin!, 'linkedin')}
+                      </Text>
                     </TouchableOpacity>
                   )}
                 </View>

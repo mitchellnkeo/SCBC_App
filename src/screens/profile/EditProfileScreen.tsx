@@ -22,6 +22,7 @@ import ProfilePicture from '../../components/common/ProfilePicture';
 import { Button } from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import { Form } from '../../components/common/Form';
+import { cleanUsername, isValidUsername, type SocialPlatform } from '../../utils/socialMediaUtils';
 
 interface EditProfileFormData {
   displayName: string;
@@ -116,15 +117,34 @@ export const EditProfileScreen: React.FC = () => {
         .map(book => book.trim())
         .filter(book => book.length > 0);
 
+      // Clean and validate social media usernames
+      const cleanedInstagram = data.instagram.trim() ? cleanUsername(data.instagram.trim(), 'instagram') : '';
+      const cleanedTwitter = data.twitter.trim() ? cleanUsername(data.twitter.trim(), 'twitter') : '';
+      const cleanedLinkedin = data.linkedin.trim() ? cleanUsername(data.linkedin.trim(), 'linkedin') : '';
+
+      // Validate usernames if provided
+      if (cleanedInstagram && !isValidUsername(cleanedInstagram, 'instagram')) {
+        Alert.alert('Invalid Username', 'Please enter a valid Instagram username (1-30 characters, letters, numbers, periods, underscores only).');
+        return;
+      }
+      if (cleanedTwitter && !isValidUsername(cleanedTwitter, 'twitter')) {
+        Alert.alert('Invalid Username', 'Please enter a valid Twitter username (1-15 characters, letters, numbers, underscores only).');
+        return;
+      }
+      if (cleanedLinkedin && !isValidUsername(cleanedLinkedin, 'linkedin')) {
+        Alert.alert('Invalid Username', 'Please enter a valid LinkedIn username (3+ characters, letters, numbers, periods, hyphens, underscores only).');
+        return;
+      }
+
       const updateData = {
         displayName: data.displayName.trim(),
         bio: data.bio.trim(),
         hobbies,
         favoriteBooks,
         socialLinks: {
-          instagram: data.instagram.trim() || undefined,
-          twitter: data.twitter.trim() || undefined,
-          linkedin: data.linkedin.trim() || undefined,
+          instagram: cleanedInstagram || undefined,
+          twitter: cleanedTwitter || undefined,
+          linkedin: cleanedLinkedin || undefined,
         },
       };
 
@@ -384,13 +404,13 @@ export const EditProfileScreen: React.FC = () => {
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
                   label="📷 Instagram"
-                  placeholder="Username or full URL"
+                  placeholder="mitchellontheshore"
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
                   autoCapitalize="none"
                   autoCorrect={false}
-                  helpText="e.g., @username or instagram.com/username"
+                  helpText="Just your username (without @ or URLs)"
                   ref={instagramRef}
                   returnKeyType="next"
                   onSubmitEditing={() => twitterRef.current?.focus()}
@@ -405,13 +425,13 @@ export const EditProfileScreen: React.FC = () => {
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
                   label="🐦 Twitter"
-                  placeholder="Username or full URL"
+                  placeholder="mitchellkeo"
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
                   autoCapitalize="none"
                   autoCorrect={false}
-                  helpText="e.g., @username or twitter.com/username"
+                  helpText="Just your username (without @ or URLs)"
                   ref={twitterRef}
                   returnKeyType="next"
                   onSubmitEditing={() => linkedinRef.current?.focus()}
@@ -426,13 +446,13 @@ export const EditProfileScreen: React.FC = () => {
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
                   label="💼 LinkedIn"
-                  placeholder="Profile URL or username"
+                  placeholder="mitchell-keo"
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
                   autoCapitalize="none"
                   autoCorrect={false}
-                  helpText="e.g., linkedin.com/in/username"
+                  helpText="Your LinkedIn profile name (after /in/)"
                   ref={linkedinRef}
                   returnKeyType="done"
                   onSubmitEditing={() => Keyboard.dismiss()}
