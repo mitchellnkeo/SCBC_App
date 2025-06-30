@@ -22,6 +22,7 @@ import ProfilePicture from '../../components/common/ProfilePicture';
 import { Button } from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import { Form } from '../../components/common/Form';
+import SocialIcon from '../../components/common/SocialIcon';
 import { cleanUsername, isValidUsername, type SocialPlatform } from '../../utils/socialMediaUtils';
 
 interface EditProfileFormData {
@@ -402,19 +403,24 @@ export const EditProfileScreen: React.FC = () => {
               control={control}
               name="instagram"
               render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="📷 Instagram"
-                  placeholder="mitchellontheshore"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  helpText="Just your username (without @ or URLs)"
-                  ref={instagramRef}
-                  returnKeyType="next"
-                  onSubmitEditing={() => xRef.current?.focus()}
-                />
+                <View>
+                  <View style={styles.labelWithIcon}>
+                    <SocialIcon platform="instagram" size={16} />
+                    <Text style={styles.labelText}>Instagram</Text>
+                  </View>
+                  <Input
+                    placeholder="mitchellontheshore"
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    helpText="Just your username (without @ or URLs)"
+                    ref={instagramRef}
+                    returnKeyType="next"
+                    onSubmitEditing={() => xRef.current?.focus()}
+                  />
+                </View>
               )}
             />
 
@@ -423,19 +429,24 @@ export const EditProfileScreen: React.FC = () => {
               control={control}
               name="x"
               render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="𝕏 X"
-                  placeholder="mitchellkeo"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  helpText="Just your username (without @ or URLs)"
-                  ref={xRef}
-                  returnKeyType="next"
-                  onSubmitEditing={() => linkedinRef.current?.focus()}
-                />
+                <View>
+                  <View style={styles.labelWithIcon}>
+                    <SocialIcon platform="x" size={16} />
+                    <Text style={styles.labelText}>X</Text>
+                  </View>
+                  <Input
+                    placeholder="mitchellkeo"
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    helpText="Just your username (without @ or URLs)"
+                    ref={xRef}
+                    returnKeyType="next"
+                    onSubmitEditing={() => linkedinRef.current?.focus()}
+                  />
+                </View>
               )}
             />
 
@@ -444,19 +455,24 @@ export const EditProfileScreen: React.FC = () => {
               control={control}
               name="linkedin"
               render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="💼 LinkedIn"
-                  placeholder="mitchell-keo"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  helpText="Your LinkedIn profile name (after /in/)"
-                  ref={linkedinRef}
-                  returnKeyType="done"
-                  onSubmitEditing={() => Keyboard.dismiss()}
-                />
+                <View>
+                  <View style={styles.labelWithIcon}>
+                    <SocialIcon platform="linkedin" size={16} />
+                    <Text style={styles.labelText}>LinkedIn</Text>
+                  </View>
+                  <Input
+                    placeholder="mitchell-keo"
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    helpText="Your LinkedIn profile name (after /in/)"
+                    ref={linkedinRef}
+                    returnKeyType="done"
+                    onSubmitEditing={() => Keyboard.dismiss()}
+                  />
+                </View>
               )}
             />
           </View>
@@ -567,5 +583,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     marginBottom: 16,
+  },
+  labelWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  labelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
   },
 }); 
