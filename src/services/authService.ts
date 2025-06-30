@@ -4,9 +4,11 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  sendPasswordResetEmail,
+  fetchSignInMethodsForEmail,
   User as FirebaseUser,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import { AuthUser, LoginCredentials, RegisterCredentials } from '../types';
 import { isAdminEmail } from '../utils/adminUtils';
@@ -243,4 +245,91 @@ const ensureAdminRole = async (user: FirebaseUser, userData: any): Promise<any> 
     }
   }
   return userData;
+};
+
+/**
+ * Send password reset email
+ */
+export const sendPasswordReset = async (email: string): Promise<void> => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    console.log('Password reset email sent to:', email);
+  } catch (error: any) {
+    console.error('Password reset error:', error);
+    throw new Error(error.message || 'Failed to send password reset email');
+  }
+};
+
+/**
+ * Check if an email is registered in the system
+ */
+export const checkEmailExists = async (email: string): Promise<boolean> => {
+  try {
+    const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+    return signInMethods.length > 0;
+  } catch (error: any) {
+    console.error('Error checking email:', error);
+    // If there's an error, we'll assume the email doesn't exist
+    return false;
+  }
+};
+
+/**
+ * Find user by display name (for username recovery)
+ */
+export const findUserByDisplayName = async (displayName: string): Promise<string[]> => {
+  try {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('displayName', '==', displayName));
+    const querySnapshot = await getDocs(q);
+    
+    const emails: string[] = [];
+    querySnapshot.forEach((doc) => {
+      const userData = doc.data();
+      if (userData.email) {
+        emails.push(userData.email);
+      }
+    });
+    
+    return emails;
+  } catch (error: any) {
+    console.error('Error finding user by display name:', error);
+    return [];
+  }
+};
+
+/**
+ * Search for users by partial display name (for username recovery assistance)
+ */
+export const searchUsersByDisplayName = async (partialName: string): Promise<Array<{ displayName: string; email: string }>> => {
+  try {
+    if (partialName.length < 2) {
+      return [];
+    }
+
+    const usersRef = collection(db, 'users');
+    const querySnapshot = await getDocs(usersRef);
+    
+    const matches: Array<{ displayName: string; email: string }> = [];
+    querySnapshot.forEach((doc) => {
+      const userData = doc.data();
+      if (userData.displayName && userData.email) {
+        const displayName = userData.displayName.toLowerCase();
+        const searchTerm = partialName.toLowerCase();
+        
+        if (displayName.includes(searchTerm)) {
+          matches.push({
+            displayName: userData.displayName,
+            email: userData.email,
+          });
+        }
+      }
+    });
+    
+    // Limit results to prevent overwhelming the user
+    return matches.slice(0, 10);
+  } catch (error: any) {
+    console.error('Error searching users by display name:', error);
+    return [];
+  }
 }; 

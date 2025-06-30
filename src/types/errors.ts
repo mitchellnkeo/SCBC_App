@@ -79,6 +79,32 @@ export const FIREBASE_ERROR_MAPPINGS: Record<string, Partial<AppError>> = {
     retryable: true,
     action: 'RETRY',
   },
+  'auth/user-disabled': {
+    type: ErrorType.AUTHENTICATION,
+    severity: ErrorSeverity.HIGH,
+    userMessage: 'This account has been disabled. Please contact support.',
+    retryable: false,
+    action: 'CONTACT_SUPPORT',
+  },
+  'auth/too-many-requests': {
+    type: ErrorType.RATE_LIMIT,
+    severity: ErrorSeverity.MEDIUM,
+    userMessage: 'Too many requests. Please wait a moment before trying again.',
+    retryable: true,
+    action: 'RETRY',
+  },
+  'auth/invalid-action-code': {
+    type: ErrorType.VALIDATION,
+    severity: ErrorSeverity.MEDIUM,
+    userMessage: 'The password reset link is invalid or has expired. Please request a new one.',
+    retryable: false,
+  },
+  'auth/expired-action-code': {
+    type: ErrorType.VALIDATION,
+    severity: ErrorSeverity.MEDIUM,
+    userMessage: 'The password reset link has expired. Please request a new one.',
+    retryable: false,
+  },
 
   // Firestore Errors
   'permission-denied': {

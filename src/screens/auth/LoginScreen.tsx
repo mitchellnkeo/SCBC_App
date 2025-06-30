@@ -144,14 +144,23 @@ const LoginScreen: React.FC = () => {
           )}
         </Form>
 
-        <TouchableOpacity 
-          style={styles.linkButton}
-          onPress={() => navigation.navigate('Register')}
-        >
-          <Text style={styles.linkText}>
-            Don't have an account? Register
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.linksContainer}>
+          <TouchableOpacity 
+            style={styles.linkButton}
+            onPress={() => navigation.navigate('AccountRecovery')}
+          >
+            <Text style={styles.linkText}>Forgot Password?</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.linkButton}
+            onPress={() => navigation.navigate('Register')}
+          >
+            <Text style={styles.linkText}>
+              Don't have an account? Register
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </ScrollView>
   );
@@ -198,11 +207,18 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  linkButton: {
+  linksContainer: {
+    alignItems: 'center',
+    gap: 16,
     marginTop: 24,
+  },
+  linkButton: {
+    paddingVertical: 8,
   },
   linkText: {
     color: '#dc2626',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
 
