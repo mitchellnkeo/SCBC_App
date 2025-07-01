@@ -119,9 +119,9 @@ export const EditProfileScreen: React.FC = () => {
         .filter(book => book.length > 0);
 
       // Clean and validate social media usernames
-      const cleanedInstagram = data.instagram.trim() ? cleanUsername(data.instagram.trim(), 'instagram') : '';
-      const cleanedX = data.x.trim() ? cleanUsername(data.x.trim(), 'x') : '';
-      const cleanedLinkedin = data.linkedin.trim() ? cleanUsername(data.linkedin.trim(), 'linkedin') : '';
+      const cleanedInstagram = data.instagram ? cleanUsername(data.instagram.trim(), 'instagram') : '';
+      const cleanedX = data.x ? cleanUsername(data.x.trim(), 'x') : '';
+      const cleanedLinkedin = data.linkedin ? cleanUsername(data.linkedin.trim(), 'linkedin') : '';
 
       // Validate usernames if provided
       if (cleanedInstagram && !isValidUsername(cleanedInstagram, 'instagram')) {
@@ -143,9 +143,9 @@ export const EditProfileScreen: React.FC = () => {
         hobbies,
         favoriteBooks,
         socialLinks: {
-          instagram: cleanedInstagram || undefined,
-          x: cleanedX || undefined,
-          linkedin: cleanedLinkedin || undefined,
+          ...(cleanedInstagram ? { instagram: cleanedInstagram } : {}),
+          ...(cleanedX ? { x: cleanedX } : {}),
+          ...(cleanedLinkedin ? { linkedin: cleanedLinkedin } : {}),
         },
       };
 
@@ -261,244 +261,230 @@ export const EditProfileScreen: React.FC = () => {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={styles.container}
     >
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Edit Profile</Text>
-          <Text style={styles.subtitle}>Update your book club profile information</Text>
-        </View>
+      <ScrollView style={styles.scrollView}>
+        <Form>
+          <View style={styles.header}>
+            <Text style={styles.title}>Edit Profile</Text>
+            <Text style={styles.subtitle}>Update your book club profile information</Text>
+          </View>
 
-        <View style={styles.form}>
-          {/* Profile Picture */}
-          <View style={styles.profilePictureSection}>
-            <Text style={styles.profilePictureLabel}>Profile Picture</Text>
-            <View style={styles.profilePictureContainer}>
-              <TouchableOpacity 
-                onPress={handleProfilePicturePress}
-                disabled={isUpdatingPicture}
-                style={styles.profilePictureButton}
-              >
-                <ProfilePicture
-                  imageUrl={user?.profilePicture}
-                  displayName={user?.displayName || 'User'}
-                  size="xlarge"
-                  showBorder
+          <View style={styles.form}>
+            {/* Profile Picture */}
+            <View style={styles.profilePictureSection}>
+              <Text style={styles.profilePictureLabel}>Profile Picture</Text>
+              <View style={styles.profilePictureContainer}>
+                <TouchableOpacity 
+                  onPress={handleProfilePicturePress}
+                  disabled={isUpdatingPicture}
+                  style={styles.profilePictureButton}
+                >
+                  <ProfilePicture
+                    imageUrl={user?.profilePicture}
+                    displayName={user?.displayName || 'User'}
+                    size="xlarge"
+                    showBorder
+                  />
+                  {isUpdatingPicture && (
+                    <View style={styles.profilePictureOverlay}>
+                      <ActivityIndicator size="large" color="#dc2626" />
+                    </View>
+                  )}
+                </TouchableOpacity>
+                <Text style={styles.profilePictureHint}>
+                  Tap to change your profile picture
+                </Text>
+              </View>
+            </View>
+
+            {/* Display Name */}
+            <Controller
+              control={control}
+              name="displayName"
+              rules={{
+                required: 'Display name is required',
+                minLength: { value: 2, message: 'Name must be at least 2 characters' },
+                maxLength: { value: 50, message: 'Name must be less than 50 characters' },
+              }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  label="Display Name"
+                  placeholder="Enter your display name"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  autoCapitalize="words"
+                  characterLimit={50}
+                  showCharacterCount={false}
+                  error={errors.displayName?.message}
+                  required
+                  ref={displayNameRef}
+                  returnKeyType="next"
+                  onSubmitEditing={() => bioRef.current?.focus()}
                 />
-                {isUpdatingPicture && (
-                  <View style={styles.profilePictureOverlay}>
-                    <ActivityIndicator size="large" color="#dc2626" />
+              )}
+            />
+
+            {/* Bio */}
+            <Controller
+              control={control}
+              name="bio"
+              rules={{
+                maxLength: { value: 500, message: 'Bio must be less than 500 characters' },
+              }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  label="Bio"
+                  placeholder="Tell us a bit about yourself..."
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  multiline
+                  numberOfLines={4}
+                  characterLimit={500}
+                  showCharacterCount={true}
+                  error={errors.bio?.message}
+                  ref={bioRef}
+                  returnKeyType="next"
+                  onSubmitEditing={() => hobbiesRef.current?.focus()}
+                />
+              )}
+            />
+
+            {/* Hobbies */}
+            <Controller
+              control={control}
+              name="hobbies"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  label="Hobbies & Interests"
+                  placeholder="e.g., reading, hiking, cooking (separate with commas)"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  multiline
+                  helpText="Separate multiple hobbies with commas"
+                  ref={hobbiesRef}
+                  returnKeyType="next"
+                  onSubmitEditing={() => favoriteBooksRef.current?.focus()}
+                />
+              )}
+            />
+
+            {/* Favorite Books */}
+            <Controller
+              control={control}
+              name="favoriteBooks"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  label="Favorite Books"
+                  placeholder="e.g., 1984, To Kill a Mockingbird (separate with commas)"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  multiline
+                  helpText="Separate multiple books with commas"
+                  ref={favoriteBooksRef}
+                  returnKeyType="next"
+                  onSubmitEditing={() => instagramRef.current?.focus()}
+                />
+              )}
+            />
+
+            {/* Social Media Links Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Social Media Links</Text>
+              <Text style={styles.sectionSubtitle}>Add your usernames to connect with other book lovers</Text>
+              
+              <Controller
+                control={control}
+                name="instagram"
+                render={({ field: { onChange, value } }) => (
+                  <View style={styles.socialInputContainer}>
+                    <View style={styles.iconContainer}>
+                      <SocialIcon platform="instagram" size={24} />
+                    </View>
+                    <Input
+                      ref={instagramRef}
+                      placeholder="Instagram username"
+                      value={value}
+                      onChangeText={onChange}
+                      returnKeyType="next"
+                      onSubmitEditing={() => xRef.current?.focus()}
+                      containerStyle={styles.socialInput}
+                    />
                   </View>
                 )}
-              </TouchableOpacity>
-              <Text style={styles.profilePictureHint}>
-                Tap to change your profile picture
-              </Text>
+              />
+
+              <Controller
+                control={control}
+                name="x"
+                render={({ field: { onChange, value } }) => (
+                  <View style={styles.socialInputContainer}>
+                    <View style={styles.iconContainer}>
+                      <SocialIcon platform="x" size={24} />
+                    </View>
+                    <Input
+                      ref={xRef}
+                      placeholder="X username"
+                      value={value}
+                      onChangeText={onChange}
+                      returnKeyType="next"
+                      onSubmitEditing={() => linkedinRef.current?.focus()}
+                      containerStyle={styles.socialInput}
+                    />
+                  </View>
+                )}
+              />
+
+              <Controller
+                control={control}
+                name="linkedin"
+                render={({ field: { onChange, value } }) => (
+                  <View style={styles.socialInputContainer}>
+                    <View style={styles.iconContainer}>
+                      <SocialIcon platform="linkedin" size={24} />
+                    </View>
+                    <Input
+                      ref={linkedinRef}
+                      placeholder="LinkedIn username"
+                      value={value}
+                      onChangeText={onChange}
+                      returnKeyType="done"
+                      containerStyle={styles.socialInput}
+                    />
+                  </View>
+                )}
+              />
             </View>
           </View>
 
-          {/* Display Name */}
-          <Controller
-            control={control}
-            name="displayName"
-            rules={{
-              required: 'Display name is required',
-              minLength: { value: 2, message: 'Name must be at least 2 characters' },
-              maxLength: { value: 50, message: 'Name must be less than 50 characters' },
-            }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                label="Display Name"
-                placeholder="Enter your display name"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                autoCapitalize="words"
-                characterLimit={50}
-                showCharacterCount={false}
-                error={errors.displayName?.message}
-                required
-                ref={displayNameRef}
-                returnKeyType="next"
-                onSubmitEditing={() => bioRef.current?.focus()}
-              />
-            )}
-          />
-
-          {/* Bio */}
-          <Controller
-            control={control}
-            name="bio"
-            rules={{
-              maxLength: { value: 500, message: 'Bio must be less than 500 characters' },
-            }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                label="Bio"
-                placeholder="Tell us a bit about yourself..."
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                multiline
-                numberOfLines={4}
-                characterLimit={500}
-                showCharacterCount={true}
-                error={errors.bio?.message}
-                ref={bioRef}
-                returnKeyType="next"
-                onSubmitEditing={() => hobbiesRef.current?.focus()}
-              />
-            )}
-          />
-
-          {/* Hobbies */}
-          <Controller
-            control={control}
-            name="hobbies"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                label="Hobbies & Interests"
-                placeholder="e.g., reading, hiking, cooking (separate with commas)"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                multiline
-                helpText="Separate multiple hobbies with commas"
-                ref={hobbiesRef}
-                returnKeyType="next"
-                onSubmitEditing={() => favoriteBooksRef.current?.focus()}
-              />
-            )}
-          />
-
-          {/* Favorite Books */}
-          <Controller
-            control={control}
-            name="favoriteBooks"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                label="Favorite Books"
-                placeholder="e.g., 1984, To Kill a Mockingbird (separate with commas)"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                multiline
-                helpText="Separate multiple books with commas"
-                ref={favoriteBooksRef}
-                returnKeyType="next"
-                onSubmitEditing={() => instagramRef.current?.focus()}
-              />
-            )}
-          />
-
-          {/* Social Media Links Section */}
-          <View style={styles.socialSection}>
-            <Text style={styles.socialSectionTitle}>Social Media Links</Text>
-            <Text style={styles.socialSectionSubtitle}>Connect with other members</Text>
-
-            {/* Instagram */}
-            <Controller
-              control={control}
-              name="instagram"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <View>
-                  <View style={styles.labelWithIcon}>
-                    <SocialIcon platform="instagram" size={16} />
-                    <Text style={styles.labelText}>Instagram</Text>
-                  </View>
-                  <Input
-                    placeholder="mitchellontheshore"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    helpText="Just your username (without @ or URLs)"
-                    ref={instagramRef}
-                    returnKeyType="next"
-                    onSubmitEditing={() => xRef.current?.focus()}
-                  />
-                </View>
-              )}
+          {/* Action Buttons */}
+          <View style={styles.actions}>
+            <Button
+              title="Cancel"
+              onPress={handleCancel}
+              disabled={isSubmitting}
+              variant="secondary"
+              size="large"
+              style={{ flex: 1 }}
             />
 
-            {/* X (formerly Twitter) */}
-            <Controller
-              control={control}
-              name="x"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <View>
-                  <View style={styles.labelWithIcon}>
-                    <SocialIcon platform="x" size={16} />
-                    <Text style={styles.labelText}>X</Text>
-                  </View>
-                  <Input
-                    placeholder="mitchellkeo"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    helpText="Just your username (without @ or URLs)"
-                    ref={xRef}
-                    returnKeyType="next"
-                    onSubmitEditing={() => linkedinRef.current?.focus()}
-                  />
-                </View>
-              )}
-            />
-
-            {/* LinkedIn */}
-            <Controller
-              control={control}
-              name="linkedin"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <View>
-                  <View style={styles.labelWithIcon}>
-                    <SocialIcon platform="linkedin" size={16} />
-                    <Text style={styles.labelText}>LinkedIn</Text>
-                  </View>
-                  <Input
-                    placeholder="mitchell-keo"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    helpText="Your LinkedIn profile name (after /in/)"
-                    ref={linkedinRef}
-                    returnKeyType="done"
-                    onSubmitEditing={() => Keyboard.dismiss()}
-                  />
-                </View>
-              )}
+            <Button
+              title={isSubmitting ? 'Saving...' : 'Save Changes'}
+              onPress={handleSubmit(onSubmit)}
+              disabled={isSubmitting}
+              loading={isSubmitting}
+              variant="error"
+              size="large"
+              style={{ flex: 1 }}
             />
           </View>
-        </View>
-
-        {/* Action Buttons */}
-        <View style={styles.actions}>
-          <Button
-            title="Cancel"
-            onPress={handleCancel}
-            disabled={isSubmitting}
-            variant="secondary"
-            size="large"
-            style={{ flex: 1 }}
-          />
-
-          <Button
-            title={isSubmitting ? 'Saving...' : 'Save Changes'}
-            onPress={handleSubmit(onSubmit)}
-            disabled={isSubmitting}
-            loading={isSubmitting}
-            variant="error"
-            size="large"
-            style={{ flex: 1 }}
-          />
-        </View>
+        </Form>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -567,31 +553,34 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
   },
-  socialSection: {
+  section: {
     marginTop: 24,
     paddingTop: 24,
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
   },
-  socialSectionTitle: {
+  sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1f2937',
     marginBottom: 4,
   },
-  socialSectionSubtitle: {
+  sectionSubtitle: {
     fontSize: 14,
     color: '#6b7280',
     marginBottom: 16,
   },
-  labelWithIcon: {
+  socialInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 16,
   },
-  labelText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
+  iconContainer: {
+    width: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  socialInput: {
+    flex: 1,
   },
 }); 

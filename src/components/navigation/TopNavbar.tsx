@@ -128,6 +128,12 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
       }),
     },
     {
+      title: 'E-Mail Signup',
+      onPress: () => handleMenuItemPress(() => {
+        navigation.navigate('EmailSignup');
+      }),
+    },
+    {
       title: 'About Us',
       onPress: () => handleMenuItemPress(() => {
         navigation.navigate('AboutSCBC');

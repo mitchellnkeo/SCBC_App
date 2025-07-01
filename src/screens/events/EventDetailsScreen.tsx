@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEventStore } from '../../stores/eventStore';
 import { useAuthStore } from '../../stores/authStore';
 import { EventComment, RSVP, Mention, UserSuggestion } from '../../types';
@@ -35,6 +36,13 @@ import { Button } from '../../components/common/Button';
 import { useTheme } from '../../contexts/ThemeContext';
 import { createCommonStyles } from '../../styles/commonStyles';
 import LoadingState from '../../components/common/LoadingState';
+import { shareEvent } from '../../utils/socialMediaUtils';
+
+type RootStackParamList = {
+  EditEvent: { eventId: string };
+};
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'EditEvent'>;
 
 type RouteParams = {
   EventDetails: {
@@ -478,6 +486,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
+  shareEventButton: {
+    backgroundColor: 'rgba(16, 185, 129, 0.9)', // emerald-500 with opacity
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  shareEventText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
+  },
 });
 
 // Move CommentItem outside the main component to prevent re-creation on each render
@@ -649,6 +668,8 @@ const EventDetailsScreen: React.FC = memo(() => {
   const [replyStates, setReplyStates] = useState<Record<string, { isReplying: boolean; content: string; mentions: Mention[] }>>({});
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [availableUsers, setAvailableUsers] = useState<UserSuggestion[]>([]);
+
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (eventId && user) {
@@ -835,8 +856,6 @@ const EventDetailsScreen: React.FC = memo(() => {
     Alert.alert('Call Host', 'Contact feature coming soon!');
   };
 
-
-
   const getRSVPButtonStyle = (status: 'going' | 'maybe' | 'not-going') => {
     const userStatus = currentEvent?.userRsvp?.status;
     const isSelected = userStatus === status;
@@ -858,6 +877,40 @@ const EventDetailsScreen: React.FC = memo(() => {
     const isSelected = userStatus === status;
     
     return [styles.rsvpButtonText, isSelected && styles.rsvpButtonTextSelected];
+  };
+
+  const renderHeaderActions = (event: BookClubEvent) => {
+    const isHost = user?.id === event.createdBy;
+    const isAdmin = user?.role === 'admin';
+    const navigation = useNavigation<NavigationProp>();
+
+    return (
+      <View style={styles.headerActions}>
+        <TouchableOpacity
+          style={styles.shareEventButton}
+          onPress={() => shareEvent(event)}
+        >
+          <Text style={styles.shareEventText}>Share</Text>
+        </TouchableOpacity>
+
+        {(isHost || isAdmin) && (
+          <>
+            <TouchableOpacity
+              style={styles.editEventButton}
+              onPress={() => navigation.navigate('EditEvent', { eventId: event.id })}
+            >
+              <Text style={styles.editEventText}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.deleteEventButton}
+              onPress={handleDeleteEvent}
+            >
+              <Text style={styles.deleteEventText}>Delete</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    );
   };
 
   if (isLoading || !currentEvent) {
@@ -891,288 +944,254 @@ const EventDetailsScreen: React.FC = memo(() => {
   }
 
   return (
-    <SafeAreaView style={styles.container} className="flex-1 bg-gray-50">
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardAvoidingView}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <ScrollView 
-          style={styles.scrollView} 
-          className="flex-1"
-          contentContainerStyle={styles.scrollViewContent}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
-          }
-        >
-          {/* Loading State */}
-          {isLoading && !currentEvent && (
-            <LoadingState text="Loading event..." color="#ec4899" />
-          )}
-
-          {/* Error State */}
-          {error && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
-              <Text style={styles.errorMessage}>{error}</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  clearError();
-                  if (eventId && user) loadEvent(eventId, user.id);
-                }}
-                style={styles.retryButton}
-              >
-                <Text style={styles.retryButtonText}>Try Again</Text>
-              </TouchableOpacity>
+        {isLoading ? (
+          <EventDetailsSkeleton />
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorEmoji}>😕</Text>
+            <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
+            <Text style={styles.errorMessage}>{error}</Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => loadEvent(eventId)}
+            >
+              <Text style={styles.retryButtonText}>Try Again</Text>
+            </TouchableOpacity>
+          </View>
+        ) : currentEvent ? (
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollViewContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                colors={[theme.primary]}
+                tintColor={theme.primary}
+              />
+            }
+          >
+            {/* Header Image */}
+            <View style={styles.headerContainer}>
+              {currentEvent.headerPhoto ? (
+                <Image
+                  source={{ uri: currentEvent.headerPhoto }}
+                  style={styles.headerImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.headerPlaceholder}>
+                  <Text style={styles.headerEmoji}>📚</Text>
+                </View>
+              )}
+              <View style={styles.headerOverlay}>
+                <TouchableOpacity
+                  style={styles.backButton}
+                  onPress={() => navigation.goBack()}
+                >
+                  <Text style={styles.backButtonText}>←</Text>
+                </TouchableOpacity>
+                {renderHeaderActions(currentEvent)}
+              </View>
             </View>
-          )}
 
-          {/* Event Content */}
-          {currentEvent && (
-            <View>
-              {/* Header Image */}
-              <View style={styles.headerContainer}>
-                {currentEvent.headerPhoto ? (
-                  <Image
-                    source={{ uri: currentEvent.headerPhoto }}
-                    style={styles.headerImage}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View style={styles.headerPlaceholder}>
+            {/* Event Content */}
+            <View style={styles.content}>
+              {/* Title */}
+              <Text style={styles.eventTitle}>{currentEvent.title}</Text>
+              
+              {/* Date & Time */}
+              <View style={styles.infoRow}>
+                <Text style={styles.infoIcon}>📅</Text>
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoText}>
+                    {formatFullDate(currentEvent.date)}
+                  </Text>
+                  <Text style={styles.infoSubtext}>
+                    {formatTimeRange(currentEvent.startTime, currentEvent.endTime)}
+                  </Text>
+                </View>
+              </View>
+              
+              {/* Location */}
+              <AddressAction
+                address={currentEvent.address}
+                style={styles.infoRow}
+              >
+                <Text style={styles.infoIcon}>📍</Text>
+                <View style={styles.infoContent}>
+                  <Text style={[styles.infoText, styles.linkText]}>
+                    {currentEvent.location}
+                  </Text>
+                  <Text style={styles.infoSubtext}>
+                    {currentEvent.address}
+                  </Text>
+                </View>
+              </AddressAction>
+              
+              {/* Host */}
+              <View style={styles.infoRow}>
+                <Text style={styles.infoIcon}>👤</Text>
+                <View style={styles.infoContent}>
+                  <View style={styles.hostContainer}>
+                    <Text style={styles.infoText}>Hosted by </Text>
+                    <ClickableUser
+                      userId={currentEvent.createdBy}
+                      displayName={currentEvent.hostName}
+                      profilePicture={currentEvent.hostProfilePicture}
+                      showAvatar={false}
+                      textStyle={[styles.infoText, styles.linkText]}
+                    />
                   </View>
-                )}
+                  <Text style={styles.infoSubtext}>
+                    Tap name to view profile
+                  </Text>
+                </View>
+              </View>
+              
+              {/* RSVP Section */}
+              <View style={styles.rsvpSection}>
+                <Text style={styles.sectionTitle}>Will you be attending?</Text>
                 
-                {/* Header Overlay */}
-                <View style={styles.headerOverlay}>
+                <View style={styles.rsvpButtons}>
                   <TouchableOpacity
-                    onPress={() => navigation.goBack()}
-                    style={styles.backButton}
+                    onPress={() => handleRSVP('going')}
+                    disabled={isRsvping}
+                    style={getRSVPButtonStyle('going')}
                   >
-                    <Text style={styles.backButtonText}>←</Text>
+                    <Text style={getRSVPTextStyle('going')}>
+                      ✓ Going ({currentEvent.stats.goingCount})
+                    </Text>
                   </TouchableOpacity>
                   
-                  <View style={styles.headerActions}>
-                    {/* Edit button - show for event creator or admin */}
-                    {(user?.id === currentEvent.createdBy || user?.role === 'admin') && (
-                      <TouchableOpacity
-                        onPress={() => (navigation as any).navigate('EditEvent', { eventId: currentEvent.id })}
-                        style={styles.editEventButton}
-                      >
-                        <Text style={styles.editEventText}>Edit</Text>
-                      </TouchableOpacity>
-                    )}
-                    
-                    {/* Delete button - show only for admin */}
-                    {user?.role === 'admin' && (
-                      <TouchableOpacity
-                        onPress={handleDeleteEvent}
-                        style={styles.deleteEventButton}
-                      >
-                        <Text style={styles.deleteEventText}>Delete</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
+                  <TouchableOpacity
+                    onPress={() => handleRSVP('maybe')}
+                    disabled={isRsvping}
+                    style={getRSVPButtonStyle('maybe')}
+                  >
+                    <Text style={getRSVPTextStyle('maybe')}>
+                      ? Maybe ({currentEvent.stats.maybeCount})
+                    </Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    onPress={() => handleRSVP('not-going')}
+                    disabled={isRsvping}
+                    style={getRSVPButtonStyle('not-going')}
+                  >
+                    <Text style={getRSVPTextStyle('not-going')}>
+                      ✗ Can't Go ({currentEvent.stats.notGoingCount})
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
-
-              {/* Event Content */}
-              <View style={styles.content}>
-                {/* Title */}
-                <Text style={styles.eventTitle}>{currentEvent.title}</Text>
-                
-                {/* Date & Time */}
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoIcon}>📅</Text>
-                  <View style={styles.infoContent}>
-                    <Text style={styles.infoText}>
-                      {formatFullDate(currentEvent.date)}
-                    </Text>
-                    <Text style={styles.infoSubtext}>
-                      {formatTimeRange(currentEvent.startTime, currentEvent.endTime)}
-                    </Text>
-                  </View>
-                </View>
-                
-                {/* Location */}
-                <AddressAction
-                  address={currentEvent.address}
-                  style={styles.infoRow}
-                >
-                  <Text style={styles.infoIcon}>📍</Text>
-                  <View style={styles.infoContent}>
-                    <Text style={[styles.infoText, styles.linkText]}>
-                      {currentEvent.location}
-                    </Text>
-                    <Text style={styles.infoSubtext}>
-                      {currentEvent.address}
-                    </Text>
-                  </View>
-                </AddressAction>
-                
-                {/* Host */}
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoIcon}>👤</Text>
-                  <View style={styles.infoContent}>
-                    <View style={styles.hostContainer}>
-                      <Text style={styles.infoText}>Hosted by </Text>
-                      <ClickableUser
-                        userId={currentEvent.createdBy}
-                        displayName={currentEvent.hostName}
-                        profilePicture={currentEvent.hostProfilePicture}
-                        showAvatar={false}
-                        textStyle={[styles.infoText, styles.linkText]}
-                      />
-                    </View>
-                    <Text style={styles.infoSubtext}>
-                      Tap name to view profile
-                    </Text>
-                  </View>
-                </View>
-                
-                {/* RSVP Section */}
-                <View style={styles.rsvpSection}>
-                  <Text style={styles.sectionTitle}>Will you be attending?</Text>
-                  
-                  <View style={styles.rsvpButtons}>
-                    <TouchableOpacity
-                      onPress={() => handleRSVP('going')}
-                      disabled={isRsvping}
-                      style={getRSVPButtonStyle('going')}
-                    >
-                      <Text style={getRSVPTextStyle('going')}>
-                        ✓ Going ({currentEvent.stats.goingCount})
-                      </Text>
-                    </TouchableOpacity>
-                    
-                    <TouchableOpacity
-                      onPress={() => handleRSVP('maybe')}
-                      disabled={isRsvping}
-                      style={getRSVPButtonStyle('maybe')}
-                    >
-                      <Text style={getRSVPTextStyle('maybe')}>
-                        ? Maybe ({currentEvent.stats.maybeCount})
-                      </Text>
-                    </TouchableOpacity>
-                    
-                    <TouchableOpacity
-                      onPress={() => handleRSVP('not-going')}
-                      disabled={isRsvping}
-                      style={getRSVPButtonStyle('not-going')}
-                    >
-                      <Text style={getRSVPTextStyle('not-going')}>
-                        ✗ Can't Go ({currentEvent.stats.notGoingCount})
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-                
-                {/* Attendees Section */}
-                {currentEvent.stats.goingCount > 0 && (
-                  <View style={styles.attendeesSection}>
-                    <Text style={styles.sectionTitle}>
-                      Who's Going ({currentEvent.stats.goingCount})
-                    </Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                      <View style={styles.attendeesList}>
-                        {currentEvent.rsvps
-                          .filter(rsvp => rsvp.status === 'going')
-                          .map((rsvp) => (
-                            <View key={rsvp.id} style={styles.attendeeItem}>
-                              <ClickableUser
-                                userId={rsvp.userId}
-                                displayName={rsvp.userName}
-                                profilePicture={rsvp.userProfilePicture}
-                                avatarSize="medium"
-                                showName={true}
-                                textStyle={styles.attendeeName}
-                                containerStyle={styles.attendeeClickable}
-                              />
-                            </View>
-                          ))}
-                      </View>
-                    </ScrollView>
-                  </View>
-                )}
-                
-                {/* Description */}
-                <View style={styles.descriptionSection}>
-                  <Text style={styles.sectionTitle}>About This Event</Text>
-                  <Text style={styles.description}>{currentEvent.description}</Text>
-                </View>
-                
-                {/* Comments Section */}
-                <View style={styles.commentsSection}>
+              
+              {/* Attendees Section */}
+              {currentEvent.stats.goingCount > 0 && (
+                <View style={styles.attendeesSection}>
                   <Text style={styles.sectionTitle}>
-                    Discussion ({currentEvent.stats.commentsCount})
+                    Who's Going ({currentEvent.stats.goingCount})
                   </Text>
-                  
-                  {/* Add Comment */}
-                  <View style={styles.addCommentContainer}>
-                    <View style={styles.commentInputContainer}>
-                      <MentionInput
-                        key="main-comment"
-                        value={newComment}
-                        onChangeText={handleCommentTextChange}
-                        placeholder="Add a comment..."
-                        users={availableUsers}
-                        multiline
-                        maxLength={500}
-                        style={styles.commentInput}
-                      />
-                      <TouchableOpacity
-                        onPress={handleAddComment}
-                        disabled={!newComment.trim() || isCommenting}
-                        style={[
-                          styles.sendCommentButton,
-                          (!newComment.trim() || isCommenting) && styles.sendCommentButtonDisabled
-                        ]}
-                      >
-                        {isCommenting ? (
-                          <ActivityIndicator size="small" color="white" />
-                        ) : (
-                          <Text style={styles.sendCommentText}>Send</Text>
-                        )}
-                      </TouchableOpacity>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View style={styles.attendeesList}>
+                      {currentEvent.rsvps
+                        .filter(rsvp => rsvp.status === 'going')
+                        .map((rsvp) => (
+                          <View key={rsvp.id} style={styles.attendeeItem}>
+                            <ClickableUser
+                              userId={rsvp.userId}
+                              displayName={rsvp.userName}
+                              profilePicture={rsvp.userProfilePicture}
+                              avatarSize="medium"
+                              showName={true}
+                              textStyle={styles.attendeeName}
+                              containerStyle={styles.attendeeClickable}
+                            />
+                          </View>
+                        ))}
                     </View>
+                  </ScrollView>
+                </View>
+              )}
+              
+              {/* Description */}
+              <View style={styles.descriptionSection}>
+                <Text style={styles.sectionTitle}>About This Event</Text>
+                <Text style={styles.description}>{currentEvent.description}</Text>
+              </View>
+              
+              {/* Comments Section */}
+              <View style={styles.commentsSection}>
+                <Text style={styles.sectionTitle}>
+                  Discussion ({currentEvent.stats.commentsCount})
+                </Text>
+                
+                {/* Add Comment */}
+                <View style={styles.addCommentContainer}>
+                  <View style={styles.commentInputContainer}>
+                    <MentionInput
+                      key="main-comment"
+                      value={newComment}
+                      onChangeText={handleCommentTextChange}
+                      placeholder="Add a comment..."
+                      users={availableUsers}
+                      multiline
+                      maxLength={500}
+                      style={styles.commentInput}
+                    />
+                    <TouchableOpacity
+                      onPress={handleAddComment}
+                      disabled={!newComment.trim() || isCommenting}
+                      style={[
+                        styles.sendCommentButton,
+                        (!newComment.trim() || isCommenting) && styles.sendCommentButtonDisabled
+                      ]}
+                    >
+                      {isCommenting ? (
+                        <ActivityIndicator size="small" color="white" />
+                      ) : (
+                        <Text style={styles.sendCommentText}>Send</Text>
+                      )}
+                    </TouchableOpacity>
                   </View>
-                  
-                  {/* Comments List */}
-                  <View style={styles.commentsList}>
-                    {currentEvent.comments.length === 0 ? (
-                      <View style={styles.noCommentsContainer}>
-                        <Text style={styles.noCommentsText}>
-                          No comments yet. Be the first to start the discussion!
-                        </Text>
-                      </View>
-                    ) : (
-                      currentEvent.comments.map((comment) => (
-                        <CommentItem 
-                          key={comment.id} 
-                          comment={comment}
-                          user={user}
-                          replyStates={replyStates}
-                          availableUsers={availableUsers}
-                          isCommenting={isCommenting}
-                          onDeleteComment={handleDeleteComment}
-                          onStartReply={handleStartReply}
-                          onCancelReply={handleCancelReply}
-                          onReplyTextChange={handleReplyTextChange}
-                          onAddReply={handleAddReply}
-                          onMentionPress={handleMentionPress}
-                        />
-                      ))
-                    )}
-                  </View>
+                </View>
+                
+                {/* Comments List */}
+                <View style={styles.commentsList}>
+                  {currentEvent.comments.length === 0 ? (
+                    <View style={styles.noCommentsContainer}>
+                      <Text style={styles.noCommentsText}>
+                        No comments yet. Be the first to start the discussion!
+                      </Text>
+                    </View>
+                  ) : (
+                    currentEvent.comments.map((comment) => (
+                      <CommentItem 
+                        key={comment.id} 
+                        comment={comment}
+                        user={user}
+                        replyStates={replyStates}
+                        availableUsers={availableUsers}
+                        isCommenting={isCommenting}
+                        onDeleteComment={handleDeleteComment}
+                        onStartReply={handleStartReply}
+                        onCancelReply={handleCancelReply}
+                        onReplyTextChange={handleReplyTextChange}
+                        onAddReply={handleAddReply}
+                        onMentionPress={handleMentionPress}
+                      />
+                    ))
+                  )}
                 </View>
               </View>
             </View>
-          )}
-          
-          {/* Bottom Spacing */}
-          <View style={styles.bottomSpacing} />
-        </ScrollView>
+          </ScrollView>
+        ) : null}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

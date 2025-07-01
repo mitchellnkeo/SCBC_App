@@ -321,16 +321,16 @@ const UserProfileScreen: React.FC = () => {
 
           {/* Social Media Links */}
           {profileUser.socialLinks && Object.values(profileUser.socialLinks).some(link => link) && (
-            <View style={styles.socialLinksContainer}>
-              <Text style={styles.socialLinksTitle}>Connect</Text>
-              <View style={styles.socialLinksRow}>
+            <View style={styles.socialLinksSection}>
+              <Text style={styles.sectionTitle}>Connect</Text>
+              <View style={styles.socialLinksContainer}>
                 {profileUser.socialLinks.instagram && (
                   <TouchableOpacity
                     style={styles.socialLink}
                     onPress={() => handleSocialLinkPress(profileUser.socialLinks!.instagram!, 'instagram')}
                   >
                     <View style={styles.socialLinkContent}>
-                      <SocialIcon platform="instagram" size={16} />
+                      <SocialIcon platform="instagram" size={14} />
                       <Text style={styles.socialLinkText}>
                         {getDisplayUsername(profileUser.socialLinks!.instagram!, 'instagram')}
                       </Text>
@@ -343,7 +343,7 @@ const UserProfileScreen: React.FC = () => {
                     onPress={() => handleSocialLinkPress(profileUser.socialLinks!.x!, 'x')}
                   >
                     <View style={styles.socialLinkContent}>
-                      <SocialIcon platform="x" size={16} />
+                      <SocialIcon platform="x" size={14} />
                       <Text style={styles.socialLinkText}>
                         {getDisplayUsername(profileUser.socialLinks!.x!, 'x')}
                       </Text>
@@ -356,7 +356,7 @@ const UserProfileScreen: React.FC = () => {
                     onPress={() => handleSocialLinkPress(profileUser.socialLinks!.linkedin!, 'linkedin')}
                   >
                     <View style={styles.socialLinkContent}>
-                      <SocialIcon platform="linkedin" size={16} />
+                      <SocialIcon platform="linkedin" size={14} />
                       <Text style={styles.socialLinkText}>
                         {getDisplayUsername(profileUser.socialLinks!.linkedin!, 'linkedin')}
                       </Text>
@@ -488,17 +488,17 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     color: theme.textTertiary,
   },
-  socialLinksContainer: {
+  socialLinksSection: {
     marginTop: 16,
     alignItems: 'center',
   },
-  socialLinksTitle: {
+  sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
     color: theme.textSecondary,
     marginBottom: 8,
   },
-  socialLinksRow: {
+  socialLinksContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,

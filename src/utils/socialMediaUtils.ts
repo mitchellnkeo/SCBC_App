@@ -1,3 +1,7 @@
+import { Share } from 'react-native';
+import { BookClubEvent } from '../types';
+import { formatFullDate, formatTimeRange } from './dateTimeUtils';
+
 export type SocialPlatform = 'instagram' | 'x' | 'linkedin';
 
 export interface SocialMediaConfig {
@@ -173,5 +177,30 @@ export const getPlatformEmoji = (platform: SocialPlatform): string => {
       return '💼';
     default:
       return '🔗';
+  }
+};
+
+/**
+ * Share event details using the native share dialog
+ */
+export const shareEvent = async (event: BookClubEvent): Promise<void> => {
+  const eventDate = formatFullDate(new Date(event.date));
+  const eventTime = formatTimeRange(event.startTime, event.endTime);
+  
+  const message = `Join me at ${event.title}!\n\n` +
+    `📅 ${eventDate}\n` +
+    `⏰ ${eventTime}\n` +
+    `📍 ${event.location}\n\n` +
+    `Hosted by ${event.hostName}\n\n` +
+    `${event.description || ''}\n\n` +
+    `#SeattleChinatownBookClub #SCBC`;
+
+  try {
+    await Share.share({
+      message,
+      title: event.title,
+    });
+  } catch (error) {
+    console.error('Error sharing event:', error);
   }
 }; 

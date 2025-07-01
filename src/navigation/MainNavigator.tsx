@@ -12,6 +12,7 @@ import { EditProfileScreen } from '../screens/profile/EditProfileScreen';
 import UserProfileScreen from '../screens/profile/UserProfileScreen';
 import AboutSCBCScreen from '../screens/info/AboutSCBCScreen';
 import ContactInfoScreen from '../screens/info/ContactInfoScreen';
+import EmailSignupScreen from '../screens/info/EmailSignupScreen';
 import FeedbackScreen from '../screens/info/FeedbackScreen';
 import FAQScreen from '../screens/info/FAQScreen';
 import WhatsAppCommunityScreen from '../screens/info/WhatsAppCommunityScreen';
@@ -35,6 +36,7 @@ export type MainStackParamList = {
   UserProfile: { userId: string };
   AboutSCBC: undefined;
   ContactInfo: undefined;
+  EmailSignup: undefined;
   Feedback: undefined;
   FAQ: undefined;
   WhatsAppCommunity: undefined;
@@ -171,6 +173,14 @@ const MainNavigator: React.FC = () => {
       <Stack.Screen 
         name="ContactInfo" 
         component={ContactInfoScreen}
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen 
+        name="EmailSignup" 
+        component={EmailSignupScreen}
         options={{
           headerShown: false,
           presentation: 'card',
