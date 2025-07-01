@@ -15,6 +15,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { useTheme } from '../../contexts/ThemeContext';
 import ProfilePicture from '../common/ProfilePicture';
 import { Button } from '../common/Button';
+import NotificationBadge from '../common/NotificationBadge';
 import { MainStackParamList } from '../../navigation/MainNavigator';
 
 type NavigationProp = StackNavigationProp<MainStackParamList>;
@@ -299,6 +300,30 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
       fontSize: 14,
       color: theme.textTertiary,
     },
+    profileSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    notificationButton: {
+      position: 'relative',
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: theme.surface,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    notificationIcon: {
+      fontSize: 16,
+    },
+    notificationBadge: {
+      position: 'absolute',
+      top: -4,
+      right: -4,
+    },
   });
 
   const renderLeftContent = () => {
@@ -346,49 +371,59 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
   };
 
   const renderRightContent = () => {
-    if (actionButton) {
-      return (
-        <Button
-          title={actionButton.title}
-          onPress={actionButton.onPress}
-          variant={actionButton.variant || 'primary'}
-          size={actionButton.size || 'small'}
-          loading={actionButton.loading}
-          disabled={actionButton.disabled}
-        />
-      );
-    }
-    
     if (rightAction) {
       return (
         <TouchableOpacity
           style={dynamicStyles.rightActionButton}
           onPress={rightAction.onPress}
-          activeOpacity={0.7}
         >
           <Text style={dynamicStyles.rightActionText}>{rightAction.text}</Text>
         </TouchableOpacity>
       );
     }
-    
-    if (showProfile && user) {
+
+    if (actionButton) {
       return (
-        <TouchableOpacity
-          style={styles.profileButton}
-          onPress={handleProfilePress}
-          activeOpacity={0.7}
-        >
-          <ProfilePicture
-            imageUrl={user?.profilePicture}
-            displayName={user?.displayName || 'User'}
-            size="small"
-            showBorder
-          />
-        </TouchableOpacity>
+        <Button
+          title={actionButton.title}
+          onPress={actionButton.onPress}
+          variant={actionButton.variant}
+          loading={actionButton.loading}
+          disabled={actionButton.disabled}
+          size={actionButton.size || 'small'}
+        />
       );
     }
-    
-    return <View style={{ minWidth: 60 }} />;
+
+    if (showProfile && user) {
+      return (
+        <View style={dynamicStyles.profileSection}>
+          {/* Notification Bell */}
+          <TouchableOpacity
+            style={dynamicStyles.notificationButton}
+            onPress={() => navigation.navigate('Notifications')}
+          >
+            <Text style={dynamicStyles.notificationIcon}>🔔</Text>
+            <NotificationBadge 
+              size="small" 
+              style={dynamicStyles.notificationBadge}
+            />
+          </TouchableOpacity>
+          
+          {/* Profile Picture */}
+          <TouchableOpacity onPress={handleProfilePress}>
+            <ProfilePicture
+              imageUrl={user.profilePicture}
+              displayName={user.displayName}
+              size="small"
+              showBorder
+            />
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return null;
   };
 
   return (
