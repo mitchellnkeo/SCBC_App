@@ -8,6 +8,7 @@ import PendingEventsScreen from '../screens/admin/PendingEventsScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import AdminScreen from '../screens/admin/AdminScreen';
 import { NotificationDemoScreen } from '../screens/NotificationDemoScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
 import { EditProfileScreen } from '../screens/profile/EditProfileScreen';
 import UserProfileScreen from '../screens/profile/UserProfileScreen';
 import AboutSCBCScreen from '../screens/info/AboutSCBCScreen';
@@ -32,6 +33,7 @@ export type MainStackParamList = {
   Admin: undefined;
   UserManagement: undefined;
   NotificationDemo: undefined;
+  Notifications: undefined;
   EditProfile: undefined;
   UserProfile: { userId: string };
   AboutSCBC: undefined;
@@ -157,6 +159,15 @@ const MainNavigator: React.FC = () => {
         options={{
           headerShown: true,
           title: 'Push Notifications',
+          presentation: 'card',
+        }}
+      />
+      
+      <Stack.Screen 
+        name="Notifications" 
+        component={NotificationsScreen}
+        options={{
+          headerShown: false,
           presentation: 'card',
         }}
       />

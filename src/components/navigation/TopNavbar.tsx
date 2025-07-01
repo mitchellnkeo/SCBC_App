@@ -122,6 +122,12 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
       }),
     },
     {
+      title: 'Notifications',
+      onPress: () => handleMenuItemPress(() => {
+        navigation.navigate('Notifications');
+      }),
+    },
+    {
       title: 'WhatsApp Community Chat',
       onPress: () => handleMenuItemPress(() => {
         navigation.navigate('WhatsAppCommunity');

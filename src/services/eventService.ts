@@ -351,6 +351,9 @@ export const createOrUpdateRSVP = async (
     );
     const existingRSVP = await getDocs(rsvpQuery);
     
+    const isNewRSVP = existingRSVP.empty;
+    let previousStatus: string | null = null;
+    
     if (existingRSVP.empty) {
       // Create new RSVP
       await addDoc(collection(db, RSVPS_COLLECTION), {
@@ -365,10 +368,52 @@ export const createOrUpdateRSVP = async (
     } else {
       // Update existing RSVP
       const rsvpDoc = existingRSVP.docs[0];
+      const rsvpData = rsvpDoc.data();
+      previousStatus = rsvpData.status;
+      
       await updateDoc(rsvpDoc.ref, {
         status,
         updatedAt: serverTimestamp(),
       });
+    }
+    
+    // Create RSVP notification for event host (if not the user who RSVP'd)
+    try {
+      const event = await getEvent(eventId);
+      if (event && event.createdBy !== userId) {
+        const { createNotification } = await import('./internalNotificationService');
+        
+        let notificationMessage: string;
+        if (isNewRSVP) {
+          notificationMessage = `${userName} RSVP'd "${status}" to your event "${event.title}"`;
+        } else if (previousStatus !== status) {
+          notificationMessage = `${userName} changed their RSVP from "${previousStatus}" to "${status}" for your event "${event.title}"`;
+        } else {
+          // No notification needed if status didn't change
+          console.log('RSVP updated:', { eventId, userId, status });
+          return;
+        }
+        
+        await createNotification({
+          userId: event.createdBy,
+          type: 'rsvp_update',
+          title: 'RSVP Update',
+          message: notificationMessage,
+          data: {
+            rsvpUpdate: {
+              eventTitle: event.title,
+              status,
+            }
+          },
+          eventId,
+          fromUserId: userId,
+          fromUserName: userName,
+          fromUserProfilePicture: userProfilePicture,
+        });
+      }
+    } catch (error) {
+      console.error('Error creating RSVP notification:', error);
+      // Don't fail RSVP creation if notification fails
     }
     
     console.log('RSVP updated:', { eventId, userId, status });
