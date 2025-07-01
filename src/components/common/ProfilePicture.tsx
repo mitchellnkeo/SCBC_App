@@ -7,6 +7,7 @@ interface ProfilePictureProps {
   size?: 'small' | 'medium' | 'large' | 'xlarge';
   onPress?: () => void;
   showBorder?: boolean;
+  style?: any;
 }
 
 const ProfilePicture: React.FC<ProfilePictureProps> = ({
@@ -15,6 +16,7 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({
   size = 'medium',
   onPress,
   showBorder = false,
+  style,
 }) => {
   // Get size dimensions
   const getDimensions = () => {
@@ -81,6 +83,7 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({
     dimensions,
     showBorder && styles.border,
     { backgroundColor: imageUrl ? 'transparent' : backgroundColor },
+    style,
   ];
 
   const content = (
