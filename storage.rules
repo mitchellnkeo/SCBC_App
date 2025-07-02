@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Profile pictures - users can upload/update/delete their own profile pictures
+    match /profile-pictures/{allImages=**} {
+      allow read: if true; // Anyone can view profile pictures
+      allow write, delete: if request.auth != null;
+    }
+
+    // Comment images - authenticated users can upload comment images
+    match /comment-images/{userId}/{imageId} {
+      allow read: if true; // Anyone can view comment images
+      allow write: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && 
+        (request.auth.uid == userId || 
+         // Allow deletion if user is admin (check from Firestore)
+         firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    // Event header images - authenticated users can upload event images
+    match /event-headers/{allImages=**} {
+      allow read: if true; // Anyone can view event images
+      allow write: if request.auth != null; // Any authenticated user can upload event images
+      allow delete: if request.auth != null;
+    }
+
+    // Monthly book covers - only admins can manage
+    match /book-covers/{allImages=**} {
+      allow read: if true; // Anyone can view book covers
+      allow write, delete: if request.auth != null &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Deny all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+} 

@@ -13,6 +13,7 @@ export interface User {
       x?: string;
       linkedin?: string;
     };
+    lastActiveAt?: Date; // For activity-based filtering
     createdAt: Date;
     updatedAt: Date;
   }
@@ -32,6 +33,7 @@ export interface User {
       x?: string;
       linkedin?: string;
     };
+    lastActiveAt?: Date;
   }
   
   export interface LoginCredentials {
@@ -242,6 +244,7 @@ export interface User {
     authorName: string;
     authorProfilePicture?: string;
     content: string;
+    images?: string[]; // Array of image URLs
     mentions?: import('./mentions').Mention[];
     parentCommentId?: string; // For replies
     isReply?: boolean; // Flag to distinguish top-level comments from replies
@@ -252,6 +255,7 @@ export interface User {
 
   export interface CreateProfileCommentData {
     content: string;
+    images?: string[];
     parentCommentId?: string;
     mentions?: import('./mentions').Mention[];
   }

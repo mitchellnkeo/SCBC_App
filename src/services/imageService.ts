@@ -166,6 +166,50 @@ export const uploadProfilePicture = async (
 };
 
 /**
+ * Upload comment image to Firebase Storage
+ */
+export const uploadCommentImage = async (
+  imageUri: string, 
+  userId: string,
+  commentId?: string
+): Promise<ImageUploadResult> => {
+  try {
+    // Compress image for comments (larger size than profile pictures)
+    const manipulatedImage = await ImageManipulator.manipulateAsync(imageUri, [
+      { resize: { width: 800 } }, // Resize to max width 800px, maintain aspect ratio
+    ], {
+      compress: 0.8, // 80% quality for comments
+      format: ImageManipulator.SaveFormat.JPEG,
+    });
+    
+    // Convert image to blob
+    const response = await fetch(manipulatedImage.uri);
+    const blob = await response.blob();
+    
+    // Create storage reference
+    const fileName = `comment-images/${userId}/${commentId || Date.now()}-${Date.now()}.jpg`;
+    const storageRef = ref(storage, fileName);
+    
+    // Upload image
+    const snapshot = await uploadBytes(storageRef, blob);
+    
+    // Get download URL
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    
+    return {
+      success: true,
+      url: downloadURL,
+    };
+  } catch (error) {
+    console.error('Error uploading comment image:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to upload image',
+    };
+  }
+};
+
+/**
  * Delete profile picture from Firebase Storage
  */
 export const deleteProfilePicture = async (imageUrl: string): Promise<boolean> => {

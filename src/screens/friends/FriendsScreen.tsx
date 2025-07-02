@@ -8,6 +8,7 @@ import {
   Alert,
   RefreshControl,
   TextInput,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -47,6 +48,12 @@ const FriendsScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchFilters, setSearchFilters] = useState({
+    hasProfilePicture: false,
+    isActive: false, // Active in last 30 days
+    sortBy: 'relevance' as 'relevance' | 'name' | 'recent',
+  });
 
   const styles = createStyles(theme);
 
@@ -76,7 +83,7 @@ const FriendsScreen: React.FC = () => {
     } else {
       setSearchResults([]);
     }
-  }, [searchQuery]);
+  }, [searchQuery, searchFilters]);
 
   const loadData = async () => {
     if (!user) return;
@@ -110,12 +117,43 @@ const FriendsScreen: React.FC = () => {
 
     try {
       setIsSearching(true);
-      const results = await searchUsers(searchQuery.trim(), 10);
+      const results = await searchUsers(searchQuery.trim(), 20); // Get more results for filtering
+      
       // Filter out self and current friends
-      const filteredResults = results.filter(
+      let filteredResults = results.filter(
         (result) => result.id !== user?.id && !friends.some((friend) => friend.id === result.id)
       );
-      setSearchResults(filteredResults);
+
+      // Apply additional filters
+      if (searchFilters.hasProfilePicture) {
+        filteredResults = filteredResults.filter(user => user.profilePicture);
+      }
+
+      if (searchFilters.isActive) {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        filteredResults = filteredResults.filter(user => 
+          user.lastActiveAt && new Date(user.lastActiveAt) > thirtyDaysAgo
+        );
+      }
+
+      // Apply sorting
+      switch (searchFilters.sortBy) {
+        case 'name':
+          filteredResults.sort((a, b) => a.displayName.localeCompare(b.displayName));
+          break;
+        case 'recent':
+          filteredResults.sort((a, b) => {
+            const aDate = a.lastActiveAt ? new Date(a.lastActiveAt) : new Date(0);
+            const bDate = b.lastActiveAt ? new Date(b.lastActiveAt) : new Date(0);
+            return bDate.getTime() - aDate.getTime();
+          });
+          break;
+        // 'relevance' is default from search results
+      }
+
+      // Limit final results
+      setSearchResults(filteredResults.slice(0, 10));
     } catch (error) {
       handleError(error, { showAlert: true });
     } finally {
@@ -259,6 +297,11 @@ const FriendsScreen: React.FC = () => {
       <View style={styles.discoverContent}>
         <Text style={styles.discoverName}>{user.displayName}</Text>
         {user.email && <Text style={styles.discoverEmail}>{user.email}</Text>}
+        {user.lastActiveAt && (
+          <Text style={styles.discoverActivity}>
+            Active {formatTimeAgo(user.lastActiveAt)}
+          </Text>
+        )}
       </View>
       <FriendRequestButton
         targetUserId={user.id}
@@ -350,6 +393,12 @@ const FriendsScreen: React.FC = () => {
           autoCapitalize="none"
           autoCorrect={false}
         />
+        <TouchableOpacity
+          style={styles.filterButton}
+          onPress={() => setShowFilters(true)}
+        >
+          <Text style={styles.filterButtonText}>Filters</Text>
+        </TouchableOpacity>
       </View>
 
       {searchQuery.trim() ? (
@@ -423,6 +472,88 @@ const FriendsScreen: React.FC = () => {
         {activeTab === 'friends' && renderFriendsTab()}
         {activeTab === 'discover' && renderDiscoverTab()}
       </View>
+
+      {/* Filter Modal */}
+      <Modal
+        visible={showFilters}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowFilters(false)}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowFilters(false)}>
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Search Filters</Text>
+            <TouchableOpacity 
+              onPress={() => {
+                setSearchFilters({
+                  hasProfilePicture: false,
+                  isActive: false,
+                  sortBy: 'relevance',
+                });
+              }}
+            >
+              <Text style={styles.modalResetText}>Reset</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.modalContent}>
+            {/* Profile Picture Filter */}
+            <TouchableOpacity
+              style={styles.filterOption}
+              onPress={() => setSearchFilters(prev => ({ ...prev, hasProfilePicture: !prev.hasProfilePicture }))}
+            >
+              <Text style={styles.filterLabel}>Has Profile Picture</Text>
+              <View style={[styles.checkbox, searchFilters.hasProfilePicture && styles.checkboxChecked]}>
+                {searchFilters.hasProfilePicture && <Text style={styles.checkmark}>✓</Text>}
+              </View>
+            </TouchableOpacity>
+
+            {/* Active Users Filter */}
+            <TouchableOpacity
+              style={styles.filterOption}
+              onPress={() => setSearchFilters(prev => ({ ...prev, isActive: !prev.isActive }))}
+            >
+              <Text style={styles.filterLabel}>Active in Last 30 Days</Text>
+              <View style={[styles.checkbox, searchFilters.isActive && styles.checkboxChecked]}>
+                {searchFilters.isActive && <Text style={styles.checkmark}>✓</Text>}
+              </View>
+            </TouchableOpacity>
+
+            {/* Sort Options */}
+            <View style={styles.filterSection}>
+              <Text style={styles.filterSectionTitle}>Sort By</Text>
+              {[
+                { key: 'relevance', label: 'Relevance' },
+                { key: 'name', label: 'Name' },
+                { key: 'recent', label: 'Recently Active' },
+              ].map((option) => (
+                <TouchableOpacity
+                  key={option.key}
+                  style={styles.sortOption}
+                  onPress={() => setSearchFilters(prev => ({ ...prev, sortBy: option.key as any }))}
+                >
+                  <Text style={styles.sortLabel}>{option.label}</Text>
+                  <View style={[styles.radio, searchFilters.sortBy === option.key && styles.radioSelected]}>
+                    {searchFilters.sortBy === option.key && <View style={styles.radioDot} />}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.modalFooter}>
+            <TouchableOpacity
+              style={styles.applyButton}
+              onPress={() => setShowFilters(false)}
+            >
+              <Text style={styles.applyButtonText}>Apply Filters</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -635,6 +766,140 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   discoverButton: {
     marginLeft: 12,
+  },
+  discoverActivity: {
+    fontSize: 12,
+    color: theme.textTertiary,
+    marginTop: 2,
+  },
+  filterButton: {
+    backgroundColor: theme.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    marginTop: 8,
+    alignSelf: 'flex-end',
+  },
+  filterButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  // Modal styles
+  modalContainer: {
+    flex: 1,
+    backgroundColor: theme.background,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border,
+    backgroundColor: theme.card,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme.text,
+  },
+  modalCancelText: {
+    fontSize: 16,
+    color: theme.textSecondary,
+  },
+  modalResetText: {
+    fontSize: 16,
+    color: theme.primary,
+    fontWeight: '500',
+  },
+  modalContent: {
+    flex: 1,
+    padding: 16,
+  },
+  filterOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border,
+  },
+  filterLabel: {
+    fontSize: 16,
+    color: theme.text,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderColor: theme.border,
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: theme.primary,
+    borderColor: theme.primary,
+  },
+  checkmark: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  filterSection: {
+    marginTop: 24,
+  },
+  filterSectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme.text,
+    marginBottom: 16,
+  },
+  sortOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  sortLabel: {
+    fontSize: 16,
+    color: theme.text,
+  },
+  radio: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: theme.border,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioSelected: {
+    borderColor: theme.primary,
+  },
+  radioDot: {
+    width: 10,
+    height: 10,
+    backgroundColor: theme.primary,
+    borderRadius: 5,
+  },
+  modalFooter: {
+    padding: 16,
+    backgroundColor: theme.card,
+    borderTopWidth: 1,
+    borderTopColor: theme.border,
+  },
+  applyButton: {
+    backgroundColor: theme.primary,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  applyButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

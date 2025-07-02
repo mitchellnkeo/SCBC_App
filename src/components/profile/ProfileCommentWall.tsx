@@ -5,11 +5,14 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  Image,
+  ScrollView,
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuthStore } from '../../stores/authStore';
 import {
   getProfileComments,
+  getProfileCommentsPaginated,
   createProfileComment,
   deleteProfileComment,
   subscribeToProfileComments,
@@ -23,7 +26,10 @@ import ClickableUser from '../common/ClickableUser';
 import MentionText from '../common/MentionText';
 import MentionInput from '../common/MentionInput';
 import ReportButton from '../common/ReportButton';
+import ImagePicker from '../common/ImagePicker';
+import * as ImagePickerExpo from 'expo-image-picker';
 import { Mention } from '../../types/mentions';
+import { uploadCommentImage } from '../../services';
 
 interface ProfileCommentWallProps {
   profileUserId: string;
@@ -42,8 +48,14 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [lastVisible, setLastVisible] = useState<any>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [usePagination, setUsePagination] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [newCommentMentions, setNewCommentMentions] = useState<Mention[]>([]);
+  const [newCommentImages, setNewCommentImages] = useState<string[]>([]);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [canComment, setCanComment] = useState(false);
   const [friendStatus, setFriendStatus] = useState<FriendStatus>({
     isFriend: false,
@@ -55,29 +67,88 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
   const styles = createStyles(theme);
 
   useEffect(() => {
-    loadComments();
+    loadComments(true); // Initial load with reset
     checkCommentPermission();
 
-    // Set up real-time subscription
+    // Set up real-time subscription (this will override pagination for real-time updates)
     const unsubscribe = subscribeToProfileComments(profileUserId, (updatedComments) => {
       setComments(updatedComments);
+      setUsePagination(false); // Disable pagination when using real-time updates
+      setHasMore(false);
     });
 
     return () => unsubscribe();
   }, [profileUserId]);
 
-  const loadComments = async () => {
+  const loadComments = async (reset: boolean = false) => {
     try {
-      setIsLoading(true);
+      if (reset) {
+        setIsLoading(true);
+        setLastVisible(null);
+        setHasMore(true);
+      }
+
       console.log('Loading comments for profile:', profileUserId);
-      const profileComments = await getProfileComments(profileUserId);
-      console.log('Loaded comments:', profileComments.length);
-      setComments(profileComments);
+      
+      // Try paginated loading first, fall back to full loading if it fails
+      try {
+        const result = await getProfileCommentsPaginated(profileUserId, 10, reset ? null : lastVisible);
+        
+        if (reset) {
+          setComments(result.comments);
+        } else {
+          setComments(prev => [...prev, ...result.comments]);
+        }
+        
+        setLastVisible(result.lastVisible);
+        setHasMore(result.hasMore);
+        setUsePagination(true);
+        console.log('Loaded paginated comments:', result.comments.length, 'hasMore:', result.hasMore);
+      } catch (paginationError: any) {
+        console.log('Pagination failed, falling back to full load:', paginationError?.message || paginationError);
+        
+        // Check if it's an index building error
+        if (paginationError?.message?.includes('index') || paginationError?.message?.includes('building')) {
+          console.log('Firebase index is still building, using fallback method');
+        }
+        
+        // Fall back to loading all comments
+        try {
+          const profileComments = await getProfileComments(profileUserId);
+          setComments(profileComments);
+          setUsePagination(false);
+          setHasMore(false);
+          console.log('Loaded all comments:', profileComments.length);
+        } catch (fallbackError) {
+          console.error('Both pagination and fallback failed:', fallbackError);
+          throw fallbackError;
+        }
+      }
     } catch (error) {
       console.error('Error in loadComments:', error);
       handleError(error, { showAlert: true });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadMoreComments = async () => {
+    if (!hasMore || isLoadingMore || !usePagination) return;
+
+    try {
+      setIsLoadingMore(true);
+      const result = await getProfileCommentsPaginated(profileUserId, 10, lastVisible);
+      
+      setComments(prev => [...prev, ...result.comments]);
+      setLastVisible(result.lastVisible);
+      setHasMore(result.hasMore);
+      
+      console.log('Loaded more comments:', result.comments.length, 'hasMore:', result.hasMore);
+    } catch (error) {
+      console.error('Error loading more comments:', error);
+      handleError(error, { showAlert: true });
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
@@ -101,13 +172,13 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await loadComments();
+    await loadComments(true); // Reset pagination
     await checkCommentPermission();
     setIsRefreshing(false);
   };
 
   const handlePostComment = async () => {
-    if (!user || !newComment.trim()) return;
+    if (!user || (!newComment.trim() && newCommentImages.length === 0)) return;
 
     try {
       setIsPosting(true);
@@ -118,17 +189,42 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
         user.profilePicture,
         {
           content: newComment.trim(),
+          images: newCommentImages,
           mentions: newCommentMentions,
         }
       );
 
       setNewComment('');
       setNewCommentMentions([]);
+      setNewCommentImages([]);
     } catch (error) {
       handleError(error, { showAlert: true });
     } finally {
       setIsPosting(false);
     }
+  };
+
+  const handleImageSelected = async (imageUri: string) => {
+    if (!user) return;
+
+    try {
+      setIsUploadingImage(true);
+      const result = await uploadCommentImage(imageUri, user.id);
+      
+      if (result.success && result.url) {
+        setNewCommentImages(prev => [...prev, result.url!]);
+      } else {
+        Alert.alert('Upload Failed', result.error || 'Failed to upload image');
+      }
+    } catch (error) {
+      handleError(error, { showAlert: true });
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setNewCommentImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleDeleteComment = (comment: ProfileComment) => {
@@ -203,6 +299,31 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
           mentions={comment.mentions || []}
           style={styles.commentText}
         />
+        
+        {/* Comment Images */}
+        {comment.images && comment.images.length > 0 && (
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            style={styles.commentImagesContainer}
+          >
+            {comment.images.map((imageUrl, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => {
+                  // In a full implementation, you might want to open a full-screen image viewer
+                  Alert.alert('Image', 'Full image viewer would open here');
+                }}
+              >
+                <Image
+                  source={{ uri: imageUrl }}
+                  style={styles.commentImage}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
       </View>
 
       {/* Render replies if any */}
@@ -262,39 +383,121 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
           size="medium"
         />
         <View style={styles.inputWrapper}>
-                     <MentionInput
-             value={newComment}
-             onChangeText={(text, mentions) => {
-               setNewComment(text);
-               setNewCommentMentions(mentions);
-             }}
-             users={availableUsers}
-             placeholder={
-               isOwnProfile
-                 ? 'Write something on your profile...'
-                 : `Write something on ${profileUserName}'s profile...`
-             }
-             style={styles.commentInput}
-             multiline
-             maxLength={500}
-           />
-          <TouchableOpacity
-            style={[
-              styles.postButton,
-              (!newComment.trim() || isPosting) && styles.postButtonDisabled,
-            ]}
-            onPress={handlePostComment}
-            disabled={!newComment.trim() || isPosting}
-          >
-            <Text
-              style={[
-                styles.postButtonText,
-                (!newComment.trim() || isPosting) && styles.postButtonTextDisabled,
-              ]}
+          <MentionInput
+            value={newComment}
+            onChangeText={(text, mentions) => {
+              setNewComment(text);
+              setNewCommentMentions(mentions);
+            }}
+            users={availableUsers}
+            placeholder={
+              isOwnProfile
+                ? 'Write something on your profile...'
+                : `Write something on ${profileUserName}'s profile...`
+            }
+            style={styles.commentInput}
+            multiline
+            maxLength={500}
+          />
+          
+          {/* Image Preview */}
+          {newCommentImages.length > 0 && (
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.imagePreviewContainer}
             >
-              {isPosting ? 'Posting...' : 'Post'}
-            </Text>
-          </TouchableOpacity>
+              {newCommentImages.map((imageUrl, index) => (
+                <View key={index} style={styles.imagePreviewItem}>
+                  <Image
+                    source={{ uri: imageUrl }}
+                    style={styles.imagePreview}
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    style={styles.removeImageButton}
+                    onPress={() => handleRemoveImage(index)}
+                  >
+                    <Text style={styles.removeImageText}>×</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+          )}
+          
+          <View style={styles.inputActions}>
+            {(isUploadingImage || newCommentImages.length >= 3) ? (
+              <TouchableOpacity 
+                style={[styles.imagePickerButton, styles.imagePickerDisabled]}
+                disabled
+              >
+                <Text style={styles.imagePickerDisabledText}>
+                  {isUploadingImage ? 'Uploading...' : '3 images max'}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.imagePickerButton}
+                onPress={() => {
+                  Alert.alert(
+                    'Add Image',
+                    'Choose how you\'d like to add a photo',
+                    [
+                      {
+                        text: 'Camera',
+                        onPress: async () => {
+                          const result = await ImagePickerExpo.launchCameraAsync({
+                            mediaTypes: ['images'],
+                            allowsEditing: true,
+                            quality: 0.8,
+                          });
+                          if (!result.canceled && result.assets?.[0]) {
+                            handleImageSelected(result.assets[0].uri);
+                          }
+                        },
+                      },
+                      {
+                        text: 'Photo Library',
+                        onPress: async () => {
+                          const result = await ImagePickerExpo.launchImageLibraryAsync({
+                            mediaTypes: ['images'],
+                            allowsEditing: true,
+                            quality: 0.8,
+                          });
+                          if (!result.canceled && result.assets?.[0]) {
+                            handleImageSelected(result.assets[0].uri);
+                          }
+                        },
+                      },
+                      {
+                        text: 'Cancel',
+                        style: 'cancel',
+                      },
+                    ]
+                  );
+                }}
+              >
+                <Text style={styles.imagePickerText}>📷 Add Photo</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={[
+                styles.postButton,
+                ((!newComment.trim() && newCommentImages.length === 0) || isPosting) && styles.postButtonDisabled,
+              ]}
+              onPress={handlePostComment}
+              disabled={(!newComment.trim() && newCommentImages.length === 0) || isPosting}
+            >
+              <Text
+                style={[
+                  styles.postButtonText,
+                  ((!newComment.trim() && newCommentImages.length === 0) || isPosting) && styles.postButtonTextDisabled,
+                ]}
+              >
+                {isPosting ? 'Posting...' : 'Post'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
@@ -336,6 +539,19 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
                 {renderComment({ item: comment })}
               </View>
             ))}
+            
+            {/* Load More Button */}
+            {usePagination && hasMore && (
+              <TouchableOpacity
+                style={styles.loadMoreButton}
+                onPress={loadMoreComments}
+                disabled={isLoadingMore}
+              >
+                <Text style={styles.loadMoreText}>
+                  {isLoadingMore ? 'Loading more...' : 'Load more comments'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </View>
@@ -515,6 +731,87 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     color: theme.textTertiary,
     textAlign: 'center',
+  },
+  loadMoreButton: {
+    backgroundColor: theme.surface,
+    borderWidth: 1,
+    borderColor: theme.border,
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  loadMoreText: {
+    fontSize: 14,
+    color: theme.primary,
+    fontWeight: '500',
+  },
+  // Image styles
+  commentImagesContainer: {
+    marginTop: 8,
+  },
+  commentImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  imagePreviewContainer: {
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  imagePreviewItem: {
+    position: 'relative',
+    marginRight: 8,
+  },
+  imagePreview: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: theme.error,
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeImageText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    lineHeight: 18,
+  },
+  inputActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  imagePickerButton: {
+    backgroundColor: theme.surface,
+    borderWidth: 1,
+    borderColor: theme.border,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  imagePickerDisabled: {
+    backgroundColor: theme.border,
+    opacity: 0.6,
+  },
+  imagePickerText: {
+    fontSize: 14,
+    color: theme.primary,
+    fontWeight: '500',
+  },
+  imagePickerDisabledText: {
+    fontSize: 14,
+    color: theme.textSecondary,
   },
 });
 

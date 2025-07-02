@@ -11,7 +11,10 @@ import {
   orderBy,
   onSnapshot,
   serverTimestamp,
-  writeBatch
+  writeBatch,
+  limit,
+  startAfter,
+  QueryConstraint
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { 
@@ -41,6 +44,7 @@ export const createProfileComment = async (
       authorName,
       authorProfilePicture,
       content: commentData.content,
+      images: commentData.images || [],
       mentions: commentData.mentions || [],
       parentCommentId: commentData.parentCommentId || null, // Explicitly set null
       isReply: !!commentData.parentCommentId, // Add boolean flag for easier querying
@@ -128,11 +132,13 @@ export const createProfileComment = async (
 export const updateProfileComment = async (
   commentId: string,
   content: string,
+  images?: string[],
   mentions?: Mention[]
 ): Promise<void> => {
   try {
     await updateDoc(doc(db, PROFILE_COMMENTS_COLLECTION, commentId), {
       content,
+      images: images || [],
       mentions: mentions || [],
       updatedAt: serverTimestamp(),
     });
@@ -292,5 +298,118 @@ export const getProfileCommentCount = async (profileUserId: string): Promise<num
   } catch (error) {
     console.error('Error getting profile comment count:', error);
     return 0;
+  }
+};
+
+/**
+ * Get comments for a user's profile with pagination
+ */
+export const getProfileCommentsPaginated = async (
+  profileUserId: string,
+  limitCount: number = 10,
+  lastVisible?: any
+): Promise<{ comments: ProfileComment[]; lastVisible: any; hasMore: boolean }> => {
+  try {
+    // Try to build query with index-dependent constraints
+    let commentsQuery;
+    
+    try {
+      const constraints: QueryConstraint[] = [
+        where('profileUserId', '==', profileUserId),
+        where('parentCommentId', '==', null), // Only get top-level comments
+        orderBy('createdAt', 'desc'),
+        limit(limitCount + 1) // Get one extra to check if there are more
+      ];
+
+      if (lastVisible) {
+        constraints.push(startAfter(lastVisible));
+      }
+
+      commentsQuery = query(
+        collection(db, PROFILE_COMMENTS_COLLECTION),
+        ...constraints
+      );
+    } catch (indexError) {
+      console.log('Index not ready, using simpler query');
+      // Fallback to simpler query without parentCommentId filter
+      const constraints: QueryConstraint[] = [
+        where('profileUserId', '==', profileUserId),
+        orderBy('createdAt', 'desc'),
+        limit(limitCount + 1)
+      ];
+
+      if (lastVisible) {
+        constraints.push(startAfter(lastVisible));
+      }
+
+      commentsQuery = query(
+        collection(db, PROFILE_COMMENTS_COLLECTION),
+        ...constraints
+      );
+    }
+
+    const snapshot = await getDocs(commentsQuery);
+    const docs = snapshot.docs;
+    
+    // Filter out replies if we got them (in case index wasn't available)
+    const topLevelDocs = docs.filter(doc => !doc.data().parentCommentId);
+    const hasMore = topLevelDocs.length > limitCount;
+    const commentsToProcess = hasMore ? topLevelDocs.slice(0, limitCount) : topLevelDocs;
+    const newLastVisible = commentsToProcess.length > 0 ? commentsToProcess[commentsToProcess.length - 1] : null;
+
+    const comments: ProfileComment[] = [];
+
+    for (const doc of commentsToProcess) {
+      const commentData = doc.data();
+      
+      // Get replies for this comment
+      try {
+        const repliesQuery = query(
+          collection(db, PROFILE_COMMENTS_COLLECTION),
+          where('parentCommentId', '==', doc.id),
+          orderBy('createdAt', 'asc')
+        );
+        
+        const repliesSnapshot = await getDocs(repliesQuery);
+        const replies = repliesSnapshot.docs.map(replyDoc => ({
+          id: replyDoc.id,
+          ...replyDoc.data(),
+          createdAt: replyDoc.data().createdAt?.toDate() || new Date(),
+          updatedAt: replyDoc.data().updatedAt?.toDate() || new Date(),
+        })) as ProfileComment[];
+
+        comments.push({
+          id: doc.id,
+          ...commentData,
+          createdAt: commentData.createdAt?.toDate() || new Date(),
+          updatedAt: commentData.updatedAt?.toDate() || new Date(),
+          replies,
+        } as ProfileComment);
+      } catch (replyError) {
+        console.log('Could not fetch replies, adding comment without replies');
+        // If we can't get replies, just add the comment without them
+        const comment: ProfileComment = {
+          id: doc.id,
+          profileUserId: commentData.profileUserId,
+          authorId: commentData.authorId,
+          authorName: commentData.authorName,
+          authorProfilePicture: commentData.authorProfilePicture,
+          content: commentData.content,
+          images: commentData.images || [],
+          mentions: commentData.mentions || [],
+          parentCommentId: commentData.parentCommentId,
+          isReply: commentData.isReply,
+          replies: [],
+          createdAt: commentData.createdAt?.toDate() || new Date(),
+          updatedAt: commentData.updatedAt?.toDate() || new Date(),
+        };
+        comments.push(comment);
+      }
+    }
+
+    return { comments, lastVisible: newLastVisible, hasMore };
+  } catch (error) {
+    console.error('Error fetching paginated profile comments:', error);
+    throw new Error('Failed to fetch profile comments');
   }
 }; 

@@ -29,6 +29,24 @@
       ]
     },
     {
+      "collectionGroup": "profileComments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "profileUserId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "parentCommentId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "friendRequests",
       "queryScope": "COLLECTION",
       "fields": [

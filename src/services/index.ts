@@ -38,6 +38,7 @@ export {
   updateProfileComment,
   deleteProfileComment,
   getProfileComments,
+  getProfileCommentsPaginated,
   getProfileCommentById,
   subscribeToProfileComments,
   getProfileCommentCount
