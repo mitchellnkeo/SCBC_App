@@ -120,7 +120,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
   const menuGroups = [
     {
       id: 'bookclub',
-      title: '📚 Book Club',
+      title: 'Book Club',
       items: [
         {
           title: 'Monthly Meeting Details',
@@ -138,7 +138,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
     },
     {
       id: 'community',
-      title: '👥 Community',
+      title: 'Community',
       items: [
         {
           title: 'My Friends',
@@ -162,7 +162,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
     },
     {
       id: 'support',
-      title: 'ℹ️ Support & Info',
+      title: 'Support & Info',
       items: [
         {
           title: 'About Us',
