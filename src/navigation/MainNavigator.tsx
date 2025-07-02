@@ -21,6 +21,7 @@ import SettingsScreen from '../screens/settings/SettingsScreen';
 import MonthlyBookScreen from '../screens/books/MonthlyBookScreen';
 import EditMonthlyBookScreen from '../screens/admin/EditMonthlyBookScreen';
 import UserManagementScreen from '../screens/admin/UserManagementScreen';
+import FriendsScreen from '../screens/friends/FriendsScreen';
 import { useAuthStore } from '../stores/authStore';
 
 export type MainStackParamList = {
@@ -36,6 +37,7 @@ export type MainStackParamList = {
   Notifications: undefined;
   EditProfile: undefined;
   UserProfile: { userId: string };
+  Friends: undefined;
   AboutSCBC: undefined;
   ContactInfo: undefined;
   EmailSignup: undefined;
@@ -116,6 +118,16 @@ const MainNavigator: React.FC = () => {
       <Stack.Screen 
         name="UserProfile" 
         component={UserProfileScreen}
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      
+      {/* Friends Screen */}
+      <Stack.Screen 
+        name="Friends" 
+        component={FriendsScreen}
         options={{
           headerShown: false,
           presentation: 'card',

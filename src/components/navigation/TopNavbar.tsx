@@ -123,9 +123,9 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
       }),
     },
     {
-      title: 'Notifications',
+      title: 'My Friends',
       onPress: () => handleMenuItemPress(() => {
-        navigation.navigate('Notifications');
+        navigation.navigate('Friends');
       }),
     },
     {

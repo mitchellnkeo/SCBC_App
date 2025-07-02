@@ -645,6 +645,7 @@ const CommentItem: React.FC<{
 const EventDetailsScreen: React.FC = memo(() => {
   const route = useRoute<RouteProp<RouteParams, 'EventDetails'>>();
   const navigation = useNavigation();
+  const editNavigation = useNavigation<NavigationProp>();
   const { eventId } = route.params;
   
   const { user } = useAuthStore();
@@ -882,7 +883,6 @@ const EventDetailsScreen: React.FC = memo(() => {
   const renderHeaderActions = (event: BookClubEvent) => {
     const isHost = user?.id === event.createdBy;
     const isAdmin = user?.role === 'admin';
-    const navigation = useNavigation<NavigationProp>();
 
     return (
       <View style={styles.headerActions}>
@@ -897,7 +897,7 @@ const EventDetailsScreen: React.FC = memo(() => {
           <>
             <TouchableOpacity
               style={styles.editEventButton}
-              onPress={() => navigation.navigate('EditEvent', { eventId: event.id })}
+              onPress={() => editNavigation.navigate('EditEvent', { eventId: event.id })}
             >
               <Text style={styles.editEventText}>Edit</Text>
             </TouchableOpacity>
