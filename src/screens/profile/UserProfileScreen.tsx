@@ -3,13 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Alert,
   RefreshControl,
   Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { User, BookClubEvent } from '../../types';
@@ -32,6 +32,8 @@ import {
   type SocialPlatform 
 } from '../../utils/socialMediaUtils';
 import SocialIcon from '../../components/common/SocialIcon';
+import FriendRequestButton from '../../components/friends/FriendRequestButton';
+import ProfileCommentWall from '../../components/profile/ProfileCommentWall';
 
 type UserProfileScreenNavigationProp = StackNavigationProp<MainStackParamList>;
 type UserProfileScreenRouteProp = RouteProp<MainStackParamList, 'UserProfile'>;
@@ -288,9 +290,13 @@ const UserProfileScreen: React.FC = () => {
         } : undefined}
       />
 
-      <ScrollView 
+      <KeyboardAwareScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
+        enableOnAndroid={true}
+        enableAutomaticScroll={true}
+        keyboardOpeningTime={0}
+        extraScrollHeight={20}
         refreshControl={
           <RefreshControl 
             refreshing={isRefreshing} 
@@ -318,6 +324,14 @@ const UserProfileScreen: React.FC = () => {
           <Text style={styles.joinDate}>
             Member since {formatJoinDate(profileUser.createdAt)}
           </Text>
+
+          {/* Friend Request Button */}
+          <FriendRequestButton
+            targetUserId={profileUser.id}
+            targetUserName={profileUser.displayName}
+            targetUserProfilePicture={profileUser.profilePicture}
+            style={styles.friendButton}
+          />
 
           {/* Social Media Links */}
           {profileUser.socialLinks && Object.values(profileUser.socialLinks).some(link => link) && (
@@ -409,8 +423,17 @@ const UserProfileScreen: React.FC = () => {
         {/* Events Section */}
         {renderEventsSection()}
 
+        {/* Profile Comment Wall */}
+        <View style={styles.commentWallCard}>
+          <ProfileCommentWall
+            profileUserId={profileUser.id}
+            profileUserName={profileUser.displayName}
+            isOwnProfile={isOwnProfile}
+          />
+        </View>
+
         <View style={styles.bottomSpacer} />
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };
@@ -487,6 +510,9 @@ const createStyles = (theme: any) => StyleSheet.create({
   joinDate: {
     fontSize: 14,
     color: theme.textTertiary,
+  },
+  friendButton: {
+    marginTop: 16,
   },
   socialLinksSection: {
     marginTop: 16,
@@ -647,6 +673,14 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: '600',
     color: theme.textSecondary,
     marginBottom: 8,
+  },
+  commentWallCard: {
+    backgroundColor: theme.card,
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: theme.border,
   },
   bottomSpacer: {
     height: 32,

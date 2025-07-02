@@ -258,6 +258,10 @@ export const getNotificationStats = async (userId: string): Promise<Notification
       event_rejected: 0,
       rsvp_update: 0,
       comment_reply: 0,
+      friend_request: 0,
+      friend_request_accepted: 0,
+      profile_comment: 0,
+      profile_comment_reply: 0,
       admin_message: 0,
     };
     
@@ -287,6 +291,10 @@ export const getNotificationStats = async (userId: string): Promise<Notification
         event_rejected: 0,
         rsvp_update: 0,
         comment_reply: 0,
+        friend_request: 0,
+        friend_request_accepted: 0,
+        profile_comment: 0,
+        profile_comment_reply: 0,
         admin_message: 0,
       },
     };
@@ -407,6 +415,10 @@ export const subscribeToNotificationStats = (
       event_rejected: 0,
       rsvp_update: 0,
       comment_reply: 0,
+      friend_request: 0,
+      friend_request_accepted: 0,
+      profile_comment: 0,
+      profile_comment_reply: 0,
       admin_message: 0,
     };
     

@@ -60,5 +60,49 @@ service cloud.firestore {
       allow write: if request.auth != null && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
+
+    // Friend requests - users can read their own incoming/outgoing requests and create new ones
+    match /friendRequests/{requestId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.fromUserId || 
+         request.auth.uid == resource.data.toUserId);
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.fromUserId;
+      allow update: if request.auth != null && 
+        request.auth.uid == resource.data.toUserId && 
+        request.resource.data.status in ['accepted', 'declined'];
+      allow delete: if request.auth != null && 
+        request.auth.uid == resource.data.fromUserId;
+    }
+
+    // Friendships - users can read their own friendships and create new ones
+    match /friendships/{friendshipId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.user1Id || 
+         request.auth.uid == resource.data.user2Id);
+      allow create: if request.auth != null;
+      allow delete: if request.auth != null && 
+        (request.auth.uid == resource.data.user1Id || 
+         request.auth.uid == resource.data.user2Id);
+    }
+
+    // Profile comments - friends can comment on each other's profiles
+    match /profileComments/{commentId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.authorId;
+      allow update: if request.auth != null && 
+        request.auth.uid == resource.data.authorId;
+      allow delete: if request.auth != null && 
+        (request.auth.uid == resource.data.authorId || 
+         request.auth.uid == resource.data.profileUserId);
+    }
+
+    // WhatsApp community rules
+    match /whatsapp_community/{communityId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null 
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
   }
-} 
+}

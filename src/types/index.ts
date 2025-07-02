@@ -200,3 +200,58 @@ export interface User {
     isPublished?: boolean;
     order?: number;
   }
+
+  // Friend System Types
+  export interface FriendRequest {
+    id: string;
+    fromUserId: string;
+    fromUserName: string;
+    fromUserProfilePicture?: string;
+    toUserId: string;
+    toUserName: string;
+    toUserProfilePicture?: string;
+    status: 'pending' | 'accepted' | 'declined';
+    createdAt: Date;
+    updatedAt: Date;
+  }
+
+  export interface Friendship {
+    id: string;
+    user1Id: string;
+    user1Name: string;
+    user1ProfilePicture?: string;
+    user2Id: string;
+    user2Name: string;
+    user2ProfilePicture?: string;
+    createdAt: Date;
+  }
+
+  export interface FriendStatus {
+    isFriend: boolean;
+    hasIncomingRequest: boolean;
+    hasOutgoingRequest: boolean;
+    friendshipId?: string;
+    requestId?: string;
+  }
+
+  // Profile Comment Types
+  export interface ProfileComment {
+    id: string;
+    profileUserId: string; // User whose profile this comment is on
+    authorId: string; // User who wrote the comment
+    authorName: string;
+    authorProfilePicture?: string;
+    content: string;
+    mentions?: import('./mentions').Mention[];
+    parentCommentId?: string; // For replies
+    isReply?: boolean; // Flag to distinguish top-level comments from replies
+    replies?: ProfileComment[]; // Nested replies
+    createdAt: Date;
+    updatedAt: Date;
+  }
+
+  export interface CreateProfileCommentData {
+    content: string;
+    parentCommentId?: string;
+    mentions?: import('./mentions').Mention[];
+  }

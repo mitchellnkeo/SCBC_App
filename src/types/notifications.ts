@@ -5,6 +5,10 @@ export type NotificationType =
   | 'event_rejected'
   | 'rsvp_update'
   | 'comment_reply'
+  | 'friend_request'
+  | 'friend_request_accepted'
+  | 'profile_comment'
+  | 'profile_comment_reply'
   | 'admin_message';
 
 export interface Notification {
@@ -55,6 +59,30 @@ export interface NotificationData {
     eventTitle: string;
     replyText: string;
   };
+  
+  // For friend requests
+  friendRequest?: {
+    requestId: string;
+    fromUserName: string;
+  };
+  
+  // For friend request acceptance
+  friendshipAccepted?: {
+    friendName: string;
+  };
+  
+  // For profile comments
+  profileComment?: {
+    commentId: string;
+    profileUserName: string;
+  };
+  
+  // For profile comment replies
+  profileCommentReply?: {
+    commentId: string;
+    parentCommentId: string;
+    profileUserName: string;
+  };
 }
 
 export interface CreateNotificationData {
@@ -81,6 +109,10 @@ export interface NotificationSettings {
   eventApprovals: boolean;
   rsvpUpdates: boolean;
   commentReplies: boolean;
+  friendRequests: boolean;
+  friendRequestAccepted: boolean;
+  profileComments: boolean;
+  profileCommentReplies: boolean;
   adminMessages: boolean;
   pushNotifications: boolean;
   emailNotifications: boolean;
