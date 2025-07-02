@@ -102,67 +102,93 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
     }
   };
 
+  const [expandedGroups, setExpandedGroups] = useState<{ [key: string]: boolean }>({});
+
   const handleMenuItemPress = (action: () => void) => {
     closeMenu();
     // Small delay to let the menu close animation finish
     setTimeout(action, 100);
   };
 
-  const menuItems = [
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [groupId]: !prev[groupId]
+    }));
+  };
+
+  const menuGroups = [
     {
-      icon: '',
-      title: 'Monthly Meeting Details',
-      onPress: () => handleMenuItemPress(() => {
-        navigation.navigate('MonthlyBook');
-      }),
+      id: 'bookclub',
+      title: '📚 Book Club',
+      items: [
+        {
+          title: 'Monthly Meeting Details',
+          onPress: () => handleMenuItemPress(() => {
+            navigation.navigate('MonthlyBook');
+          }),
+        },
+        {
+          title: 'Events',
+          onPress: () => handleMenuItemPress(() => {
+            navigation.navigate('Events');
+          }),
+        },
+      ]
     },
     {
-      title: 'Events',
-      onPress: () => handleMenuItemPress(() => {
-        navigation.navigate('Events');
-      }),
+      id: 'community',
+      title: '👥 Community',
+      items: [
+        {
+          title: 'My Friends',
+          onPress: () => handleMenuItemPress(() => {
+            navigation.navigate('Friends');
+          }),
+        },
+        {
+          title: 'WhatsApp Community Chat',
+          onPress: () => handleMenuItemPress(() => {
+            navigation.navigate('WhatsAppCommunity');
+          }),
+        },
+        {
+          title: 'E-Mail Signup',
+          onPress: () => handleMenuItemPress(() => {
+            navigation.navigate('EmailSignup');
+          }),
+        },
+      ]
     },
     {
-      title: 'My Friends',
-      onPress: () => handleMenuItemPress(() => {
-        navigation.navigate('Friends');
-      }),
-    },
-    {
-      title: 'WhatsApp Community Chat',
-      onPress: () => handleMenuItemPress(() => {
-        navigation.navigate('WhatsAppCommunity');
-      }),
-    },
-    {
-      title: 'E-Mail Signup',
-      onPress: () => handleMenuItemPress(() => {
-        navigation.navigate('EmailSignup');
-      }),
-    },
-    {
-      title: 'About Us',
-      onPress: () => handleMenuItemPress(() => {
-        navigation.navigate('AboutSCBC');
-      }),
-    },
-    {
-      title: 'Contact Us',
-      onPress: () => handleMenuItemPress(() => {
-        navigation.navigate('ContactInfo');
-      }),
-    },
-    {
-      title: 'Frequently Asked Questions',
-      onPress: () => handleMenuItemPress(() => {
-        navigation.navigate('FAQ');
-      }),
-    },
-    {
-      title: 'Leave Feedback',
-      onPress: () => handleMenuItemPress(() => {
-        navigation.navigate('Feedback');
-      }),
+      id: 'support',
+      title: 'ℹ️ Support & Info',
+      items: [
+        {
+          title: 'About Us',
+          onPress: () => handleMenuItemPress(() => {
+            navigation.navigate('AboutSCBC');
+          }),
+        },
+        {
+          title: 'Contact Us',
+          onPress: () => handleMenuItemPress(() => {
+            navigation.navigate('ContactInfo');
+          }),
+        },
+        {
+          title: 'Frequently Asked Questions',
+          onPress: () => handleMenuItemPress(() => {
+            navigation.navigate('FAQ');
+          }),
+        },
+        {
+          title: 'Leave Feedback',
+          onPress: () => handleMenuItemPress(() => {
+            navigation.navigate('Feedback');
+          }),
+        },
+      ]
     },
   ];
 
@@ -278,6 +304,40 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
       fontSize: 16,
       color: theme.textSecondary,
       fontWeight: '500',
+    },
+    groupHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      backgroundColor: theme.background,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.borderLight,
+    },
+    groupTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.text,
+    },
+    chevron: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      fontWeight: 'bold',
+    },
+    groupItems: {
+      backgroundColor: theme.surface,
+    },
+    subMenuItem: {
+      paddingHorizontal: 32,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.borderLight,
+    },
+    subMenuItemText: {
+      fontSize: 15,
+      color: theme.textSecondary,
+      fontWeight: '400',
     },
     userInfoSection: {
       borderTopWidth: 1,
@@ -486,15 +546,36 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
 
                 {/* Menu Items */}
                 <View style={styles.menuItems}>
-                  {menuItems.map((item, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={dynamicStyles.menuItem}
-                      onPress={item.onPress}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={dynamicStyles.menuItemText}>{item.title}</Text>
-                    </TouchableOpacity>
+                  {menuGroups.map((group) => (
+                    <View key={group.id}>
+                      {/* Group Header */}
+                      <TouchableOpacity
+                        style={dynamicStyles.groupHeader}
+                        onPress={() => toggleGroup(group.id)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={dynamicStyles.groupTitle}>{group.title}</Text>
+                        <Text style={dynamicStyles.chevron}>
+                          {expandedGroups[group.id] ? '▼' : '▶'}
+                        </Text>
+                      </TouchableOpacity>
+
+                      {/* Group Items */}
+                      {expandedGroups[group.id] && (
+                        <View style={dynamicStyles.groupItems}>
+                          {group.items.map((item, index) => (
+                            <TouchableOpacity
+                              key={index}
+                              style={dynamicStyles.subMenuItem}
+                              onPress={item.onPress}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={dynamicStyles.subMenuItemText}>{item.title}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      )}
+                    </View>
                   ))}
                 </View>
 
