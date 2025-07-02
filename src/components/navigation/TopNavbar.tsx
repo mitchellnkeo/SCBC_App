@@ -9,6 +9,7 @@ import {
   Dimensions,
   SafeAreaView,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuthStore } from '../../stores/authStore';
@@ -463,7 +464,11 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
             style={dynamicStyles.notificationButton}
             onPress={() => navigation.navigate('Notifications')}
           >
-            <Text style={dynamicStyles.notificationIcon}>🔔</Text>
+            <Ionicons 
+              name="notifications-outline" 
+              size={18} 
+              color={theme.textSecondary} 
+            />
             <NotificationBadge 
               size="small" 
               style={dynamicStyles.notificationBadge}
