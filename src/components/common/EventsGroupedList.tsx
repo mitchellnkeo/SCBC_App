@@ -216,18 +216,7 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
       color: theme.textSecondary,
       marginLeft: 8,
     },
-    clearFilterButton: {
-      marginLeft: 8,
-      backgroundColor: theme.primary,
-      borderRadius: 6,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-    },
-    clearFilterText: {
-      fontSize: 12,
-      color: 'white',
-      fontWeight: '500',
-    },
+
     content: {
       flex: 1,
       paddingHorizontal: 16,
@@ -406,29 +395,18 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
 
       {/* Filter Dropdown */}
       <View style={dynamicStyles.filterContainer}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <TouchableOpacity
-            style={dynamicStyles.filterButton}
-            onPress={() => {
-              setDropdownLevel('year');
-              setShowDropdown(true);
-            }}
-          >
-            <Text style={dynamicStyles.filterButtonText}>
-              {getDropdownTitle()}
-            </Text>
-            <Text style={dynamicStyles.filterChevron}>▼</Text>
-          </TouchableOpacity>
-          
-          {(selectedFilter.year || selectedFilter.month) && (
-            <TouchableOpacity
-              style={dynamicStyles.clearFilterButton}
-              onPress={handleClearFilter}
-            >
-              <Text style={dynamicStyles.clearFilterText}>Clear</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        <TouchableOpacity
+          style={dynamicStyles.filterButton}
+          onPress={() => {
+            setDropdownLevel('year');
+            setShowDropdown(true);
+          }}
+        >
+          <Text style={dynamicStyles.filterButtonText}>
+            {getDropdownTitle()}
+          </Text>
+          <Text style={dynamicStyles.filterChevron}>▼</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Events List */}
