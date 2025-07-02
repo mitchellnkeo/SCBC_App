@@ -6,6 +6,8 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { BookClubEvent } from '../../types';
@@ -31,6 +33,13 @@ interface GroupedEvents {
   };
 }
 
+interface FilterOption {
+  id: string;
+  label: string;
+  year?: string;
+  month?: string;
+}
+
 const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
   events,
   isLoading,
@@ -43,7 +52,12 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
   emptyStateMessage = 'No events found'
 }) => {
   const { theme } = useTheme();
-  const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
+  const [selectedFilter, setSelectedFilter] = useState<{ year: string | null; month: string | null }>({
+    year: null,
+    month: null
+  });
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [dropdownLevel, setDropdownLevel] = useState<'year' | 'month'>('year');
 
   // Group events by year and month
   const groupedEvents = useMemo(() => {
@@ -74,12 +88,89 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
     return grouped;
   }, [events]);
 
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
+  // Get filtered events based on selection
+  const filteredEvents = useMemo(() => {
+    if (!selectedFilter.year) {
+      return events; // Show all events if no year selected
+    }
+    
+    if (!selectedFilter.month) {
+      // Show all events for the selected year
+      return events.filter(event => {
+        const eventYear = new Date(event.date).getFullYear().toString();
+        return eventYear === selectedFilter.year;
+      });
+    }
+    
+    // Show events for specific year and month
+    return events.filter(event => {
+      const date = new Date(event.date);
+      const eventYear = date.getFullYear().toString();
+      const eventMonth = date.toLocaleString('en-US', { month: 'long' });
+      return eventYear === selectedFilter.year && eventMonth === selectedFilter.month;
+    });
+  }, [events, selectedFilter]);
+
+  // Get available years and months for dropdown
+  const availableYears = useMemo(() => {
+    return Object.keys(groupedEvents).sort((a, b) => Number(b) - Number(a));
+  }, [groupedEvents]);
+
+  const availableMonths = useMemo(() => {
+    if (!selectedFilter.year || !groupedEvents[selectedFilter.year]) {
+      return [];
+    }
+    
+    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                   'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    return Object.keys(groupedEvents[selectedFilter.year])
+      .sort((a, b) => months.indexOf(b) - months.indexOf(a));
+  }, [groupedEvents, selectedFilter.year]);
+
+  const handleYearSelect = (year: string) => {
+    setSelectedFilter({ year, month: null });
+    setDropdownLevel('month');
   };
+
+  const handleMonthSelect = (month: string) => {
+    setSelectedFilter(prev => ({ ...prev, month }));
+    setShowDropdown(false);
+  };
+
+  const handleBackToYears = () => {
+    setDropdownLevel('year');
+  };
+
+  const handleClearFilter = () => {
+    setSelectedFilter({ year: null, month: null });
+    setShowDropdown(false);
+  };
+
+  const getDropdownTitle = () => {
+    if (!selectedFilter.year) {
+      return 'All Events';
+    }
+    if (!selectedFilter.month) {
+      return `${selectedFilter.year} - All Months`;
+    }
+    return `${selectedFilter.year} - ${selectedFilter.month}`;
+  };
+
+  const renderDropdownItem = ({ item }: { item: string }) => (
+    <TouchableOpacity
+      style={dynamicStyles.dropdownItem}
+      onPress={() => {
+        if (dropdownLevel === 'year') {
+          handleYearSelect(item);
+        } else {
+          handleMonthSelect(item);
+        }
+      }}
+    >
+      <Text style={dynamicStyles.dropdownItemText}>{item}</Text>
+    </TouchableOpacity>
+  );
 
   const dynamicStyles = StyleSheet.create({
     container: {
@@ -96,33 +187,51 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
       borderBottomWidth: 1,
       borderBottomColor: theme.border,
     },
-    yearHeader: {
-      backgroundColor: theme.surface,
+    filterContainer: {
+      paddingHorizontal: 16,
       paddingVertical: 12,
-      paddingHorizontal: 16,
+      backgroundColor: theme.surface,
       borderBottomWidth: 1,
       borderBottomColor: theme.border,
     },
-    yearText: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: theme.text,
-    },
-    monthHeader: {
+    filterButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
       backgroundColor: theme.background,
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.border,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: theme.border,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
     },
-    monthText: {
+    filterButtonText: {
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: '500',
+      color: theme.text,
+      flex: 1,
+    },
+    filterChevron: {
+      fontSize: 16,
       color: theme.textSecondary,
+      marginLeft: 8,
+    },
+    clearFilterButton: {
+      marginLeft: 8,
+      backgroundColor: theme.primary,
+      borderRadius: 6,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+    },
+    clearFilterText: {
+      fontSize: 12,
+      color: 'white',
+      fontWeight: '500',
     },
     content: {
       flex: 1,
       paddingHorizontal: 16,
+      paddingTop: 16,
     },
     viewToggle: {
       flexDirection: 'row',
@@ -148,10 +257,81 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
     inactiveToggleText: {
       color: theme.textSecondary,
     },
-    chevron: {
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    dropdownModal: {
+      backgroundColor: theme.surface,
+      borderRadius: 12,
+      margin: 20,
+      maxHeight: '70%',
+      minWidth: 300,
+      shadowColor: theme.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    dropdownHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    dropdownTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.text,
+      flex: 1,
+    },
+    backButton: {
+      padding: 8,
+      borderRadius: 6,
+      backgroundColor: theme.background,
+    },
+    backButtonText: {
+      fontSize: 14,
+      color: theme.primary,
+      fontWeight: '500',
+    },
+    closeButton: {
+      padding: 8,
+      borderRadius: 6,
+      backgroundColor: theme.background,
+    },
+    closeButtonText: {
       fontSize: 16,
-      marginLeft: 8,
       color: theme.textSecondary,
+      fontWeight: '500',
+    },
+    dropdownList: {
+      maxHeight: 400,
+    },
+    dropdownItem: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.borderLight,
+    },
+    dropdownItemText: {
+      fontSize: 16,
+      color: theme.text,
+    },
+    eventSection: {
+      marginBottom: 16,
+    },
+    sectionDate: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.textSecondary,
+      marginBottom: 8,
+      paddingHorizontal: 4,
     },
   });
 
@@ -181,9 +361,9 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
 
   return (
     <View style={dynamicStyles.container}>
-      {/* View Mode Toggle */}
+      {/* Header with View Mode Toggle */}
       <View style={dynamicStyles.header}>
-        <Text style={dynamicStyles.yearText}>Events</Text>
+        <Text style={[dynamicStyles.dropdownTitle, { fontSize: 18 }]}>Events</Text>
         <View style={dynamicStyles.viewToggle}>
           <TouchableOpacity
             style={[
@@ -224,66 +404,108 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
         </View>
       </View>
 
+      {/* Filter Dropdown */}
+      <View style={dynamicStyles.filterContainer}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity
+            style={dynamicStyles.filterButton}
+            onPress={() => {
+              setDropdownLevel('year');
+              setShowDropdown(true);
+            }}
+          >
+            <Text style={dynamicStyles.filterButtonText}>
+              {getDropdownTitle()}
+            </Text>
+            <Text style={dynamicStyles.filterChevron}>▼</Text>
+          </TouchableOpacity>
+          
+          {(selectedFilter.year || selectedFilter.month) && (
+            <TouchableOpacity
+              style={dynamicStyles.clearFilterButton}
+              onPress={handleClearFilter}
+            >
+              <Text style={dynamicStyles.clearFilterText}>Clear</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* Events List */}
       <ScrollView
+        style={dynamicStyles.content}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
         }
       >
-        {Object.keys(groupedEvents)
-          .sort((a, b) => Number(b) - Number(a)) // Sort years in descending order
-          .map(year => (
-            <View key={year}>
-              <TouchableOpacity
-                style={dynamicStyles.yearHeader}
-                onPress={() => toggleSection(`${year}`)}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={dynamicStyles.yearText}>{year}</Text>
-                  <Text style={dynamicStyles.chevron}>
-                    {expandedSections[year] ? '▼' : '▶'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-
-              {expandedSections[year] &&
-                Object.keys(groupedEvents[year])
-                  .sort((a, b) => {
-                    const months = ['January', 'February', 'March', 'April', 'May', 'June',
-                                  'July', 'August', 'September', 'October', 'November', 'December'];
-                    return months.indexOf(b) - months.indexOf(a);
-                  })
-                  .map(month => (
-                    <View key={`${year}-${month}`}>
-                      <TouchableOpacity
-                        style={dynamicStyles.monthHeader}
-                        onPress={() => toggleSection(`${year}-${month}`)}
-                      >
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <Text style={dynamicStyles.monthText}>{month}</Text>
-                          <Text style={dynamicStyles.chevron}>
-                            {expandedSections[`${year}-${month}`] ? '▼' : '▶'}
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-
-                      {expandedSections[`${year}-${month}`] && (
-                        <View style={dynamicStyles.content}>
-                          {groupedEvents[year][month].map(event => (
-                            <View key={event.id}>
-                              {viewMode === 'card'
-                                ? renderEventCard(event)
-                                : renderEventListItem(event)}
-                            </View>
-                          ))}
-                        </View>
-                      )}
-                    </View>
-                  ))}
-            </View>
-          ))}
+        {filteredEvents.map(event => (
+          <View key={event.id} style={dynamicStyles.eventSection}>
+            {viewMode === 'card'
+              ? renderEventCard(event)
+              : renderEventListItem(event)}
+          </View>
+        ))}
+        
+        {filteredEvents.length === 0 && (
+          <EmptyState
+            emoji="🔍"
+            title="No Events Found"
+            subtitle={
+              selectedFilter.year || selectedFilter.month
+                ? `No events found for ${getDropdownTitle().toLowerCase()}`
+                : emptyStateMessage
+            }
+          />
+        )}
       </ScrollView>
+
+      {/* Dropdown Modal */}
+      <Modal
+        visible={showDropdown}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDropdown(false)}
+      >
+        <TouchableOpacity
+          style={dynamicStyles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowDropdown(false)}
+        >
+          <View style={dynamicStyles.dropdownModal}>
+            <View style={dynamicStyles.dropdownHeader}>
+              {dropdownLevel === 'month' && selectedFilter.year && (
+                <TouchableOpacity
+                  style={dynamicStyles.backButton}
+                  onPress={handleBackToYears}
+                >
+                  <Text style={dynamicStyles.backButtonText}>← Back</Text>
+                </TouchableOpacity>
+              )}
+              
+              <Text style={dynamicStyles.dropdownTitle}>
+                {dropdownLevel === 'year' ? 'Select Year' : `Select Month (${selectedFilter.year})`}
+              </Text>
+              
+              <TouchableOpacity
+                style={dynamicStyles.closeButton}
+                onPress={() => setShowDropdown(false)}
+              >
+                <Text style={dynamicStyles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <FlatList
+              style={dynamicStyles.dropdownList}
+              data={dropdownLevel === 'year' ? availableYears : availableMonths}
+              renderItem={renderDropdownItem}
+              keyExtractor={(item) => item}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
 
-export default EventsGroupedList; 
+export default EventsGroupedList;
