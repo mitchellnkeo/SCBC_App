@@ -37,6 +37,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { createCommonStyles } from '../../styles/commonStyles';
 import LoadingState from '../../components/common/LoadingState';
 import { shareEvent } from '../../utils/socialMediaUtils';
+import ReportButton from '../../components/common/ReportButton';
 
 type RootStackParamList = {
   EditEvent: { eventId: string };
@@ -497,6 +498,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
+  reportButton: {
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
 // Move CommentItem outside the main component to prevent re-creation on each render
@@ -892,6 +899,23 @@ const EventDetailsScreen: React.FC = memo(() => {
         >
           <Text style={styles.shareEventText}>Share</Text>
         </TouchableOpacity>
+
+        {/* Report button for non-hosts */}
+        {!isHost && (
+          <View style={styles.reportButton}>
+            <ReportButton
+              contentType="event"
+              contentId={event.id}
+              contentOwnerId={event.createdBy}
+              contentOwnerName={event.hostName}
+              contentPreview={`${event.title} - ${event.description.substring(0, 100)}`}
+              eventId={event.id}
+              eventTitle={event.title}
+              variant="icon"
+              size="small"
+            />
+          </View>
+        )}
 
         {(isHost || isAdmin) && (
           <>

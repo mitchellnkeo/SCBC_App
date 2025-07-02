@@ -104,5 +104,25 @@ service cloud.firestore {
       allow create, update, delete: if request.auth != null 
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
+
+    // Reports collection - users can submit reports, admins can read/manage them
+    match /reports/{reportId} {
+      // Anyone can submit a report
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.reporterId;
+      
+      // Users can read their own reports to see status updates
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.reporterId ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      
+      // Only admins can update report status and add notes
+      allow update: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      
+      // Only admins can delete reports
+      allow delete: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
   }
 }

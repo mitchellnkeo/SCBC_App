@@ -34,6 +34,7 @@ import {
 import SocialIcon from '../../components/common/SocialIcon';
 import FriendRequestButton from '../../components/friends/FriendRequestButton';
 import ProfileCommentWall from '../../components/profile/ProfileCommentWall';
+import ReportButton from '../../components/common/ReportButton';
 
 type UserProfileScreenNavigationProp = StackNavigationProp<MainStackParamList>;
 type UserProfileScreenRouteProp = RouteProp<MainStackParamList, 'UserProfile'>;
@@ -328,13 +329,28 @@ const UserProfileScreen: React.FC = () => {
             Member since {formatJoinDate(profileUser.createdAt)}
           </Text>
 
-          {/* Friend Request Button */}
-          <FriendRequestButton
-            targetUserId={profileUser.id}
-            targetUserName={profileUser.displayName}
-            targetUserProfilePicture={profileUser.profilePicture}
-            style={styles.friendButton}
-          />
+          {/* Friend Request and Report Buttons */}
+          <View style={styles.profileActions}>
+            <FriendRequestButton
+              targetUserId={profileUser.id}
+              targetUserName={profileUser.displayName}
+              targetUserProfilePicture={profileUser.profilePicture}
+              style={styles.friendButton}
+            />
+            
+            {/* Report Profile Button for other users */}
+            {!isOwnProfile && (
+              <ReportButton
+                contentType="profile"
+                contentId={profileUser.id}
+                contentOwnerId={profileUser.id}
+                contentOwnerName={profileUser.displayName}
+                contentPreview={`Profile: ${profileUser.displayName} - ${profileUser.bio?.substring(0, 100) || 'User profile'}`}
+                variant="text"
+                size="small"
+              />
+            )}
+          </View>
 
           {/* Social Media Links */}
           {profileUser.socialLinks && Object.values(profileUser.socialLinks).some(link => link) && (
@@ -514,8 +530,14 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     color: theme.textTertiary,
   },
-  friendButton: {
+  profileActions: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 8,
     marginTop: 16,
+  },
+  friendButton: {
+    marginTop: 0,
   },
   socialLinksSection: {
     marginTop: 16,

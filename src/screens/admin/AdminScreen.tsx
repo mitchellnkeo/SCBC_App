@@ -135,9 +135,9 @@ const AdminScreen: React.FC = () => {
 
           <AdminCard
             title="Content Moderation"
-            description="Review flagged comments and content"
-            icon=""
-            onPress={() => Alert.alert('Coming Soon', 'Content moderation tools will be available soon!')}
+            description="Review reported content and manage moderation"
+            icon="🚩"
+            onPress={() => navigation.navigate('ContentModeration' as never)}
           />
         </View>
       </ScrollView>

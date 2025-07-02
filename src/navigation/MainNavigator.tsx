@@ -21,6 +21,7 @@ import SettingsScreen from '../screens/settings/SettingsScreen';
 import MonthlyBookScreen from '../screens/books/MonthlyBookScreen';
 import EditMonthlyBookScreen from '../screens/admin/EditMonthlyBookScreen';
 import UserManagementScreen from '../screens/admin/UserManagementScreen';
+import ContentModerationScreen from '../screens/admin/ContentModerationScreen';
 import FriendsScreen from '../screens/friends/FriendsScreen';
 import { useAuthStore } from '../stores/authStore';
 
@@ -33,6 +34,7 @@ export type MainStackParamList = {
   Profile: undefined;
   Admin: undefined;
   UserManagement: undefined;
+  ContentModeration: undefined;
   NotificationDemo: undefined;
   Notifications: undefined;
   EditProfile: undefined;
@@ -156,6 +158,14 @@ const MainNavigator: React.FC = () => {
           <Stack.Screen 
             name="UserManagement" 
             component={UserManagementScreen}
+            options={{
+              headerShown: false,
+              presentation: 'card',
+            }}
+          />
+          <Stack.Screen 
+            name="ContentModeration" 
+            component={ContentModerationScreen}
             options={{
               headerShown: false,
               presentation: 'card',

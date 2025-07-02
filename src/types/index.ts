@@ -255,3 +255,68 @@ export interface User {
     parentCommentId?: string;
     mentions?: import('./mentions').Mention[];
   }
+
+  // Report System Types
+  export type ReportType = 'profile' | 'comment' | 'event';
+  export type ReportStatus = 'pending' | 'investigating' | 'resolved' | 'dismissed';
+  export type ReportReason = 
+    | 'inappropriate_content'
+    | 'harassment'
+    | 'spam'
+    | 'hate_speech'
+    | 'misinformation'
+    | 'violence'
+    | 'other';
+
+  export interface Report {
+    id: string;
+    type: ReportType;
+    status: ReportStatus;
+    reason: ReportReason;
+    description: string;
+    
+    // Reporter information
+    reporterId: string;
+    reporterName: string;
+    
+    // Content being reported
+    contentId: string; // profileId, commentId, or eventId
+    contentOwnerId: string;
+    contentOwnerName: string;
+    contentPreview: string; // Brief preview of the reported content
+    
+    // Associated content info
+    eventId?: string; // If comment/profile is related to an event
+    eventTitle?: string;
+    
+    // Admin handling
+    assignedAdminId?: string;
+    assignedAdminName?: string;
+    adminNotes?: string;
+    resolutionAction?: string;
+    
+    createdAt: Date;
+    updatedAt: Date;
+    resolvedAt?: Date;
+  }
+
+  export interface CreateReportData {
+    type: ReportType;
+    reason: ReportReason;
+    description: string;
+    contentId: string;
+    contentOwnerId: string;
+    contentOwnerName: string;
+    contentPreview: string;
+    eventId?: string;
+    eventTitle?: string;
+  }
+
+  export interface ReportStats {
+    totalReports: number;
+    pendingReports: number;
+    investigatingReports: number;
+    resolvedReports: number;
+    dismissedReports: number;
+    reportsThisWeek: number;
+  }

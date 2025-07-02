@@ -9,7 +9,9 @@ export type NotificationType =
   | 'friend_request_accepted'
   | 'profile_comment'
   | 'profile_comment_reply'
-  | 'admin_message';
+  | 'admin_message'
+  | 'new_report'
+  | 'report_resolved';
 
 export interface Notification {
   id: string;
@@ -83,6 +85,27 @@ export interface NotificationData {
     parentCommentId: string;
     profileUserName: string;
   };
+  
+  // For admin messages
+  adminMessage?: {
+    messageText: string;
+  };
+  
+  // For new reports (admin notification)
+  newReport?: {
+    reportId: string;
+    reportType: string;
+    contentPreview: string;
+    reporterName: string;
+  };
+  
+  // For report resolution (reporter notification)
+  reportResolved?: {
+    reportId: string;
+    reportType: string;
+    contentPreview: string;
+    resolution: string;
+  };
 }
 
 export interface CreateNotificationData {
@@ -114,6 +137,8 @@ export interface NotificationSettings {
   profileComments: boolean;
   profileCommentReplies: boolean;
   adminMessages: boolean;
+  newReports: boolean;
+  reportResolutions: boolean;
   pushNotifications: boolean;
   emailNotifications: boolean;
 } 

@@ -36,6 +36,18 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         return '👥';
       case 'admin_message':
         return '📢';
+      case 'friend_request':
+        return '👥';
+      case 'friend_request_accepted':
+        return '✅';
+      case 'profile_comment':
+        return '💬';
+      case 'profile_comment_reply':
+        return '↩️';
+      case 'new_report':
+        return '🚩';
+      case 'report_resolved':
+        return '✅';
       default:
         return '🔔';
     }
@@ -57,6 +69,18 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         return '#dc2626';
       case 'admin_message':
         return '#f97316';
+      case 'friend_request':
+        return '#3b82f6';
+      case 'friend_request_accepted':
+        return '#10b981';
+      case 'profile_comment':
+        return '#ec4899';
+      case 'profile_comment_reply':
+        return '#ec4899';
+      case 'new_report':
+        return '#ef4444';
+      case 'report_resolved':
+        return '#10b981';
       default:
         return '#6b7280';
     }

@@ -42,3 +42,17 @@ export {
   subscribeToProfileComments,
   getProfileCommentCount
 } from './profileCommentService';
+
+// Reports & Moderation
+export {
+  submitReport,
+  getReports,
+  getReport,
+  updateReportStatus,
+  getReportStats,
+  getUserReports,
+  subscribeToReports,
+  hasUserReportedContent,
+  getReportReasonDisplay,
+  getReportTypeDisplay
+} from './reportService';

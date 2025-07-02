@@ -22,6 +22,7 @@ import ProfilePicture from '../common/ProfilePicture';
 import ClickableUser from '../common/ClickableUser';
 import MentionText from '../common/MentionText';
 import MentionInput from '../common/MentionInput';
+import ReportButton from '../common/ReportButton';
 import { Mention } from '../../types/mentions';
 
 interface ProfileCommentWallProps {
@@ -168,9 +169,23 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
           avatarSize="medium"
         />
         <View style={styles.commentHeaderRight}>
-                     <Text style={styles.commentTime}>
-             {formatTimeAgo(comment.createdAt)}
-           </Text>
+          <Text style={styles.commentTime}>
+            {formatTimeAgo(comment.createdAt)}
+          </Text>
+          
+          {/* Report button for other users' comments */}
+          {user && comment.authorId !== user.id && (
+            <ReportButton
+              contentType="comment"
+              contentId={comment.id}
+              contentOwnerId={comment.authorId}
+              contentOwnerName={comment.authorName}
+              contentPreview={comment.content.substring(0, 100)}
+              variant="icon"
+              size="small"
+            />
+          )}
+          
           {user && (comment.authorId === user.id || isOwnProfile) && (
             <TouchableOpacity
               style={styles.deleteButton}
