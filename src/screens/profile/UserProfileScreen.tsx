@@ -297,6 +297,9 @@ const UserProfileScreen: React.FC = () => {
         enableAutomaticScroll={true}
         keyboardOpeningTime={0}
         extraScrollHeight={20}
+        resetScrollToCoords={undefined}
+        enableResetScrollToCoords={false}
+        scrollEnabled={true}
         refreshControl={
           <RefreshControl 
             refreshing={isRefreshing} 
