@@ -472,6 +472,7 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
       shadowOpacity: 0.3,
       shadowRadius: 8,
       elevation: 8,
+      overflow: 'hidden',
     },
     pickerHeader: {
       flexDirection: 'row',
@@ -480,6 +481,7 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
       padding: 16,
       borderBottomWidth: 1,
       borderBottomColor: theme.border,
+      backgroundColor: theme.surface,
     },
     pickerTitle: {
       fontSize: 18,
@@ -496,12 +498,14 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
     },
     pickerContent: {
       maxHeight: 300,
+      backgroundColor: theme.surface,
     },
     pickerItem: {
       paddingVertical: 12,
       paddingHorizontal: 16,
       borderBottomWidth: 1,
       borderBottomColor: theme.border,
+      backgroundColor: theme.surface,
     },
     pickerItemSelected: {
       backgroundColor: theme.primary + '20',
@@ -515,7 +519,10 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
       fontWeight: '600',
     },
     listContent: {
-      padding: 16,
+      flexGrow: 1,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 32,
     },
     sectionHeader: {
       backgroundColor: theme.surface,
@@ -541,6 +548,7 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
     footerLoader: {
       paddingVertical: 16,
       alignItems: 'center',
+      backgroundColor: theme.background,
     },
     backButton: {
       padding: 8,
