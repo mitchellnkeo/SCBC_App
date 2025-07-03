@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Alert,
   Image,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuthStore } from '../../stores/authStore';
@@ -31,6 +32,113 @@ import ImageViewer from '../common/ImageViewer';
 import * as ImagePickerExpo from 'expo-image-picker';
 import { Mention } from '../../types/mentions';
 import { uploadCommentImage } from '../../services';
+
+// CommentItem component following the event discussion structure
+const CommentItem: React.FC<{
+  comment: ProfileComment;
+  isReply?: boolean;
+  user: any;
+  isOwnProfile: boolean;
+  onDeleteComment: (comment: ProfileComment) => void;
+  onOpenImageViewer: (images: string[], initialIndex: number) => void;
+}> = memo(({
+  comment,
+  isReply = false,
+  user,
+  isOwnProfile,
+  onDeleteComment,
+  onOpenImageViewer
+}) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+  
+  const canDelete = user && (comment.authorId === user.id || isOwnProfile);
+  
+  return (
+    <View style={[styles.commentItem, isReply && styles.replyItem]}>
+      <View style={styles.commentHeader}>
+        <ClickableUser
+          userId={comment.authorId}
+          displayName={comment.authorName}
+          profilePicture={comment.authorProfilePicture}
+          avatarSize={isReply ? "small" : "medium"}
+          textStyle={styles.commentAuthor}
+        />
+        
+        <View style={styles.commentMeta}>
+          <Text style={styles.commentTime}>
+            {formatTimeAgo(comment.createdAt)}
+          </Text>
+        </View>
+        
+        {/* Report button for other users' comments */}
+        {user && comment.authorId !== user.id && (
+          <View style={styles.reportButtonContainer}>
+            <ReportButton
+              contentType="comment"
+              contentId={comment.id}
+              contentOwnerId={comment.authorId}
+              contentOwnerName={comment.authorName}
+              contentPreview={comment.content.substring(0, 100)}
+              variant="icon"
+              size="small"
+            />
+          </View>
+        )}
+        
+        {canDelete && (
+          <TouchableOpacity
+            onPress={() => onDeleteComment(comment)}
+            style={styles.deleteCommentButton}
+          >
+            <Text style={styles.deleteCommentText}>×</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+      
+      <MentionText
+        text={comment.content}
+        mentions={comment.mentions || []}
+        style={styles.commentContent}
+      />
+      
+      {/* Comment Images */}
+      {comment.images && comment.images.length > 0 && (
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.commentImagesContainer}
+        >
+          {comment.images.map((imageUrl, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => onOpenImageViewer(comment.images!, index)}
+            >
+              <Image
+                source={{ uri: imageUrl }}
+                style={isReply ? styles.replyImage : styles.commentImage}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
+      
+      {/* Render replies */}
+      {!isReply && comment.replies && comment.replies.map((reply) => (
+        <CommentItem
+          key={reply.id}
+          comment={reply}
+          isReply={true}
+          user={user}
+          isOwnProfile={isOwnProfile}
+          onDeleteComment={onDeleteComment}
+          onOpenImageViewer={onOpenImageViewer}
+        />
+      ))}
+    </View>
+  );
+});
 
 interface ProfileCommentWallProps {
   profileUserId: string;
@@ -270,126 +378,15 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
     );
   };
 
+  // Updated to use the new CommentItem component structure
   const renderComment = ({ item: comment }: { item: ProfileComment }) => (
-    <View style={styles.commentContainer}>
-      <View style={styles.commentHeader}>
-        <ClickableUser
-          userId={comment.authorId}
-          displayName={comment.authorName}
-          profilePicture={comment.authorProfilePicture}
-          showAvatar
-          avatarSize="medium"
-        />
-        <View style={styles.commentHeaderRight}>
-          <Text style={styles.commentTime}>
-            {formatTimeAgo(comment.createdAt)}
-          </Text>
-          
-          {/* Report button for other users' comments */}
-          {user && comment.authorId !== user.id && (
-            <ReportButton
-              contentType="comment"
-              contentId={comment.id}
-              contentOwnerId={comment.authorId}
-              contentOwnerName={comment.authorName}
-              contentPreview={comment.content.substring(0, 100)}
-              variant="icon"
-              size="small"
-            />
-          )}
-          
-          {user && (comment.authorId === user.id || isOwnProfile) && (
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => handleDeleteComment(comment)}
-            >
-              <Text style={styles.deleteButtonText}>×</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-
-      <View style={styles.commentContent}>
-        <MentionText
-          text={comment.content}
-          mentions={comment.mentions || []}
-          style={styles.commentText}
-        />
-        
-        {/* Comment Images */}
-        {comment.images && comment.images.length > 0 && (
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            style={styles.commentImagesContainer}
-          >
-            {comment.images.map((imageUrl, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => openImageViewer(comment.images!, index)}
-              >
-                <Image
-                  source={{ uri: imageUrl }}
-                  style={styles.commentImage}
-                  resizeMode="cover"
-                />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        )}
-      </View>
-
-      {/* Render replies if any */}
-      {comment.replies && comment.replies.length > 0 && (
-        <View style={styles.repliesContainer}>
-          {comment.replies.map((reply) => (
-            <View key={reply.id} style={styles.replyContainer}>
-              <View style={styles.replyHeader}>
-                <ClickableUser
-                  userId={reply.authorId}
-                  displayName={reply.authorName}
-                  profilePicture={reply.authorProfilePicture}
-                  showAvatar
-                  avatarSize="small"
-                />
-                                 <Text style={styles.replyTime}>
-                   {formatTimeAgo(reply.createdAt)}
-                 </Text>
-              </View>
-              <View style={styles.replyContent}>
-                <MentionText
-                  text={reply.content}
-                  mentions={reply.mentions || []}
-                  style={styles.replyText}
-                />
-                
-                {/* Reply Images */}
-                {reply.images && reply.images.length > 0 && (
-                  <ScrollView 
-                    horizontal 
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.replyImagesContainer}
-                  >
-                    {reply.images.map((imageUrl, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        onPress={() => openImageViewer(reply.images!, index)}
-                      >
-                        <Image
-                          source={{ uri: imageUrl }}
-                          style={styles.replyImage}
-                          resizeMode="cover"
-                        />
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                )}
-              </View>
-            </View>
-          ))}
-        </View>
-      )}
-    </View>
+    <CommentItem
+      comment={comment}
+      user={user}
+      isOwnProfile={isOwnProfile}
+      onDeleteComment={handleDeleteComment}
+      onOpenImageViewer={openImageViewer}
+    />
   );
 
   const renderCommentInput = () => {
@@ -411,13 +408,37 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
     }
 
     return (
-      <View style={styles.commentInputContainer}>
-        <ProfilePicture
-          imageUrl={user.profilePicture}
-          displayName={user.displayName}
-          size="medium"
-        />
-        <View style={styles.inputWrapper}>
+      <View style={styles.addCommentContainer}>
+        {/* Image Preview */}
+        {newCommentImages.length > 0 && (
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            style={styles.imagePreviewContainer}
+          >
+            {newCommentImages.map((imageUrl, index) => (
+              <View key={index} style={styles.imagePreviewItem}>
+                <TouchableOpacity
+                  onPress={() => openImageViewer(newCommentImages, index)}
+                >
+                  <Image
+                    source={{ uri: imageUrl }}
+                    style={styles.imagePreview}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.removeImageButton}
+                  onPress={() => handleRemoveImage(index)}
+                >
+                  <Text style={styles.removeImageText}>×</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
+        )}
+        
+        <View style={styles.commentInputContainer}>
           <MentionInput
             value={newComment}
             onChangeText={(text, mentions) => {
@@ -435,35 +456,6 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
             maxLength={500}
           />
           
-          {/* Image Preview */}
-          {newCommentImages.length > 0 && (
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              style={styles.imagePreviewContainer}
-            >
-              {newCommentImages.map((imageUrl, index) => (
-                <View key={index} style={styles.imagePreviewItem}>
-                  <TouchableOpacity
-                    onPress={() => openImageViewer(newCommentImages, index)}
-                  >
-                    <Image
-                      source={{ uri: imageUrl }}
-                      style={styles.imagePreview}
-                      resizeMode="cover"
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.removeImageButton}
-                    onPress={() => handleRemoveImage(index)}
-                  >
-                    <Text style={styles.removeImageText}>×</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
-          )}
-          
           <View style={styles.inputActions}>
             {(isUploadingImage || newCommentImages.length >= 3) ? (
               <TouchableOpacity 
@@ -471,7 +463,7 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
                 disabled
               >
                 <Text style={styles.imagePickerDisabledText}>
-                  {isUploadingImage ? 'Uploading...' : '3 images max'}
+                  {isUploadingImage ? 'Uploading...' : `${newCommentImages.length}/3`}
                 </Text>
               </TouchableOpacity>
             ) : (
@@ -516,25 +508,23 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
                   );
                 }}
               >
-                <Text style={styles.imagePickerText}>📷 Add Photo</Text>
+                <Text style={styles.imagePickerText}>📷</Text>
               </TouchableOpacity>
             )}
+            
             <TouchableOpacity
               style={[
-                styles.postButton,
-                ((!newComment.trim() && newCommentImages.length === 0) || isPosting) && styles.postButtonDisabled,
+                styles.sendCommentButton,
+                ((!newComment.trim() && newCommentImages.length === 0) || isPosting) && styles.sendCommentButtonDisabled,
               ]}
               onPress={handlePostComment}
               disabled={(!newComment.trim() && newCommentImages.length === 0) || isPosting}
             >
-              <Text
-                style={[
-                  styles.postButtonText,
-                  ((!newComment.trim() && newCommentImages.length === 0) || isPosting) && styles.postButtonTextDisabled,
-                ]}
-              >
-                {isPosting ? 'Posting...' : 'Post'}
-              </Text>
+              {isPosting ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text style={styles.sendCommentText}>Send</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -568,34 +558,36 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
         </Text>
       </View>
 
-      <View style={styles.commentsList}>
-        {comments.length === 0 && !isLoading ? (
-          renderEmptyState()
-        ) : (
-          <View style={styles.commentsListContent}>
-            {comments.map((comment) => (
+      {/* Add Comment Section */}
+      {renderCommentInput()}
+
+      {/* Comments Section */}
+      <View style={styles.commentsSection}>
+        <View style={styles.commentsList}>
+          {comments.length === 0 && !isLoading ? (
+            renderEmptyState()
+          ) : (
+            comments.map((comment) => (
               <View key={comment.id}>
                 {renderComment({ item: comment })}
               </View>
-            ))}
-            
-            {/* Load More Button */}
-            {usePagination && hasMore && (
-              <TouchableOpacity
-                style={styles.loadMoreButton}
-                onPress={loadMoreComments}
-                disabled={isLoadingMore}
-              >
-                <Text style={styles.loadMoreText}>
-                  {isLoadingMore ? 'Loading more...' : 'Load more comments'}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
+            ))
+          )}
+          
+          {/* Load More Button */}
+          {usePagination && hasMore && (
+            <TouchableOpacity
+              style={styles.loadMoreButton}
+              onPress={loadMoreComments}
+              disabled={isLoadingMore}
+            >
+              <Text style={styles.loadMoreText}>
+                {isLoadingMore ? 'Loading more...' : 'Load more comments'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-
-      {renderCommentInput()}
 
       {/* Image Viewer Modal */}
       <ImageViewer
@@ -630,48 +622,51 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     color: theme.textSecondary,
   },
-  commentInputContainer: {
-    flexDirection: 'row',
-    padding: 16,
-    backgroundColor: theme.card,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
-    alignItems: 'flex-start',
-    gap: 12,
-  },
   inputWrapper: {
     flex: 1,
   },
-  commentInput: {
+  // Event-style comment input
+  addCommentContainer: {
+    marginBottom: 24,
+    padding: 16,
+    backgroundColor: theme.card,
+  },
+  commentInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    backgroundColor: theme.surface,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: theme.border,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: theme.text,
-    backgroundColor: theme.surface,
-    minHeight: 40,
-    maxHeight: 100,
-    textAlignVertical: 'top',
+    overflow: 'hidden',
+    paddingRight: 8,
   },
-  postButton: {
+  commentInput: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    maxHeight: 100,
+    color: theme.text,
+  },
+  sendCommentButton: {
     backgroundColor: theme.primary,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
-    alignSelf: 'flex-end',
-    marginTop: 8,
+    paddingVertical: 12,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 60,
+    marginLeft: 8,
+    marginBottom: 4,
   },
-  postButtonDisabled: {
+  sendCommentButtonDisabled: {
     backgroundColor: theme.border,
   },
-  postButtonText: {
+  sendCommentText: {
     color: 'white',
-    fontSize: 14,
     fontWeight: '600',
-  },
-  postButtonTextDisabled: {
-    color: theme.textSecondary,
+    fontSize: 14,
   },
   permissionNotice: {
     padding: 16,
@@ -685,84 +680,70 @@ const createStyles = (theme: any) => StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
-  commentsList: {
-    // Container for comments list
+  commentsSection: {
+    marginBottom: 24,
   },
-  commentsListContent: {
+  commentsList: {
+    gap: 16,
     padding: 16,
   },
-  commentContainer: {
+  // New event-style comment structure
+  commentItem: {
     backgroundColor: theme.card,
     padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
+    borderRadius: 12,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: theme.border,
   },
+  replyItem: {
+    marginLeft: 32,
+    marginTop: 12,
+    backgroundColor: theme.surface,
+  },
   commentHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
-  },
-  commentHeaderRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 8,
+  },
+  commentMeta: {
+    flex: 1,
+  },
+  commentAuthor: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.text,
+    marginBottom: 2,
   },
   commentTime: {
     fontSize: 12,
     color: theme.textTertiary,
   },
-  deleteButton: {
+  reportButtonContainer: {
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteCommentButton: {
     width: 24,
     height: 24,
     borderRadius: 12,
     backgroundColor: theme.error,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  deleteButtonText: {
+  deleteCommentText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-    lineHeight: 18,
   },
   commentContent: {
-    marginLeft: 44, // Align with avatar
-  },
-  commentText: {
     fontSize: 16,
     color: theme.text,
     lineHeight: 22,
-  },
-  repliesContainer: {
-    marginTop: 12,
-    marginLeft: 22,
-    paddingLeft: 16,
-    borderLeftWidth: 2,
-    borderLeftColor: theme.border,
-  },
-  replyContainer: {
     marginBottom: 8,
-  },
-  replyHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-    gap: 8,
-  },
-  replyTime: {
-    fontSize: 10,
-    color: theme.textTertiary,
-  },
-  replyContent: {
-    marginLeft: 32, // Align with small avatar
-  },
-  replyText: {
-    fontSize: 14,
-    color: theme.text,
-    lineHeight: 20,
   },
   replyImagesContainer: {
     marginTop: 6,
@@ -844,9 +825,8 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   inputActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8,
+    gap: 8,
   },
   imagePickerButton: {
     backgroundColor: theme.surface,
