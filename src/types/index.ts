@@ -96,6 +96,7 @@ export interface User {
     userName: string; // Display name for easy access
     userProfilePicture?: string;
     content: string;
+    images?: string[]; // Array of image URLs
     mentions?: import('./mentions').Mention[];
     parentCommentId?: string; // For replies
     replies?: EventComment[]; // Nested replies
@@ -162,6 +163,7 @@ export interface User {
   
   export interface CreateCommentFormData {
     content: string;
+    images?: string[]; // Array of image URLs
     parentCommentId?: string;
     mentions?: import('./mentions').Mention[];
   }

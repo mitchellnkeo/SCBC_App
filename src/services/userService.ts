@@ -8,7 +8,9 @@ import {
   doc,
   getDoc,
   updateDoc,
-  serverTimestamp
+  serverTimestamp,
+  startAfter,
+  QueryConstraint
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { UserSuggestion, User, RSVP, EventComment, BookClubEvent } from '../types';
@@ -319,36 +321,107 @@ export const getUserEventStats = async (userId: string) => {
 };
 
 /**
- * Search users by display name (for mentions, etc.)
+ * Search users by display name with optimized search
  */
-export const searchUsers = async (searchQuery: string, limitCount: number = 10): Promise<User[]> => {
+export const searchUsers = async (
+  searchQuery: string,
+  options: {
+    limitCount?: number;
+    lastVisible?: any;
+  } = {}
+): Promise<{ users: User[]; lastVisible: any; hasMore: boolean }> => {
   try {
-    // Note: This is a simple implementation. For better search, consider using Algolia or similar
+    const {
+      limitCount = 10,
+      lastVisible
+    } = options;
+
+    if (!searchQuery.trim()) {
+      throw new Error('Search query cannot be empty');
+    }
+
+    // Convert search query to lowercase for case-insensitive search
+    const searchLower = searchQuery.toLowerCase().trim();
+    
+    // Build query constraints
+    const constraints: QueryConstraint[] = [
+      // Search by searchTerms array which contains lowercase name variations
+      where('searchTerms', 'array-contains', searchLower),
+      orderBy('displayName'),
+      limit(limitCount + 1) // Get one extra to check if there are more
+    ];
+
+    if (lastVisible) {
+      constraints.push(startAfter(lastVisible));
+    }
+
     const usersQuery = query(
-      collection(db, 'users'),
-      limit(limitCount)
+      collection(db, USERS_COLLECTION),
+      ...constraints
     );
 
-    const usersSnapshot = await getDocs(usersQuery);
+    const snapshot = await getDocs(usersQuery);
+    const docs = snapshot.docs;
     
-    const users = usersSnapshot.docs.map(docSnapshot => {
-      const data = docSnapshot.data() as any;
+    const hasMore = docs.length > limitCount;
+    const usersToProcess = hasMore ? docs.slice(0, limitCount) : docs;
+    const newLastVisible = usersToProcess[usersToProcess.length - 1];
+
+    const users = usersToProcess.map(doc => {
+      const data = doc.data();
       return {
-        id: docSnapshot.id,
-        ...data,
+        id: doc.id,
+        displayName: data.displayName,
+        email: data.email,
+        profilePicture: data.profilePicture,
+        role: data.role || 'member',
+        bio: data.bio,
         createdAt: data.createdAt?.toDate() || new Date(),
         updatedAt: data.updatedAt?.toDate() || new Date(),
       } as User;
     });
 
-    // Filter by query on client side (not ideal for large datasets)
-    return users.filter(user => 
-      user.displayName.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    return {
+      users,
+      lastVisible: newLastVisible,
+      hasMore
+    };
   } catch (error) {
     console.error('Error searching users:', error);
-    return [];
+    return {
+      users: [],
+      lastVisible: null,
+      hasMore: false
+    };
   }
+};
+
+/**
+ * Generate search terms for a user
+ * This should be called when creating/updating a user
+ */
+export const generateUserSearchTerms = (displayName: string): string[] => {
+  const terms: string[] = [];
+  const nameLower = displayName.toLowerCase();
+
+  // Add full name
+  terms.push(nameLower);
+
+  // Add each word
+  const words = nameLower.split(/\s+/);
+  terms.push(...words);
+
+  // Add partial matches (minimum 2 characters)
+  for (let i = 0; i < nameLower.length - 1; i++) {
+    for (let j = i + 2; j <= nameLower.length; j++) {
+      const term = nameLower.slice(i, j);
+      if (!terms.includes(term)) {
+        terms.push(term);
+      }
+    }
+  }
+
+  return [...new Set(terms)]; // Remove duplicates
 };
 
 /**
@@ -599,5 +672,32 @@ export const getUserStats = async (): Promise<{
   } catch (error) {
     console.error('Error fetching user stats:', error);
     throw new Error('Failed to fetch user statistics');
+  }
+};
+
+/**
+ * Update user profile
+ */
+export const updateUserProfile = async (
+  userId: string,
+  updates: Partial<User>
+): Promise<void> => {
+  try {
+    const userRef = doc(db, USERS_COLLECTION, userId);
+    
+    // Generate search terms if display name is being updated
+    const updateData: any = {
+      ...updates,
+      updatedAt: serverTimestamp()
+    };
+
+    if (updates.displayName) {
+      updateData.searchTerms = generateUserSearchTerms(updates.displayName);
+    }
+
+    await updateDoc(userRef, updateData);
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    throw new Error('Failed to update profile. Please try again.');
   }
 }; 

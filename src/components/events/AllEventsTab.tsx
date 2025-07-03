@@ -6,6 +6,9 @@ import {
   Alert,
   StyleSheet,
   TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useEventStore } from '../../stores/eventStore';
@@ -25,9 +28,11 @@ const AllEventsTab: React.FC = () => {
   const { theme } = useTheme();
   const { 
     events, 
-    isLoading, 
+    isLoading,
+    hasMore,
     error, 
-    loadEvents, 
+    loadEvents,
+    loadMoreEvents,
     clearError,
     subscribeToEvents,
   } = useEventStore();
@@ -37,7 +42,7 @@ const AllEventsTab: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      loadEvents();
+      loadEvents(true); // Load fresh data
       const unsubscribe = subscribeToEvents();
       return unsubscribe;
     }
@@ -53,10 +58,25 @@ const AllEventsTab: React.FC = () => {
   const onRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await loadEvents();
+      await loadEvents(true); // Refresh from start
     } finally {
       setIsRefreshing(false);
     }
+  };
+
+  const onEndReached = () => {
+    if (!isLoading && hasMore) {
+      loadMoreEvents();
+    }
+  };
+
+  const renderFooter = () => {
+    if (!isLoading || isRefreshing) return null;
+    return (
+      <View style={dynamicStyles.footerLoader}>
+        <ActivityIndicator color={theme.primary} />
+      </View>
+    );
   };
 
   const navigateToEventDetails = (eventId: string) => {
@@ -319,19 +339,51 @@ const AllEventsTab: React.FC = () => {
       fontSize: 14,
       color: theme.textSecondary,
     },
+    footerLoader: {
+      paddingVertical: 16,
+      alignItems: 'center',
+    },
   });
 
+  if (viewMode === 'list') {
+    return (
+      <FlatList
+        data={events}
+        renderItem={({ item }) => renderEventListItem(item)}
+        keyExtractor={item => item.id}
+        contentContainerStyle={{ padding: 16 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            colors={[theme.primary]}
+            tintColor={theme.primary}
+          />
+        }
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
+      />
+    );
+  }
+
   return (
-    <EventsGroupedList
-      events={events}
-      isLoading={isLoading}
-      isRefreshing={isRefreshing}
-      onRefresh={onRefresh}
-      viewMode={viewMode}
-      onViewModeChange={setViewMode}
-      renderEventCard={renderEventCard}
-      renderEventListItem={renderEventListItem}
-      emptyStateMessage="No upcoming events. Create one to get started!"
+    <FlatList
+      data={events}
+      renderItem={({ item }) => renderEventCard(item)}
+      keyExtractor={item => item.id}
+      contentContainerStyle={{ padding: 16 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={onRefresh}
+          colors={[theme.primary]}
+          tintColor={theme.primary}
+        />
+      }
+      onEndReached={onEndReached}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={renderFooter}
     />
   );
 };

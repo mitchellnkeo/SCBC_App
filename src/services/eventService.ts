@@ -13,7 +13,10 @@ import {
   onSnapshot, 
   writeBatch,
   serverTimestamp,
-  Timestamp 
+  Timestamp,
+  documentId,
+  QueryConstraint,
+  startAfter
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
@@ -29,6 +32,7 @@ import {
   PendingEventStats
 } from '../types';
 import { isEventCurrentOrUpcoming, hasEventEnded } from '../utils/timezone';
+import { logger } from '../utils/logger';
 
 // Collections
 const EVENTS_COLLECTION = 'events';
@@ -259,39 +263,138 @@ export const getEvent = async (eventId: string): Promise<BookClubEvent | null> =
   }
 };
 
-export const getAllEvents = async (limitCount: number = 20): Promise<BookClubEvent[]> => {
+/**
+ * Get all events with pagination
+ */
+export const getAllEvents = async (
+  options: {
+    limitCount?: number;
+    lastVisible?: any;
+    includeExpired?: boolean;
+  } = {}
+): Promise<{ events: BookClubEvent[]; lastVisible: any; hasMore: boolean }> => {
   try {
-    // Only get approved events for the main events list - with pagination limit
+    const {
+      limitCount = 20,
+      lastVisible,
+      includeExpired = false
+    } = options;
+
+    logger.debug('Fetching events with options:', { 
+      limitCount, 
+      hasLastVisible: !!lastVisible,
+      includeExpired 
+    });
+
+    // Build query constraints
+    const constraints: QueryConstraint[] = [
+      where('status', '==', 'approved'),
+      orderBy('date', 'asc')
+    ];
+
+    if (!includeExpired) {
+      // Use the start of today in the local timezone as a safe default
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const timestamp = Timestamp.fromDate(today);
+      constraints.push(where('date', '>=', timestamp));
+    }
+
+    if (lastVisible) {
+      constraints.push(startAfter(lastVisible));
+    }
+
+    constraints.push(limit(limitCount + 1)); // Get one extra to check if there are more
+
     const eventsQuery = query(
       collection(db, EVENTS_COLLECTION),
-      where('status', '==', 'approved'),
-      limit(limitCount * 2) // Get more events to account for filtering
+      ...constraints
     );
+
     const eventsSnapshot = await getDocs(eventsQuery);
+    const docs = eventsSnapshot.docs;
     
-    const events = eventsSnapshot.docs.map(doc => {
+    const hasMore = docs.length > limitCount;
+    const eventsToProcess = hasMore ? docs.slice(0, limitCount) : docs;
+    const newLastVisible = eventsToProcess[eventsToProcess.length - 1];
+
+    const events = eventsToProcess.map(doc => {
       const data = doc.data();
-      return {
+      
+      // Safely convert Firestore timestamps to Dates
+      const safeToDate = (timestamp: any) => {
+        if (!timestamp) return new Date();
+        try {
+          if (timestamp instanceof Timestamp) {
+            return timestamp.toDate();
+          }
+          return new Date();
+        } catch (e) {
+          logger.warn('Invalid timestamp in event data:', { 
+            eventId: doc.id, 
+            error: e,
+            timestampValue: timestamp 
+          });
+          return new Date();
+        }
+      };
+
+      // Create event object with safe date conversions
+      const event: BookClubEvent = {
         id: doc.id,
-        ...data,
-        date: data.date?.toDate() || new Date(),
-        createdAt: data.createdAt?.toDate() || new Date(),
-        updatedAt: data.updatedAt?.toDate() || new Date(),
-        approvedAt: data.approvedAt?.toDate() || undefined,
-      } as BookClubEvent;
+        title: data.title || '',
+        description: data.description || '',
+        date: safeToDate(data.date),
+        startTime: data.startTime || '',
+        endTime: data.endTime || '',
+        address: data.address || '',
+        location: data.location || '',
+        headerPhoto: data.headerPhoto || undefined,
+        maxAttendees: data.maxAttendees,
+        createdBy: data.createdBy || '',
+        hostName: data.hostName || '',
+        hostProfilePicture: data.hostProfilePicture,
+        status: data.status || 'pending',
+        approvedBy: data.approvedBy,
+        approvedAt: data.approvedAt ? safeToDate(data.approvedAt) : undefined,
+        rejectionReason: data.rejectionReason,
+        createdAt: safeToDate(data.createdAt),
+        updatedAt: safeToDate(data.updatedAt)
+      };
+
+      return event;
     });
-    
-    // Filter to show only current and upcoming events using PST timezone
-    const upcomingEvents = events.filter(event => {
-      return isEventCurrentOrUpcoming(event.date, event.startTime, event.endTime);
-    });
-    
-    // Sort by date in JavaScript (upcoming events first)
-    return upcomingEvents
-      .sort((a, b) => a.date.getTime() - b.date.getTime())
-      .slice(0, limitCount);
+
+    // Only log dates if we have events
+    if (events.length > 0) {
+      logger.debug('Events fetch complete:', {
+        totalFetched: docs.length,
+        returnedCount: events.length,
+        hasMore,
+        firstEventDate: events[0].date.toISOString(),
+        lastEventDate: events[events.length - 1].date.toISOString()
+      });
+    } else {
+      logger.debug('No events found');
+    }
+
+    return {
+      events,
+      lastVisible: newLastVisible,
+      hasMore
+    };
   } catch (error) {
-    console.error('Error getting events:', error);
+    // Improved error handling
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Unknown error occurred while loading events';
+    
+    logger.error('Error getting events:', { 
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+      details: error
+    });
+    
     throw new Error('Failed to load events. Please try again.');
   }
 };
@@ -490,6 +593,7 @@ export const createComment = async (
       userName,
       userProfilePicture: userProfilePicture || null,
       content: commentData.content,
+      images: commentData.images || [],
       mentions: commentData.mentions || [],
       parentCommentId: commentData.parentCommentId || null,
       createdAt: serverTimestamp(),
@@ -1060,5 +1164,53 @@ export const deleteEventHeaderImage = async (imageUrl: string): Promise<void> =>
   } catch (error) {
     console.error('Error deleting event header image:', error);
     // Don't throw error as this is cleanup - event can still be updated
+  }
+};
+
+/**
+ * Get events a user is attending (based on RSVPs)
+ */
+export const getUserAttendingEvents = async (userId: string, limitCount: number = 10): Promise<BookClubEvent[]> => {
+  try {
+    // First get user's RSVPs where status is 'going'
+    const rsvpsQuery = query(
+      collection(db, RSVPS_COLLECTION),
+      where('userId', '==', userId),
+      where('status', '==', 'going'),
+      orderBy('createdAt', 'desc'),
+      limit(limitCount)
+    );
+
+    const rsvpsSnapshot = await getDocs(rsvpsQuery);
+    const eventIds = rsvpsSnapshot.docs.map(doc => doc.data().eventId);
+
+    if (eventIds.length === 0) return [];
+
+    // Get all events in a single batch query
+    const eventsQuery = query(
+      collection(db, EVENTS_COLLECTION),
+      where(documentId(), 'in', eventIds)
+    );
+
+    const eventsSnapshot = await getDocs(eventsQuery);
+    const events = eventsSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        date: data.date?.toDate() || new Date(),
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+        approvedAt: data.approvedAt?.toDate(),
+      } as BookClubEvent;
+    });
+
+    // Sort by date
+    return events
+      .sort((a, b) => b.date.getTime() - a.date.getTime())
+      .slice(0, limitCount);
+  } catch (error) {
+    console.error('Error fetching user attending events:', error);
+    return [];
   }
 }; 

@@ -8,6 +8,7 @@ import {
   PendingEventStats
 } from '../types';
 import * as eventService from '../services/eventService';
+import { logger } from '../utils/logger';
 
 interface EventState {
   // State
@@ -24,9 +25,12 @@ interface EventState {
   isApproving: boolean;
   error: string | null;
   pastError: string | null;
+  lastVisible: any;
+  hasMore: boolean;
   
   // Actions
-  loadEvents: () => Promise<void>;
+  loadEvents: (refresh?: boolean) => Promise<void>;
+  loadMoreEvents: () => Promise<void>;
   loadPastEvents: () => Promise<void>;
   loadPendingEvents: () => Promise<void>;
   loadPendingStats: () => Promise<void>;
@@ -64,17 +68,62 @@ export const useEventStore = create<EventState>((set, get) => ({
   isApproving: false,
   error: null,
   pastError: null,
+  lastVisible: null,
+  hasMore: true,
   
-  // Load all approved events
-  loadEvents: async () => {
+  // Load all approved events with pagination
+  loadEvents: async (refresh = false) => {
+    logger.debug('Loading events:', { refresh, currentCount: get().events.length });
     set({ isLoading: true, error: null });
+    
     try {
-      const events = await eventService.getAllEvents();
-      set({ events, isLoading: false });
+      if (refresh) {
+        logger.debug('Refreshing events from start');
+        set({ lastVisible: null });
+      }
+      
+      const result = await eventService.getAllEvents({
+        limitCount: 20,
+        lastVisible: refresh ? null : get().lastVisible
+      });
+      
+      const newEvents = refresh ? result.events : [...get().events, ...result.events];
+      
+      logger.debug('Events loaded:', {
+        newCount: result.events.length,
+        totalCount: newEvents.length,
+        hasMore: result.hasMore
+      });
+      
+      set({ 
+        events: newEvents,
+        lastVisible: result.lastVisible,
+        hasMore: result.hasMore,
+        isLoading: false 
+      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load events';
+      logger.error('Failed to load events:', { error: errorMessage });
       set({ error: errorMessage, isLoading: false });
     }
+  },
+
+  // Load more events (pagination)
+  loadMoreEvents: async () => {
+    const state = get();
+    if (!state.hasMore || state.isLoading) {
+      logger.debug('Skipping loadMoreEvents:', {
+        hasMore: state.hasMore,
+        isLoading: state.isLoading
+      });
+      return;
+    }
+    
+    logger.debug('Loading more events:', {
+      currentCount: state.events.length
+    });
+    
+    await state.loadEvents(false);
   },
   
   // Load past events
@@ -130,8 +179,8 @@ export const useEventStore = create<EventState>((set, get) => ({
       const eventId = await eventService.createEvent(eventData, userId, userName, userRole, userProfilePicture);
       
       // Refresh events list (only shows approved events)
-      const events = await eventService.getAllEvents();
-      set({ events });
+      const result = await eventService.getAllEvents();
+      set({ events: result.events });
       
       // If admin, also refresh pending events to show immediately
       if (userRole === 'admin') {
@@ -156,14 +205,14 @@ export const useEventStore = create<EventState>((set, get) => ({
       await eventService.approveEvent(eventId, adminUserId, approvalData);
       
       // Refresh all relevant lists
-      const [events, pendingEvents, pendingStats] = await Promise.all([
+      const [eventsResult, pendingEvents, pendingStats] = await Promise.all([
         eventService.getAllEvents(),
         eventService.getPendingEvents(),
         eventService.getPendingEventStats()
       ]);
       
       set({ 
-        events, 
+        events: eventsResult.events, 
         pendingEvents, 
         pendingStats, 
         isApproving: false 
@@ -182,8 +231,8 @@ export const useEventStore = create<EventState>((set, get) => ({
       await eventService.updateEvent(eventId, eventData, updaterUserId, updaterUserName, updaterProfilePicture);
       
       // Refresh events list and current event if it's the one being updated
-      const events = await eventService.getAllEvents();
-      set({ events });
+      const result = await eventService.getAllEvents();
+      set({ events: result.events });
       
       const { currentEvent } = get();
       if (currentEvent && currentEvent.id === eventId) {

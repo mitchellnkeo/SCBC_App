@@ -8,22 +8,26 @@ import {
   RefreshControl,
   Modal,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { BookClubEvent } from '../../types';
 import { formatFullDate } from '../../utils/dateTimeUtils';
 import { Button } from './Button';
 import EmptyState from './EmptyState';
+import LoadingState from './LoadingState';
 
 interface EventsGroupedListProps {
   events: BookClubEvent[];
   isLoading: boolean;
   isRefreshing: boolean;
-  onRefresh: () => void;
+  hasMore: boolean;
   viewMode: 'card' | 'list';
   onViewModeChange: (mode: 'card' | 'list') => void;
-  renderEventCard: (event: BookClubEvent) => React.ReactNode;
-  renderEventListItem: (event: BookClubEvent) => React.ReactNode;
+  onRefresh: () => void;
+  onEndReached: () => void;
+  renderEventCard: (event: BookClubEvent) => React.ReactElement;
+  renderEventListItem: (event: BookClubEvent) => React.ReactElement;
   emptyStateMessage?: string;
 }
 
@@ -44,9 +48,11 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
   events,
   isLoading,
   isRefreshing,
-  onRefresh,
+  hasMore,
   viewMode,
   onViewModeChange,
+  onRefresh,
+  onEndReached,
   renderEventCard,
   renderEventListItem,
   emptyStateMessage = 'No events found'
@@ -171,6 +177,89 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
       <Text style={dynamicStyles.dropdownItemText}>{item}</Text>
     </TouchableOpacity>
   );
+
+  const renderFooter = () => {
+    if (!isLoading || isRefreshing) return null;
+    return (
+      <View style={dynamicStyles.footerLoader}>
+        <ActivityIndicator color={theme.primary} />
+      </View>
+    );
+  };
+
+  const renderViewModeToggle = () => (
+    <View style={dynamicStyles.viewModeContainer}>
+      <TouchableOpacity
+        style={[
+          dynamicStyles.viewModeButton,
+          viewMode === 'card' && dynamicStyles.viewModeButtonActive,
+        ]}
+        onPress={() => onViewModeChange('card')}
+      >
+        <Text
+          style={[
+            dynamicStyles.viewModeText,
+            viewMode === 'card' && dynamicStyles.viewModeTextActive,
+          ]}
+        >
+          Cards
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          dynamicStyles.viewModeButton,
+          viewMode === 'list' && dynamicStyles.viewModeButtonActive,
+        ]}
+        onPress={() => onViewModeChange('list')}
+      >
+        <Text
+          style={[
+            dynamicStyles.viewModeText,
+            viewMode === 'list' && dynamicStyles.viewModeTextActive,
+          ]}
+        >
+          List
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderContent = () => {
+    if (isLoading && !isRefreshing && events.length === 0) {
+      return <LoadingState />;
+    }
+
+    if (!isLoading && events.length === 0) {
+      return <EmptyState 
+        emoji="📅"
+        title="No Events"
+        subtitle={emptyStateMessage}
+      />;
+    }
+
+    return (
+      <FlatList
+        data={events}
+        renderItem={({ item }) =>
+          viewMode === 'card' ? renderEventCard(item) : renderEventListItem(item)
+        }
+        keyExtractor={item => item.id}
+        contentContainerStyle={dynamicStyles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            colors={[theme.primary]}
+            tintColor={theme.primary}
+          />
+        }
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0.5}
+        ListHeaderComponent={renderViewModeToggle}
+        ListFooterComponent={renderFooter}
+      />
+    );
+  };
 
   const dynamicStyles = StyleSheet.create({
     container: {
@@ -322,168 +411,40 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
       marginBottom: 8,
       paddingHorizontal: 4,
     },
+    listContent: {
+      padding: 16,
+    },
+    viewModeContainer: {
+      flexDirection: 'row',
+      marginBottom: 16,
+      backgroundColor: theme.surface,
+      borderRadius: 8,
+      padding: 4,
+    },
+    viewModeButton: {
+      flex: 1,
+      paddingVertical: 8,
+      alignItems: 'center',
+      borderRadius: 6,
+    },
+    viewModeButtonActive: {
+      backgroundColor: theme.primary,
+    },
+    viewModeText: {
+      color: theme.textSecondary,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    viewModeTextActive: {
+      color: 'white',
+    },
+    footerLoader: {
+      paddingVertical: 16,
+      alignItems: 'center',
+    },
   });
 
-  if (isLoading) {
-    return (
-      <View style={dynamicStyles.container}>
-        <EmptyState
-          emoji="🔄"
-          title="Loading events..."
-          subtitle="Please wait while we fetch the events."
-        />
-      </View>
-    );
-  }
-
-  if (!events.length) {
-    return (
-      <View style={dynamicStyles.container}>
-        <EmptyState
-          emoji="📅"
-          title="No Events"
-          subtitle={emptyStateMessage}
-        />
-      </View>
-    );
-  }
-
-  return (
-    <View style={dynamicStyles.container}>
-      {/* Header with View Mode Toggle */}
-      <View style={dynamicStyles.header}>
-        <Text style={[dynamicStyles.dropdownTitle, { fontSize: 18 }]}>Events</Text>
-        <View style={dynamicStyles.viewToggle}>
-          <TouchableOpacity
-            style={[
-              dynamicStyles.toggleButton,
-              viewMode === 'card' && dynamicStyles.activeToggle,
-            ]}
-            onPress={() => onViewModeChange('card')}
-          >
-            <Text
-              style={[
-                dynamicStyles.toggleText,
-                viewMode === 'card'
-                  ? dynamicStyles.activeToggleText
-                  : dynamicStyles.inactiveToggleText,
-              ]}
-            >
-              Cards
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              dynamicStyles.toggleButton,
-              viewMode === 'list' && dynamicStyles.activeToggle,
-            ]}
-            onPress={() => onViewModeChange('list')}
-          >
-            <Text
-              style={[
-                dynamicStyles.toggleText,
-                viewMode === 'list'
-                  ? dynamicStyles.activeToggleText
-                  : dynamicStyles.inactiveToggleText,
-              ]}
-            >
-              List
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Filter Dropdown */}
-      <View style={dynamicStyles.filterContainer}>
-        <TouchableOpacity
-          style={dynamicStyles.filterButton}
-          onPress={() => {
-            setDropdownLevel('year');
-            setShowDropdown(true);
-          }}
-        >
-          <Text style={dynamicStyles.filterButtonText}>
-            {getDropdownTitle()}
-          </Text>
-          <Text style={dynamicStyles.filterChevron}>▼</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Events List */}
-      <ScrollView
-        style={dynamicStyles.content}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
-        }
-      >
-        {filteredEvents.map(event => (
-          <View key={event.id} style={dynamicStyles.eventSection}>
-            {viewMode === 'card'
-              ? renderEventCard(event)
-              : renderEventListItem(event)}
-          </View>
-        ))}
-        
-        {filteredEvents.length === 0 && (
-          <EmptyState
-            emoji="🔍"
-            title="No Events Found"
-            subtitle={
-              selectedFilter.year || selectedFilter.month
-                ? `No events found for ${getDropdownTitle().toLowerCase()}`
-                : emptyStateMessage
-            }
-          />
-        )}
-      </ScrollView>
-
-      {/* Dropdown Modal */}
-      <Modal
-        visible={showDropdown}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowDropdown(false)}
-      >
-        <TouchableOpacity
-          style={dynamicStyles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowDropdown(false)}
-        >
-          <View style={dynamicStyles.dropdownModal}>
-            <View style={dynamicStyles.dropdownHeader}>
-              {dropdownLevel === 'month' && selectedFilter.year && (
-                <TouchableOpacity
-                  style={dynamicStyles.backButton}
-                  onPress={handleBackToYears}
-                >
-                  <Text style={dynamicStyles.backButtonText}>← Back</Text>
-                </TouchableOpacity>
-              )}
-              
-              <Text style={dynamicStyles.dropdownTitle}>
-                {dropdownLevel === 'year' ? 'Select Year' : `Select Month (${selectedFilter.year})`}
-              </Text>
-              
-              <TouchableOpacity
-                style={dynamicStyles.closeButton}
-                onPress={() => setShowDropdown(false)}
-              >
-                <Text style={dynamicStyles.closeButtonText}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <FlatList
-              style={dynamicStyles.dropdownList}
-              data={dropdownLevel === 'year' ? availableYears : availableMonths}
-              renderItem={renderDropdownItem}
-              keyExtractor={(item) => item}
-              showsVerticalScrollIndicator={false}
-            />
-          </View>
-        </TouchableOpacity>
-      </Modal>
-    </View>
-  );
+  return <View style={dynamicStyles.container}>{renderContent()}</View>;
 };
 
 export default EventsGroupedList;

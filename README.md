@@ -37,9 +37,11 @@ The Seattle Chinatown Book Club App is a production-ready React Native applicati
 - **Create & Host Events** - Members can create book club events with rich details
 - **Admin Approval System** - All member-created events require admin approval
 - **RSVP System** - Going/Maybe/Not Going with real-time attendee counts
-- **Event Comments** - Threaded discussions with @mentions and notifications
+- **Event Comments** - Threaded discussions with @mentions, notifications, and image support
 - **Calendar Integration** - Add events directly to device calendars
-- **Image Support** - Upload event header images
+- **Image Support** - Upload event header images and comment images (up to 3 per comment)
+- **Image Viewer** - Full-screen image viewer for event and comment images
+- **Media Options** - Choose images from camera or gallery with compression
 
 ### 👥 **Social & User System**
 - **Role-Based Access** - Admin and Member roles with different permissions
@@ -114,6 +116,8 @@ The Seattle Chinatown Book Club App is a production-ready React Native applicati
 - **React Navigation** - Navigation and routing
 - **React Hook Form** - Form handling and validation
 - **KeyboardAwareScrollView** - Enhanced keyboard handling for better UX
+- **Expo Image Picker** - Native image selection with camera and gallery support
+- **Expo Image Manipulator** - Image compression and resizing
 
 ### **UI/UX Features**
 - **Theme System** - Complete dark/light mode with React Context
@@ -122,6 +126,8 @@ The Seattle Chinatown Book Club App is a production-ready React Native applicati
 - **Keyboard Optimization** - Enhanced TextInput handling with proper navigation
 - **View Toggles** - Flexible list/card views for content browsing
 - **Responsive Components** - Adaptive layouts for all screen sizes
+- **Image Optimization** - Automatic compression (800px max width, 80% quality)
+- **Media Preview** - Thumbnail previews for uploaded images (120x120px comments, 80x80px replies)
 
 ### **Backend & Services**
 - **Firebase Firestore** - Real-time NoSQL database with advanced security rules

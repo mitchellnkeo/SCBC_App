@@ -25,8 +25,10 @@ import EventDetailsSkeleton from '../../components/common/EventDetailsSkeleton';
 import MentionInput from '../../components/common/MentionInput';
 import MentionText from '../../components/common/MentionText';
 import ClickableUser from '../../components/common/ClickableUser';
+import ImageViewer from '../../components/common/ImageViewer';
 import { handleError } from '../../utils/errorHandler';
 import { getEventParticipantsForMentions } from '../../services/userService';
+import { uploadCommentImage } from '../../services';
 import AddressAction from '../../components/common/AddressAction';
 import { BookClubEvent } from '../../types';
 import { db } from '../../config/firebase';
@@ -38,6 +40,7 @@ import { createCommonStyles } from '../../styles/commonStyles';
 import LoadingState from '../../components/common/LoadingState';
 import { shareEvent } from '../../utils/socialMediaUtils';
 import ReportButton from '../../components/common/ReportButton';
+import * as ImagePickerExpo from 'expo-image-picker';
 
 type RootStackParamList = {
   EditEvent: { eventId: string };
@@ -504,6 +507,78 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  // Image styles
+  commentImagesContainer: {
+    marginTop: 8,
+  },
+  commentImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  replyImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 6,
+    marginRight: 6,
+  },
+  imagePreviewContainer: {
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  imagePreviewItem: {
+    position: 'relative',
+    marginRight: 8,
+  },
+  imagePreview: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#ef4444',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeImageText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    lineHeight: 18,
+  },
+  imagePickerButton: {
+    backgroundColor: '#f3f4f6',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  imagePickerDisabled: {
+    backgroundColor: '#d1d5db',
+    opacity: 0.6,
+  },
+  imagePickerText: {
+    fontSize: 14,
+    color: '#ec4899',
+    fontWeight: '500',
+  },
+  imagePickerDisabledText: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  inputActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
 });
 
 // Move CommentItem outside the main component to prevent re-creation on each render
@@ -520,6 +595,7 @@ const CommentItem: React.FC<{
   onReplyTextChange: (commentId: string, text: string, mentions: Mention[]) => void;
   onAddReply: (commentId: string) => void;
   onMentionPress: (mention: Mention) => void;
+  onOpenImageViewer: (images: string[], initialIndex: number) => void;
 }> = memo(({ 
   comment, 
   isReply = false, 
@@ -532,7 +608,8 @@ const CommentItem: React.FC<{
   onCancelReply,
   onReplyTextChange,
   onAddReply,
-  onMentionPress
+  onMentionPress,
+  onOpenImageViewer
 }) => {
   const canDelete = user?.role === 'admin' || user?.id === comment.userId;
   const replyState = replyStates[comment.id] || { isReplying: false, content: '', mentions: [] };
@@ -575,6 +652,28 @@ const CommentItem: React.FC<{
         style={styles.commentContent}
         onMentionPress={onMentionPress}
       />
+      
+      {/* Comment Images */}
+      {comment.images && comment.images.length > 0 && (
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.commentImagesContainer}
+        >
+          {comment.images.map((imageUrl, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => onOpenImageViewer(comment.images!, index)}
+            >
+              <Image
+                source={{ uri: imageUrl }}
+                style={isReply ? styles.replyImage : styles.commentImage}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
       
       {!isReply && (
         <TouchableOpacity
@@ -643,6 +742,7 @@ const CommentItem: React.FC<{
           onReplyTextChange={onReplyTextChange}
           onAddReply={onAddReply}
           onMentionPress={onMentionPress}
+          onOpenImageViewer={onOpenImageViewer}
         />
       ))}
     </View>
@@ -673,6 +773,11 @@ const EventDetailsScreen: React.FC = memo(() => {
 
   const [newComment, setNewComment] = useState('');
   const [commentMentions, setCommentMentions] = useState<Mention[]>([]);
+  const [newCommentImages, setNewCommentImages] = useState<string[]>([]);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [imageViewerVisible, setImageViewerVisible] = useState(false);
+  const [imageViewerImages, setImageViewerImages] = useState<string[]>([]);
+  const [imageViewerInitialIndex, setImageViewerInitialIndex] = useState(0);
   const [replyStates, setReplyStates] = useState<Record<string, { isReplying: boolean; content: string; mentions: Mention[] }>>({});
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [availableUsers, setAvailableUsers] = useState<UserSuggestion[]>([]);
@@ -737,8 +842,43 @@ const EventDetailsScreen: React.FC = memo(() => {
     }
   };
 
+  const handleImageSelected = async (imageUri: string) => {
+    if (!user) return;
+
+    try {
+      setIsUploadingImage(true);
+      const result = await uploadCommentImage(imageUri, user.id);
+      if (result.success && result.url) {
+        setNewCommentImages(prev => [...prev, result.url!]);
+      } else {
+        Alert.alert('Error', result.error || 'Failed to upload image. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      Alert.alert('Error', 'Failed to upload image. Please try again.');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setNewCommentImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const openImageViewer = (images: string[], initialIndex: number = 0) => {
+    setImageViewerImages(images);
+    setImageViewerInitialIndex(initialIndex);
+    setImageViewerVisible(true);
+  };
+
+  const closeImageViewer = () => {
+    setImageViewerVisible(false);
+    setImageViewerImages([]);
+    setImageViewerInitialIndex(0);
+  };
+
   const handleAddComment = async () => {
-    if (!user || !currentEvent || !newComment.trim()) return;
+    if (!user || !currentEvent || (!newComment.trim() && newCommentImages.length === 0)) return;
     
     try {
       await createComment(
@@ -747,6 +887,7 @@ const EventDetailsScreen: React.FC = memo(() => {
         user.displayName,
         { 
           content: newComment.trim(), 
+          images: newCommentImages,
           mentions: commentMentions 
         },
         user.profilePicture
@@ -754,6 +895,7 @@ const EventDetailsScreen: React.FC = memo(() => {
       
       setNewComment('');
       setCommentMentions([]);
+      setNewCommentImages([]);
     } catch (error) {
       Alert.alert('Error', 'Failed to add comment. Please try again.');
     }
@@ -1157,6 +1299,35 @@ const EventDetailsScreen: React.FC = memo(() => {
                 
                 {/* Add Comment */}
                 <View style={styles.addCommentContainer}>
+                  {/* Image Preview */}
+                  {newCommentImages.length > 0 && (
+                    <ScrollView 
+                      horizontal 
+                      showsHorizontalScrollIndicator={false}
+                      style={styles.imagePreviewContainer}
+                    >
+                      {newCommentImages.map((imageUrl, index) => (
+                        <View key={index} style={styles.imagePreviewItem}>
+                          <TouchableOpacity
+                            onPress={() => openImageViewer(newCommentImages, index)}
+                          >
+                            <Image
+                              source={{ uri: imageUrl }}
+                              style={styles.imagePreview}
+                              resizeMode="cover"
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.removeImageButton}
+                            onPress={() => handleRemoveImage(index)}
+                          >
+                            <Text style={styles.removeImageText}>×</Text>
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                    </ScrollView>
+                  )}
+                  
                   <View style={styles.commentInputContainer}>
                     <MentionInput
                       key="main-comment"
@@ -1168,20 +1339,78 @@ const EventDetailsScreen: React.FC = memo(() => {
                       maxLength={500}
                       style={styles.commentInput}
                     />
-                    <TouchableOpacity
-                      onPress={handleAddComment}
-                      disabled={!newComment.trim() || isCommenting}
-                      style={[
-                        styles.sendCommentButton,
-                        (!newComment.trim() || isCommenting) && styles.sendCommentButtonDisabled
-                      ]}
-                    >
-                      {isCommenting ? (
-                        <ActivityIndicator size="small" color="white" />
+                    
+                    <View style={styles.inputActions}>
+                      {(isUploadingImage || newCommentImages.length >= 3) ? (
+                        <TouchableOpacity 
+                          style={[styles.imagePickerButton, styles.imagePickerDisabled]}
+                          disabled={true}
+                        >
+                          <Text style={styles.imagePickerDisabledText}>
+                            {isUploadingImage ? 'Uploading...' : `${newCommentImages.length}/3`}
+                          </Text>
+                        </TouchableOpacity>
                       ) : (
-                        <Text style={styles.sendCommentText}>Send</Text>
+                        <TouchableOpacity
+                          style={styles.imagePickerButton}
+                          onPress={() => {
+                            Alert.alert(
+                              'Add Image',
+                              'Choose how you\'d like to add a photo',
+                              [
+                                {
+                                  text: 'Camera',
+                                  onPress: async () => {
+                                    const result = await ImagePickerExpo.launchCameraAsync({
+                                      mediaTypes: ['images'],
+                                      allowsEditing: true,
+                                      quality: 0.8,
+                                    });
+                                    if (!result.canceled && result.assets?.[0]) {
+                                      handleImageSelected(result.assets[0].uri);
+                                    }
+                                  },
+                                },
+                                {
+                                  text: 'Photo Library',
+                                  onPress: async () => {
+                                    const result = await ImagePickerExpo.launchImageLibraryAsync({
+                                      mediaTypes: ['images'],
+                                      allowsEditing: true,
+                                      quality: 0.8,
+                                    });
+                                    if (!result.canceled && result.assets?.[0]) {
+                                      handleImageSelected(result.assets[0].uri);
+                                    }
+                                  },
+                                },
+                                {
+                                  text: 'Cancel',
+                                  style: 'cancel',
+                                },
+                              ]
+                            );
+                          }}
+                        >
+                          <Text style={styles.imagePickerText}>📷</Text>
+                        </TouchableOpacity>
                       )}
-                    </TouchableOpacity>
+                    
+                      <TouchableOpacity
+                        onPress={handleAddComment}
+                        disabled={(!newComment.trim() && newCommentImages.length === 0) || isCommenting}
+                        style={[
+                          styles.sendCommentButton,
+                          ((!newComment.trim() && newCommentImages.length === 0) || isCommenting) && styles.sendCommentButtonDisabled
+                        ]}
+                      >
+                        {isCommenting ? (
+                          <ActivityIndicator size="small" color="white" />
+                        ) : (
+                          <Text style={styles.sendCommentText}>Send</Text>
+                        )}
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
                 
@@ -1208,6 +1437,7 @@ const EventDetailsScreen: React.FC = memo(() => {
                         onReplyTextChange={handleReplyTextChange}
                         onAddReply={handleAddReply}
                         onMentionPress={handleMentionPress}
+                        onOpenImageViewer={openImageViewer}
                       />
                     ))
                   )}
@@ -1216,6 +1446,14 @@ const EventDetailsScreen: React.FC = memo(() => {
             </View>
           </ScrollView>
         ) : null}
+
+        {/* Image Viewer Modal */}
+        <ImageViewer
+          visible={imageViewerVisible}
+          images={imageViewerImages}
+          initialIndex={imageViewerInitialIndex}
+          onClose={closeImageViewer}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
