@@ -61,8 +61,8 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
   const { theme } = useTheme();
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-  const [showYearPicker, setShowYearPicker] = useState(false);
-  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
+  const [pickerStep, setPickerStep] = useState<'year' | 'month'>('year');
 
   // Get all available years and months from events
   const { years, monthsByYear } = useMemo(() => {
@@ -153,147 +153,145 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
 
   const handleYearSelect = (year: string | null) => {
     setSelectedYear(year);
-    setSelectedMonth(null);
-    setShowYearPicker(false);
+    if (year) {
+      setPickerStep('month');
+    } else {
+      setSelectedMonth(null);
+      setShowPicker(false);
+    }
   };
 
   const handleMonthSelect = (month: string | null) => {
     setSelectedMonth(month);
-    setShowMonthPicker(false);
+    setShowPicker(false);
   };
 
-  const renderYearPicker = () => (
-    <Modal
-      visible={showYearPicker}
-      transparent
-      animationType="fade"
-      onRequestClose={() => setShowYearPicker(false)}
-    >
-      <TouchableOpacity
-        style={dynamicStyles.modalOverlay}
-        activeOpacity={1}
-        onPress={() => setShowYearPicker(false)}
-      >
-        <View style={dynamicStyles.pickerModal}>
-          <View style={dynamicStyles.pickerHeader}>
-            <Text style={dynamicStyles.pickerTitle}>Select Year</Text>
-            <TouchableOpacity
-              style={dynamicStyles.clearButton}
-              onPress={() => handleYearSelect(null)}
-            >
-              <Text style={dynamicStyles.clearButtonText}>Clear</Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView style={dynamicStyles.pickerContent}>
-            {years.map(year => (
-              <TouchableOpacity
-                key={year}
-                style={[
-                  dynamicStyles.pickerItem,
-                  selectedYear === year && dynamicStyles.pickerItemSelected
-                ]}
-                onPress={() => handleYearSelect(year)}
-              >
-                <Text style={[
-                  dynamicStyles.pickerItemText,
-                  selectedYear === year && dynamicStyles.pickerItemTextSelected
-                ]}>
-                  {year}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
+  const handleOpenPicker = () => {
+    setPickerStep('year');
+    setShowPicker(true);
+  };
 
-  const renderMonthPicker = () => (
+  const handleBack = () => {
+    setPickerStep('year');
+    setSelectedMonth(null);
+  };
+
+  const handleClear = () => {
+    setSelectedYear(null);
+    setSelectedMonth(null);
+    setShowPicker(false);
+    setPickerStep('year');
+  };
+
+  const renderPicker = () => (
     <Modal
-      visible={showMonthPicker}
+      visible={showPicker}
       transparent
       animationType="fade"
-      onRequestClose={() => setShowMonthPicker(false)}
+      onRequestClose={() => setShowPicker(false)}
     >
       <TouchableOpacity
         style={dynamicStyles.modalOverlay}
         activeOpacity={1}
-        onPress={() => setShowMonthPicker(false)}
+        onPress={() => setShowPicker(false)}
       >
         <View style={dynamicStyles.pickerModal}>
           <View style={dynamicStyles.pickerHeader}>
-            <Text style={dynamicStyles.pickerTitle}>Select Month</Text>
+            {pickerStep === 'month' && (
+              <TouchableOpacity
+                style={dynamicStyles.backButton}
+                onPress={handleBack}
+              >
+                <Text style={dynamicStyles.backButtonText}>← Back</Text>
+              </TouchableOpacity>
+            )}
+            <Text style={dynamicStyles.pickerTitle}>
+              {pickerStep === 'year' ? 'Select Year' : `Select Month (${selectedYear})`}
+            </Text>
             <TouchableOpacity
               style={dynamicStyles.clearButton}
-              onPress={() => handleMonthSelect(null)}
+              onPress={handleClear}
             >
               <Text style={dynamicStyles.clearButtonText}>Clear</Text>
             </TouchableOpacity>
           </View>
+
           <ScrollView style={dynamicStyles.pickerContent}>
-            {selectedYear && Array.from(monthsByYear.get(selectedYear) || [])
-              .sort((a, b) => {
-                const months = ['January', 'February', 'March', 'April', 'May', 'June',
-                              'July', 'August', 'September', 'October', 'November', 'December'];
-                return months.indexOf(a) - months.indexOf(b);
-              })
-              .map(month => (
+            {pickerStep === 'year' ? (
+              years.map(year => (
                 <TouchableOpacity
-                  key={month}
+                  key={year}
                   style={[
                     dynamicStyles.pickerItem,
-                    selectedMonth === month && dynamicStyles.pickerItemSelected
+                    selectedYear === year && dynamicStyles.pickerItemSelected
                   ]}
-                  onPress={() => handleMonthSelect(month)}
+                  onPress={() => handleYearSelect(year)}
                 >
                   <Text style={[
                     dynamicStyles.pickerItemText,
-                    selectedMonth === month && dynamicStyles.pickerItemTextSelected
+                    selectedYear === year && dynamicStyles.pickerItemTextSelected
                   ]}>
-                    {month}
+                    {year}
                   </Text>
                 </TouchableOpacity>
               ))
-            }
+            ) : (
+              Array.from(monthsByYear.get(selectedYear!) || [])
+                .sort((a, b) => {
+                  const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                                'July', 'August', 'September', 'October', 'November', 'December'];
+                  return months.indexOf(a) - months.indexOf(b);
+                })
+                .map(month => (
+                  <TouchableOpacity
+                    key={month}
+                    style={[
+                      dynamicStyles.pickerItem,
+                      selectedMonth === month && dynamicStyles.pickerItemSelected
+                    ]}
+                    onPress={() => handleMonthSelect(month)}
+                  >
+                    <Text style={[
+                      dynamicStyles.pickerItemText,
+                      selectedMonth === month && dynamicStyles.pickerItemTextSelected
+                    ]}>
+                      {month}
+                    </Text>
+                  </TouchableOpacity>
+                ))
+            )}
           </ScrollView>
         </View>
       </TouchableOpacity>
     </Modal>
   );
+
+  const getFilterDisplayText = () => {
+    if (!selectedYear) {
+      return 'Organize by Year/Month';
+    }
+    if (!selectedMonth) {
+      return selectedYear;
+    }
+    return `${selectedMonth} ${selectedYear}`;
+  };
 
   const renderFilters = () => (
     <View style={dynamicStyles.filtersContainer}>
       <TouchableOpacity
         style={[
           dynamicStyles.filterButton,
-          selectedYear && dynamicStyles.filterButtonActive
+          (selectedYear || selectedMonth) && dynamicStyles.filterButtonActive
         ]}
-        onPress={() => setShowYearPicker(true)}
+        onPress={handleOpenPicker}
       >
         <Text style={[
           dynamicStyles.filterButtonText,
-          selectedYear && dynamicStyles.filterButtonTextActive
+          (selectedYear || selectedMonth) && dynamicStyles.filterButtonTextActive
         ]}>
-          {selectedYear || 'All Years'}
+          {getFilterDisplayText()}
         </Text>
       </TouchableOpacity>
-
-      {selectedYear && (
-        <TouchableOpacity
-          style={[
-            dynamicStyles.filterButton,
-            selectedMonth && dynamicStyles.filterButtonActive
-          ]}
-          onPress={() => setShowMonthPicker(true)}
-        >
-          <Text style={[
-            dynamicStyles.filterButtonText,
-            selectedMonth && dynamicStyles.filterButtonTextActive
-          ]}>
-            {selectedMonth || 'All Months'}
-          </Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 
@@ -544,13 +542,20 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
       paddingVertical: 16,
       alignItems: 'center',
     },
+    backButton: {
+      padding: 8,
+    },
+    backButtonText: {
+      color: theme.primary,
+      fontSize: 14,
+      fontWeight: '500',
+    },
   });
 
   return (
     <View style={dynamicStyles.container}>
       {renderContent()}
-      {renderYearPicker()}
-      {renderMonthPicker()}
+      {renderPicker()}
     </View>
   );
 };
