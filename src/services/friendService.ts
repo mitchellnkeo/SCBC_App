@@ -13,7 +13,8 @@ import {
   writeBatch,
   serverTimestamp,
   or,
-  and
+  and,
+  Unsubscribe
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { 
@@ -524,4 +525,51 @@ export const subscribeToUserFriends = (
     unsubscribe1();
     unsubscribe2();
   };
-}; 
+};
+
+/* -------------------------------------------------------------------------- */
+/*                      Realtime Listener Optimisation                        */
+/* -------------------------------------------------------------------------- */
+
+type ListenerEntry<T> = {
+  refCount: number;
+  unsubscribe: Unsubscribe;
+  timeoutId: NodeJS.Timeout | null;
+  callbacks: Set<(data: T) => void>;
+};
+
+const ACTIVE_LISTENERS = new Map<string, ListenerEntry<any>>();
+const LISTENER_IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+
+function getOrCreateListener<T>(key: string, setup: () => Unsubscribe, onData: (data: T) => void): () => void {
+  let entry = ACTIVE_LISTENERS.get(key) as ListenerEntry<T> | undefined;
+
+  if (!entry) {
+    const callbacks = new Set<(data: T) => void>();
+
+    const unsubscribe = setup();
+
+    entry = { refCount: 0, unsubscribe, timeoutId: null, callbacks };
+    ACTIVE_LISTENERS.set(key, entry);
+  }
+
+  entry.callbacks.add(onData);
+  entry.refCount++;
+  if (entry.timeoutId) {
+    clearTimeout(entry.timeoutId);
+    entry.timeoutId = null;
+  }
+
+  // Return a disposer
+  return () => {
+    entry!.refCount--;
+    entry!.callbacks.delete(onData);
+    if (entry!.refCount <= 0) {
+      // Schedule detach after idle timeout
+      entry!.timeoutId = setTimeout(() => {
+        entry!.unsubscribe();
+        ACTIVE_LISTENERS.delete(key);
+      }, LISTENER_IDLE_TIMEOUT_MS);
+    }
+  };
+} 

@@ -116,11 +116,29 @@ const UserProfileScreen: React.FC = () => {
     loadUserProfile(true);
   };
 
-  const formatJoinDate = (date: Date): string => {
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-    });
+  const formatJoinDate = (dateInput: any): string => {
+    try {
+      if (!dateInput) return 'Unknown';
+
+      let date: Date;
+      if (dateInput instanceof Date) {
+        date = dateInput;
+      } else if (typeof dateInput.toDate === 'function') {
+        // Firestore Timestamp
+        date = dateInput.toDate();
+      } else {
+        date = new Date(dateInput);
+      }
+
+      if (isNaN(date.getTime())) return 'Unknown';
+
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+      });
+    } catch {
+      return 'Unknown';
+    }
   };
 
   const handleSocialLinkPress = async (username: string, platform: SocialPlatform) => {

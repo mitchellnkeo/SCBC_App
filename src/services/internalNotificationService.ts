@@ -13,7 +13,9 @@ import {
   onSnapshot,
   writeBatch,
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  runTransaction,
+  DocumentReference
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { 
@@ -27,6 +29,69 @@ import { Mention } from '../types/mentions';
 
 const NOTIFICATIONS_COLLECTION = 'notifications';
 const NOTIFICATION_SETTINGS_COLLECTION = 'notificationSettings';
+
+/* -------------------------------------------------------------------------- */
+/*                       Batching / Queue Infrastructure                      */
+/* -------------------------------------------------------------------------- */
+
+// Firestore limits: 500 writes per batch. Use 450 to leave head-room.
+const MAX_BATCH_SIZE = 450;
+
+type QueuedNotification = {
+  ref: DocumentReference;
+  data: any;
+};
+
+let queue: QueuedNotification[] = [];
+let flushInProgress = false;
+
+/**
+ * Queue a notification write. Flushes automatically when reaching MAX_BATCH_SIZE.
+ * Returns the document ID that will be written.
+ */
+export const queueNotificationWrite = async (data: Omit<Notification, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
+  const ref = doc(collection(db, NOTIFICATIONS_COLLECTION));
+  queue.push({ ref, data: {
+    ...data,
+    isRead: false,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  }});
+
+  if (queue.length >= MAX_BATCH_SIZE) {
+    // Fire-and-forget flush; errors logged internally
+    flushNotificationQueue();
+  }
+
+  return ref.id;
+};
+
+/**
+ * Flush pending queued notifications in batches of MAX_BATCH_SIZE.
+ */
+export const flushNotificationQueue = async (): Promise<void> => {
+  if (flushInProgress || queue.length === 0) return;
+  flushInProgress = true;
+
+  try {
+    while (queue.length) {
+      const batch = writeBatch(db);
+      const slice = queue.splice(0, MAX_BATCH_SIZE);
+      slice.forEach(item => batch.set(item.ref, item.data));
+      await batch.commit();
+      console.log(`[NotificationQueue] Flushed ${slice.length} writes`);
+    }
+  } catch (error) {
+    console.error('[NotificationQueue] Flush error', error);
+  } finally {
+    flushInProgress = false;
+  }
+};
+
+// Periodic flush every 10 seconds for low-volume periods
+setInterval(() => {
+  flushNotificationQueue();
+}, 10 * 1000);
 
 /**
  * Create a new notification
@@ -263,6 +328,8 @@ export const getNotificationStats = async (userId: string): Promise<Notification
       profile_comment: 0,
       profile_comment_reply: 0,
       admin_message: 0,
+      new_report: 0,
+      report_resolved: 0,
     };
     
     let totalUnread = 0;
@@ -296,6 +363,8 @@ export const getNotificationStats = async (userId: string): Promise<Notification
         profile_comment: 0,
         profile_comment_reply: 0,
         admin_message: 0,
+        new_report: 0,
+        report_resolved: 0,
       },
     };
   }
@@ -420,6 +489,8 @@ export const subscribeToNotificationStats = (
       profile_comment: 0,
       profile_comment_reply: 0,
       admin_message: 0,
+      new_report: 0,
+      report_resolved: 0,
     };
     
     let totalUnread = 0;
