@@ -27,6 +27,7 @@ import MentionText from '../common/MentionText';
 import MentionInput from '../common/MentionInput';
 import ReportButton from '../common/ReportButton';
 import ImagePicker from '../common/ImagePicker';
+import ImageViewer from '../common/ImageViewer';
 import * as ImagePickerExpo from 'expo-image-picker';
 import { Mention } from '../../types/mentions';
 import { uploadCommentImage } from '../../services';
@@ -56,6 +57,9 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
   const [newCommentMentions, setNewCommentMentions] = useState<Mention[]>([]);
   const [newCommentImages, setNewCommentImages] = useState<string[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [imageViewerVisible, setImageViewerVisible] = useState(false);
+  const [imageViewerImages, setImageViewerImages] = useState<string[]>([]);
+  const [imageViewerInitialIndex, setImageViewerInitialIndex] = useState(0);
   const [canComment, setCanComment] = useState(false);
   const [friendStatus, setFriendStatus] = useState<FriendStatus>({
     isFriend: false,
@@ -227,6 +231,18 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
     setNewCommentImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const openImageViewer = (images: string[], initialIndex: number = 0) => {
+    setImageViewerImages(images);
+    setImageViewerInitialIndex(initialIndex);
+    setImageViewerVisible(true);
+  };
+
+  const closeImageViewer = () => {
+    setImageViewerVisible(false);
+    setImageViewerImages([]);
+    setImageViewerInitialIndex(0);
+  };
+
   const handleDeleteComment = (comment: ProfileComment) => {
     if (!user) return;
 
@@ -310,10 +326,7 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
             {comment.images.map((imageUrl, index) => (
               <TouchableOpacity
                 key={index}
-                onPress={() => {
-                  // In a full implementation, you might want to open a full-screen image viewer
-                  Alert.alert('Image', 'Full image viewer would open here');
-                }}
+                onPress={() => openImageViewer(comment.images!, index)}
               >
                 <Image
                   source={{ uri: imageUrl }}
@@ -349,6 +362,28 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
                   mentions={reply.mentions || []}
                   style={styles.replyText}
                 />
+                
+                {/* Reply Images */}
+                {reply.images && reply.images.length > 0 && (
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.replyImagesContainer}
+                  >
+                    {reply.images.map((imageUrl, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        onPress={() => openImageViewer(reply.images!, index)}
+                      >
+                        <Image
+                          source={{ uri: imageUrl }}
+                          style={styles.replyImage}
+                          resizeMode="cover"
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                )}
               </View>
             </View>
           ))}
@@ -409,11 +444,15 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
             >
               {newCommentImages.map((imageUrl, index) => (
                 <View key={index} style={styles.imagePreviewItem}>
-                  <Image
-                    source={{ uri: imageUrl }}
-                    style={styles.imagePreview}
-                    resizeMode="cover"
-                  />
+                  <TouchableOpacity
+                    onPress={() => openImageViewer(newCommentImages, index)}
+                  >
+                    <Image
+                      source={{ uri: imageUrl }}
+                      style={styles.imagePreview}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.removeImageButton}
                     onPress={() => handleRemoveImage(index)}
@@ -557,6 +596,14 @@ const ProfileCommentWall: React.FC<ProfileCommentWallProps> = ({
       </View>
 
       {renderCommentInput()}
+
+      {/* Image Viewer Modal */}
+      <ImageViewer
+        visible={imageViewerVisible}
+        images={imageViewerImages}
+        initialIndex={imageViewerInitialIndex}
+        onClose={closeImageViewer}
+      />
     </View>
   );
 };
@@ -716,6 +763,15 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     color: theme.text,
     lineHeight: 20,
+  },
+  replyImagesContainer: {
+    marginTop: 6,
+  },
+  replyImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 6,
+    marginRight: 6,
   },
   emptyState: {
     padding: 40,
