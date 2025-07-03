@@ -16,7 +16,8 @@ import {
   Timestamp,
   documentId,
   QueryConstraint,
-  startAfter
+  startAfter,
+  runTransaction
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
@@ -33,6 +34,7 @@ import {
 } from '../types';
 import { isEventCurrentOrUpcoming, hasEventEnded } from '../utils/timezone';
 import { logger } from '../utils/logger';
+import { cacheService, cacheKeys } from './cacheService';
 
 // Collections
 const EVENTS_COLLECTION = 'events';
@@ -73,6 +75,9 @@ export const createEvent = async (
     const docRef = await addDoc(collection(db, EVENTS_COLLECTION), eventDoc);
     console.log(`Event created with ID: ${docRef.id}, Status: ${status}`);
     
+    // Invalidate cached event lists
+    cacheService.remove(cacheKeys.events()).catch(() => {});
+    
     // Upload header image if provided
     if (headerPhoto && headerPhoto.trim()) {
       try {
@@ -95,6 +100,30 @@ export const createEvent = async (
   }
 };
 
+/**
+ * Basic integrity checks for event form data (title length, description length, date validity)
+ */
+const validateEventData = (data: Partial<CreateEventFormData>) => {
+  if (data.title !== undefined) {
+    if (typeof data.title !== 'string' || data.title.trim().length === 0 || data.title.length > 100) {
+      throw new Error('Event title must be 1-100 characters');
+    }
+  }
+
+  if (data.description !== undefined) {
+    if (typeof data.description !== 'string' || data.description.length > 2000) {
+      throw new Error('Event description must be ≤ 2000 characters');
+    }
+  }
+
+  if (data.date) {
+    const dateObj = new Date(data.date);
+    if (isNaN(dateObj.getTime())) {
+      throw new Error('Invalid event date');
+    }
+  }
+};
+
 export const updateEvent = async (
   eventId: string, 
   eventData: Partial<CreateEventFormData>,
@@ -103,18 +132,29 @@ export const updateEvent = async (
   updaterProfilePicture?: string
 ): Promise<void> => {
   try {
+    // Validate input early
+    validateEventData(eventData);
+
     const eventRef = doc(db, EVENTS_COLLECTION, eventId);
     
     // Handle header image separately
     const { headerPhoto, ...eventDataWithoutPhoto } = eventData;
     
-    // Get current event to check for existing image
-    const currentEvent = await getEvent(eventId);
-    
-    // Update event data (without image)
-    await updateDoc(eventRef, {
-      ...eventDataWithoutPhoto,
-      updatedAt: serverTimestamp(),
+    // Perform the core update inside a transaction for consistency
+    let currentEvent = await getEvent(eventId);
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(eventRef);
+      if (!snap.exists()) {
+        throw new Error('Event no longer exists');
+      }
+
+      // Re-fetch to keep types simple
+      currentEvent = snap.data() as BookClubEvent;
+
+      tx.update(eventRef, {
+        ...eventDataWithoutPhoto,
+        updatedAt: serverTimestamp(),
+      });
     });
     
     // Handle header image changes only if the image actually changed
@@ -164,6 +204,10 @@ export const updateEvent = async (
     }
     
     console.log('Event updated:', eventId);
+    
+    // Invalidate caches related to this event
+    cacheService.remove(cacheKeys.eventDetails(eventId)).catch(() => {});
+    cacheService.remove(cacheKeys.events()).catch(() => {});
     
     // Create event update notifications for attendees
     if (updaterUserId && updaterUserName) {
@@ -237,6 +281,10 @@ export const deleteEvent = async (eventId: string): Promise<void> => {
     }
     
     console.log('Event and related data deleted:', eventId);
+
+    // Invalidate caches
+    cacheService.remove(cacheKeys.eventDetails(eventId)).catch(() => {});
+    cacheService.remove(cacheKeys.events()).catch(() => {});
   } catch (error) {
     console.error('Error deleting event:', error);
     throw new Error('Failed to delete event. Please try again.');
@@ -712,36 +760,41 @@ export const getEventComments = async (eventId: string): Promise<EventComment[]>
 
 // Populate Event with all related data
 export const getPopulatedEvent = async (eventId: string, userId?: string): Promise<PopulatedEvent | null> => {
-  try {
-    const event = await getEvent(eventId);
-    if (!event) return null;
-    
-    const [rsvps, comments, userRsvp] = await Promise.all([
-      getEventRSVPs(eventId),
-      getEventComments(eventId),
-      userId ? getUserRSVP(eventId, userId) : Promise.resolve(null)
-    ]);
-    
-    // Calculate stats
-    const stats: EventStats = {
-      totalAttendees: rsvps.length,
-      goingCount: rsvps.filter(r => r.status === 'going').length,
-      maybeCount: rsvps.filter(r => r.status === 'maybe').length,
-      notGoingCount: rsvps.filter(r => r.status === 'not-going').length,
-      commentsCount: comments.reduce((count, comment) => count + 1 + (comment.replies?.length || 0), 0)
-    };
-    
-    return {
-      ...event,
-      rsvps,
-      comments,
-      stats,
-      userRsvp: userRsvp || undefined
-    };
-  } catch (error) {
-    console.error('Error getting populated event:', error);
-    throw new Error('Failed to load event details. Please try again.');
-  }
+  return cacheService.getOrFetch(
+    cacheKeys.eventDetails(eventId),
+    async () => {
+      try {
+        const event = await getEvent(eventId);
+        if (!event) return null;
+
+        const [rsvps, comments, userRsvp] = await Promise.all([
+          getEventRSVPs(eventId),
+          getEventComments(eventId),
+          userId ? getUserRSVP(eventId, userId) : Promise.resolve(null)
+        ]);
+
+        const stats: EventStats = {
+          totalAttendees: rsvps.length,
+          goingCount: rsvps.filter(r => r.status === 'going').length,
+          maybeCount: rsvps.filter(r => r.status === 'maybe').length,
+          notGoingCount: rsvps.filter(r => r.status === 'not-going').length,
+          commentsCount: comments.reduce((count, comment) => count + 1 + (comment.replies?.length || 0), 0)
+        };
+
+        return {
+          ...event,
+          rsvps,
+          comments,
+          stats,
+          userRsvp: userRsvp || undefined
+        } as PopulatedEvent;
+      } catch (error) {
+        console.error('Error getting populated event:', error);
+        throw new Error('Failed to load event details. Please try again.');
+      }
+    },
+    10 // cache 10 minutes
+  );
 };
 
 // Real-time listeners
@@ -893,6 +946,10 @@ export const approveEvent = async (
     
     await updateDoc(eventRef, updateData);
     console.log(`Event ${approvalData.action}d:`, eventId);
+    
+    // Invalidate caches
+    cacheService.remove(cacheKeys.eventDetails(eventId)).catch(() => {});
+    cacheService.remove(cacheKeys.events()).catch(() => {});
     
     // Create event approval/rejection notification
     try {

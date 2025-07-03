@@ -190,6 +190,9 @@ class CacheService {
 // Export singleton instance
 export const cacheService = new CacheService();
 
+// Re-export keys for convenience
+export const cacheKeys = CacheService.keys;
+
 // Start periodic cleanup (every 5 minutes)
 setInterval(() => {
   cacheService.cleanupMemoryCache();

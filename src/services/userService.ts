@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { UserSuggestion, User, RSVP, EventComment, BookClubEvent } from '../types';
+import { cacheService, cacheKeys } from './cacheService';
 
 const USERS_COLLECTION = 'users';
 
@@ -169,24 +170,30 @@ export const getEventParticipantsForMentions = async (eventId: string): Promise<
  * Get user profile by ID
  */
 export const getUserProfile = async (userId: string): Promise<User | null> => {
-  try {
-    const userDoc = await getDoc(doc(db, 'users', userId));
-    
-    if (!userDoc.exists()) {
-      return null;
-    }
+  return cacheService.getOrFetch(
+    cacheKeys.userProfile(userId),
+    async () => {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', userId));
+        
+        if (!userDoc.exists()) {
+          return null;
+        }
 
-    const userData = userDoc.data();
-    return {
-      id: userDoc.id,
-      ...userData,
-      createdAt: userData.createdAt?.toDate() || new Date(),
-      updatedAt: userData.updatedAt?.toDate() || new Date(),
-    } as User;
-  } catch (error) {
-    console.error('Error fetching user profile:', error);
-    throw new Error('Failed to load user profile');
-  }
+        const userData = userDoc.data();
+        return {
+          id: userDoc.id,
+          ...userData,
+          createdAt: userData.createdAt?.toDate() || new Date(),
+          updatedAt: userData.updatedAt?.toDate() || new Date(),
+        } as User;
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+        throw new Error('Failed to load user profile');
+      }
+    },
+    30 // cache for 30 minutes
+  );
 };
 
 /**
@@ -641,6 +648,9 @@ export const updateUserRole = async (userId: string, newRole: 'admin' | 'member'
     });
     
     console.log(`User ${userId} role updated to ${newRole}`);
+
+    // Invalidate cached profile
+    cacheService.remove(cacheKeys.userProfile(userId)).catch(() => {});
   } catch (error) {
     console.error('Error updating user role:', error);
     throw new Error('Failed to update user role');
@@ -696,6 +706,9 @@ export const updateUserProfile = async (
     }
 
     await updateDoc(userRef, updateData);
+
+    // Invalidate cached profile
+    cacheService.remove(cacheKeys.userProfile(userId)).catch(() => {});
   } catch (error) {
     console.error('Error updating user profile:', error);
     throw new Error('Failed to update profile. Please try again.');

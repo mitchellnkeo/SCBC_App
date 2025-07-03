@@ -11,6 +11,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { cacheService, cacheKeys } from './cacheService';
 
 // Temporary FAQ types until we can add them to main types file
 export interface FAQ {
@@ -44,76 +45,83 @@ const FAQ_COLLECTION = 'faqs';
  * Get all published FAQs for public viewing
  */
 export const getPublishedFAQs = async (): Promise<FAQ[]> => {
-  try {
-    // Get all FAQs and filter/sort in memory to avoid index requirements
-    const faqsQuery = query(
-      collection(db, FAQ_COLLECTION),
-      orderBy('createdAt', 'desc')
-    );
-    
-    const querySnapshot = await getDocs(faqsQuery);
-    const faqs: FAQ[] = [];
+  return cacheService.getOrFetch(
+    cacheKeys.faqs(),
+    async () => {
+      try {
+        const faqsQuery = query(
+          collection(db, FAQ_COLLECTION),
+          orderBy('createdAt', 'desc')
+        );
+        const querySnapshot = await getDocs(faqsQuery);
+        const faqs: FAQ[] = [];
 
-    querySnapshot.forEach((doc) => {
-      const faqData = doc.data();
-      faqs.push({
-        id: doc.id,
-        question: faqData.question,
-        answer: faqData.answer,
-        createdBy: faqData.createdBy,
-        createdByName: faqData.createdByName,
-        createdAt: faqData.createdAt?.toDate() || new Date(),
-        updatedAt: faqData.updatedAt?.toDate() || new Date(),
-        isPublished: faqData.isPublished,
-        order: faqData.order || 0,
-      });
-    });
+        querySnapshot.forEach((doc) => {
+          const faqData = doc.data();
+          faqs.push({
+            id: doc.id,
+            question: faqData.question,
+            answer: faqData.answer,
+            createdBy: faqData.createdBy,
+            createdByName: faqData.createdByName,
+            createdAt: faqData.createdAt?.toDate() || new Date(),
+            updatedAt: faqData.updatedAt?.toDate() || new Date(),
+            isPublished: faqData.isPublished,
+            order: faqData.order || 0,
+          });
+        });
 
-    // Filter published FAQs and sort by order in memory
-    return faqs
-      .filter(faq => faq.isPublished)
-      .sort((a, b) => a.order - b.order);
-  } catch (error) {
-    console.error('Error fetching published FAQs:', error);
-    throw new Error('Failed to fetch FAQs');
-  }
+        return faqs
+          .filter(faq => faq.isPublished)
+          .sort((a, b) => a.order - b.order);
+      } catch (error) {
+        console.error('Error fetching published FAQs:', error);
+        throw new Error('Failed to fetch FAQs');
+      }
+    },
+    60 * 24 // cache for 24 hours
+  );
 };
 
 /**
  * Get all FAQs for admin management (includes drafts)
  */
 export const getAllFAQs = async (): Promise<FAQ[]> => {
-  try {
-    // Simplified query to avoid composite index requirements
-    const faqsQuery = query(
-      collection(db, FAQ_COLLECTION),
-      orderBy('createdAt', 'desc')
-    );
-    
-    const querySnapshot = await getDocs(faqsQuery);
-    const faqs: FAQ[] = [];
+  // Admin view - do not cache aggressively; still cache 5 minutes
+  return cacheService.getOrFetch(
+    `${cacheKeys.faqs()}_admin`,
+    async () => {
+      try {
+        const faqsQuery = query(
+          collection(db, FAQ_COLLECTION),
+          orderBy('createdAt', 'desc')
+        );
+        const querySnapshot = await getDocs(faqsQuery);
+        const faqs: FAQ[] = [];
 
-    querySnapshot.forEach((doc) => {
-      const faqData = doc.data();
-      faqs.push({
-        id: doc.id,
-        question: faqData.question,
-        answer: faqData.answer,
-        createdBy: faqData.createdBy,
-        createdByName: faqData.createdByName,
-        createdAt: faqData.createdAt?.toDate() || new Date(),
-        updatedAt: faqData.updatedAt?.toDate() || new Date(),
-        isPublished: faqData.isPublished,
-        order: faqData.order || 0,
-      });
-    });
+        querySnapshot.forEach((doc) => {
+          const faqData = doc.data();
+          faqs.push({
+            id: doc.id,
+            question: faqData.question,
+            answer: faqData.answer,
+            createdBy: faqData.createdBy,
+            createdByName: faqData.createdByName,
+            createdAt: faqData.createdAt?.toDate() || new Date(),
+            updatedAt: faqData.updatedAt?.toDate() || new Date(),
+            isPublished: faqData.isPublished,
+            order: faqData.order || 0,
+          });
+        });
 
-    // Sort by order in memory
-    return faqs.sort((a, b) => a.order - b.order);
-  } catch (error) {
-    console.error('Error fetching all FAQs:', error);
-    throw new Error('Failed to fetch FAQs');
-  }
+        return faqs.sort((a, b) => a.order - b.order);
+      } catch (error) {
+        console.error('Error fetching all FAQs:', error);
+        throw new Error('Failed to fetch FAQs');
+      }
+    },
+    5 // cache 5 minutes
+  );
 };
 
 /**
@@ -142,6 +150,11 @@ export const createFAQ = async (
 
     const docRef = await addDoc(collection(db, FAQ_COLLECTION), newFAQ);
     console.log('FAQ created with ID:', docRef.id);
+
+    // Invalidate FAQ caches
+    cacheService.remove(cacheKeys.faqs()).catch(() => {});
+    cacheService.remove(`${cacheKeys.faqs()}_admin`).catch(() => {});
+
     return docRef.id;
   } catch (error) {
     console.error('Error creating FAQ:', error);
@@ -161,6 +174,10 @@ export const updateFAQ = async (faqId: string, updates: EditFAQData): Promise<vo
     });
     
     console.log('FAQ updated:', faqId);
+
+    // Invalidate FAQ caches
+    cacheService.remove(cacheKeys.faqs()).catch(() => {});
+    cacheService.remove(`${cacheKeys.faqs()}_admin`).catch(() => {});
   } catch (error) {
     console.error('Error updating FAQ:', error);
     throw new Error('Failed to update FAQ');
@@ -176,6 +193,10 @@ export const deleteFAQ = async (faqId: string): Promise<void> => {
     await deleteDoc(faqRef);
     
     console.log('FAQ deleted:', faqId);
+
+    // Invalidate FAQ caches
+    cacheService.remove(cacheKeys.faqs()).catch(() => {});
+    cacheService.remove(`${cacheKeys.faqs()}_admin`).catch(() => {});
   } catch (error) {
     console.error('Error deleting FAQ:', error);
     throw new Error('Failed to delete FAQ');
@@ -196,6 +217,10 @@ export const reorderFAQs = async (faqs: FAQ[]): Promise<void> => {
 
     await Promise.all(promises);
     console.log('FAQs reordered successfully');
+
+    // Invalidate FAQ caches
+    cacheService.remove(cacheKeys.faqs()).catch(() => {});
+    cacheService.remove(`${cacheKeys.faqs()}_admin`).catch(() => {});
   } catch (error) {
     console.error('Error reordering FAQs:', error);
     throw new Error('Failed to reorder FAQs');
