@@ -345,45 +345,20 @@ const AllEventsTab: React.FC = () => {
     },
   });
 
-  if (viewMode === 'list') {
-    return (
-      <FlatList
-        data={events}
-        renderItem={({ item }) => renderEventListItem(item)}
-        keyExtractor={item => item.id}
-        contentContainerStyle={{ padding: 16 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            colors={[theme.primary]}
-            tintColor={theme.primary}
-          />
-        }
-        onEndReached={onEndReached}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={renderFooter}
-      />
-    );
-  }
-
+  // Use shared grouped list component for view toggle & year/month filtering
   return (
-    <FlatList
-      data={events}
-      renderItem={({ item }) => renderEventCard(item)}
-      keyExtractor={item => item.id}
-      contentContainerStyle={{ padding: 16 }}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={onRefresh}
-          colors={[theme.primary]}
-          tintColor={theme.primary}
-        />
-      }
+    <EventsGroupedList
+      events={events}
+      isLoading={isLoading}
+      isRefreshing={isRefreshing}
+      hasMore={hasMore}
+      viewMode={viewMode}
+      onViewModeChange={setViewMode}
+      onRefresh={onRefresh}
       onEndReached={onEndReached}
-      onEndReachedThreshold={0.5}
-      ListFooterComponent={renderFooter}
+      renderEventCard={renderEventCard}
+      renderEventListItem={renderEventListItem}
+      emptyStateMessage="No upcoming events found."
     />
   );
 };

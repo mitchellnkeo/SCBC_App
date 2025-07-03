@@ -9,6 +9,7 @@ import {
   Modal,
   FlatList,
   ActivityIndicator,
+  SectionList,
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { BookClubEvent } from '../../types';
@@ -37,10 +38,10 @@ interface GroupedEvents {
   };
 }
 
-interface FilterOption {
-  id: string;
-  label: string;
-  year?: string;
+interface EventSection {
+  title: string;
+  data: BookClubEvent[];
+  year: string;
   month?: string;
 }
 
@@ -58,18 +59,56 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
   emptyStateMessage = 'No events found'
 }) => {
   const { theme } = useTheme();
-  const [selectedFilter, setSelectedFilter] = useState<{ year: string | null; month: string | null }>({
-    year: null,
-    month: null
-  });
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [dropdownLevel, setDropdownLevel] = useState<'year' | 'month'>('year');
+  const [selectedYear, setSelectedYear] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [showYearPicker, setShowYearPicker] = useState(false);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
 
-  // Group events by year and month
-  const groupedEvents = useMemo(() => {
-    const grouped: GroupedEvents = {};
+  // Get all available years and months from events
+  const { years, monthsByYear } = useMemo(() => {
+    const yearsSet = new Set<string>();
+    const monthsMap = new Map<string, Set<string>>();
     
     events.forEach(event => {
+      const date = new Date(event.date);
+      const year = date.getFullYear().toString();
+      const month = date.toLocaleString('en-US', { month: 'long' });
+      
+      yearsSet.add(year);
+      
+      if (!monthsMap.has(year)) {
+        monthsMap.set(year, new Set());
+      }
+      monthsMap.get(year)?.add(month);
+    });
+
+    return {
+      years: Array.from(yearsSet).sort((a, b) => Number(b) - Number(a)),
+      monthsByYear: monthsMap
+    };
+  }, [events]);
+
+  // Filter events based on selection
+  const filteredEvents = useMemo(() => {
+    if (!selectedYear) return events;
+    
+    return events.filter(event => {
+      const date = new Date(event.date);
+      const eventYear = date.getFullYear().toString();
+      const eventMonth = date.toLocaleString('en-US', { month: 'long' });
+      
+      if (selectedYear && eventYear !== selectedYear) return false;
+      if (selectedMonth && eventMonth !== selectedMonth) return false;
+      
+      return true;
+    });
+  }, [events, selectedYear, selectedMonth]);
+
+  // Group events by year and month
+  const sections = useMemo(() => {
+    const grouped: GroupedEvents = {};
+    
+    filteredEvents.forEach(event => {
       const date = new Date(event.date);
       const year = date.getFullYear().toString();
       const month = date.toLocaleString('en-US', { month: 'long' });
@@ -84,108 +123,179 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
       grouped[year][month].push(event);
     });
 
-    // Sort events within each month by date
-    Object.keys(grouped).forEach(year => {
-      Object.keys(grouped[year]).forEach(month => {
-        grouped[year][month].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const eventSections: EventSection[] = [];
+    
+    const sortedYears = Object.keys(grouped).sort((a, b) => Number(b) - Number(a));
+    
+    sortedYears.forEach(year => {
+      const months = Object.keys(grouped[year]).sort((a, b) => {
+        const monthOrder = [
+          'January', 'February', 'March', 'April', 'May', 'June',
+          'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+        return monthOrder.indexOf(a) - monthOrder.indexOf(b);
+      });
+
+      months.forEach(month => {
+        eventSections.push({
+          title: `${month} ${year}`,
+          data: grouped[year][month].sort((a, b) => 
+            new Date(a.date).getTime() - new Date(b.date).getTime()
+          ),
+          year,
+          month
+        });
       });
     });
 
-    return grouped;
-  }, [events]);
+    return eventSections;
+  }, [filteredEvents]);
 
-  // Get filtered events based on selection
-  const filteredEvents = useMemo(() => {
-    if (!selectedFilter.year) {
-      return events; // Show all events if no year selected
-    }
-    
-    if (!selectedFilter.month) {
-      // Show all events for the selected year
-      return events.filter(event => {
-        const eventYear = new Date(event.date).getFullYear().toString();
-        return eventYear === selectedFilter.year;
-      });
-    }
-    
-    // Show events for specific year and month
-    return events.filter(event => {
-      const date = new Date(event.date);
-      const eventYear = date.getFullYear().toString();
-      const eventMonth = date.toLocaleString('en-US', { month: 'long' });
-      return eventYear === selectedFilter.year && eventMonth === selectedFilter.month;
-    });
-  }, [events, selectedFilter]);
-
-  // Get available years and months for dropdown
-  const availableYears = useMemo(() => {
-    return Object.keys(groupedEvents).sort((a, b) => Number(b) - Number(a));
-  }, [groupedEvents]);
-
-  const availableMonths = useMemo(() => {
-    if (!selectedFilter.year || !groupedEvents[selectedFilter.year]) {
-      return [];
-    }
-    
-    const months = ['January', 'February', 'March', 'April', 'May', 'June',
-                   'July', 'August', 'September', 'October', 'November', 'December'];
-    
-    return Object.keys(groupedEvents[selectedFilter.year])
-      .sort((a, b) => months.indexOf(b) - months.indexOf(a));
-  }, [groupedEvents, selectedFilter.year]);
-
-  const handleYearSelect = (year: string) => {
-    setSelectedFilter({ year, month: null });
-    setDropdownLevel('month');
+  const handleYearSelect = (year: string | null) => {
+    setSelectedYear(year);
+    setSelectedMonth(null);
+    setShowYearPicker(false);
   };
 
-  const handleMonthSelect = (month: string) => {
-    setSelectedFilter(prev => ({ ...prev, month }));
-    setShowDropdown(false);
+  const handleMonthSelect = (month: string | null) => {
+    setSelectedMonth(month);
+    setShowMonthPicker(false);
   };
 
-  const handleBackToYears = () => {
-    setDropdownLevel('year');
-  };
-
-  const handleClearFilter = () => {
-    setSelectedFilter({ year: null, month: null });
-    setShowDropdown(false);
-  };
-
-  const getDropdownTitle = () => {
-    if (!selectedFilter.year) {
-      return 'All Events';
-    }
-    if (!selectedFilter.month) {
-      return `${selectedFilter.year} - All Months`;
-    }
-    return `${selectedFilter.year} - ${selectedFilter.month}`;
-  };
-
-  const renderDropdownItem = ({ item }: { item: string }) => (
-    <TouchableOpacity
-      style={dynamicStyles.dropdownItem}
-      onPress={() => {
-        if (dropdownLevel === 'year') {
-          handleYearSelect(item);
-        } else {
-          handleMonthSelect(item);
-        }
-      }}
+  const renderYearPicker = () => (
+    <Modal
+      visible={showYearPicker}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShowYearPicker(false)}
     >
-      <Text style={dynamicStyles.dropdownItemText}>{item}</Text>
-    </TouchableOpacity>
+      <TouchableOpacity
+        style={dynamicStyles.modalOverlay}
+        activeOpacity={1}
+        onPress={() => setShowYearPicker(false)}
+      >
+        <View style={dynamicStyles.pickerModal}>
+          <View style={dynamicStyles.pickerHeader}>
+            <Text style={dynamicStyles.pickerTitle}>Select Year</Text>
+            <TouchableOpacity
+              style={dynamicStyles.clearButton}
+              onPress={() => handleYearSelect(null)}
+            >
+              <Text style={dynamicStyles.clearButtonText}>Clear</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={dynamicStyles.pickerContent}>
+            {years.map(year => (
+              <TouchableOpacity
+                key={year}
+                style={[
+                  dynamicStyles.pickerItem,
+                  selectedYear === year && dynamicStyles.pickerItemSelected
+                ]}
+                onPress={() => handleYearSelect(year)}
+              >
+                <Text style={[
+                  dynamicStyles.pickerItemText,
+                  selectedYear === year && dynamicStyles.pickerItemTextSelected
+                ]}>
+                  {year}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      </TouchableOpacity>
+    </Modal>
   );
 
-  const renderFooter = () => {
-    if (!isLoading || isRefreshing) return null;
-    return (
-      <View style={dynamicStyles.footerLoader}>
-        <ActivityIndicator color={theme.primary} />
-      </View>
-    );
-  };
+  const renderMonthPicker = () => (
+    <Modal
+      visible={showMonthPicker}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShowMonthPicker(false)}
+    >
+      <TouchableOpacity
+        style={dynamicStyles.modalOverlay}
+        activeOpacity={1}
+        onPress={() => setShowMonthPicker(false)}
+      >
+        <View style={dynamicStyles.pickerModal}>
+          <View style={dynamicStyles.pickerHeader}>
+            <Text style={dynamicStyles.pickerTitle}>Select Month</Text>
+            <TouchableOpacity
+              style={dynamicStyles.clearButton}
+              onPress={() => handleMonthSelect(null)}
+            >
+              <Text style={dynamicStyles.clearButtonText}>Clear</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={dynamicStyles.pickerContent}>
+            {selectedYear && Array.from(monthsByYear.get(selectedYear) || [])
+              .sort((a, b) => {
+                const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+                return months.indexOf(a) - months.indexOf(b);
+              })
+              .map(month => (
+                <TouchableOpacity
+                  key={month}
+                  style={[
+                    dynamicStyles.pickerItem,
+                    selectedMonth === month && dynamicStyles.pickerItemSelected
+                  ]}
+                  onPress={() => handleMonthSelect(month)}
+                >
+                  <Text style={[
+                    dynamicStyles.pickerItemText,
+                    selectedMonth === month && dynamicStyles.pickerItemTextSelected
+                  ]}>
+                    {month}
+                  </Text>
+                </TouchableOpacity>
+              ))
+            }
+          </ScrollView>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+
+  const renderFilters = () => (
+    <View style={dynamicStyles.filtersContainer}>
+      <TouchableOpacity
+        style={[
+          dynamicStyles.filterButton,
+          selectedYear && dynamicStyles.filterButtonActive
+        ]}
+        onPress={() => setShowYearPicker(true)}
+      >
+        <Text style={[
+          dynamicStyles.filterButtonText,
+          selectedYear && dynamicStyles.filterButtonTextActive
+        ]}>
+          {selectedYear || 'All Years'}
+        </Text>
+      </TouchableOpacity>
+
+      {selectedYear && (
+        <TouchableOpacity
+          style={[
+            dynamicStyles.filterButton,
+            selectedMonth && dynamicStyles.filterButtonActive
+          ]}
+          onPress={() => setShowMonthPicker(true)}
+        >
+          <Text style={[
+            dynamicStyles.filterButtonText,
+            selectedMonth && dynamicStyles.filterButtonTextActive
+          ]}>
+            {selectedMonth || 'All Months'}
+          </Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
 
   const renderViewModeToggle = () => (
     <View style={dynamicStyles.viewModeContainer}>
@@ -224,12 +334,35 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
     </View>
   );
 
+  const renderHeaderControls = () => (
+    <View style={dynamicStyles.headerControls}>
+      {renderFilters()}
+      {renderViewModeToggle()}
+    </View>
+  );
+
+  const renderSectionHeader = ({ section }: { section: EventSection }) => (
+    <View style={dynamicStyles.sectionHeader}>
+      <Text style={dynamicStyles.sectionTitle}>{section.title}</Text>
+      <View style={dynamicStyles.sectionDivider} />
+    </View>
+  );
+
+  const renderFooter = () => {
+    if (!isLoading || isRefreshing) return null;
+    return (
+      <View style={dynamicStyles.footerLoader}>
+        <ActivityIndicator color={theme.primary} />
+      </View>
+    );
+  };
+
   const renderContent = () => {
-    if (isLoading && !isRefreshing && events.length === 0) {
+    if (isLoading && !isRefreshing && filteredEvents.length === 0) {
       return <LoadingState />;
     }
 
-    if (!isLoading && events.length === 0) {
+    if (!isLoading && filteredEvents.length === 0) {
       return <EmptyState 
         emoji="📅"
         title="No Events"
@@ -238,13 +371,15 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
     }
 
     return (
-      <FlatList
-        data={events}
+      <SectionList
+        sections={sections}
         renderItem={({ item }) =>
           viewMode === 'card' ? renderEventCard(item) : renderEventListItem(item)
         }
+        renderSectionHeader={renderSectionHeader}
         keyExtractor={item => item.id}
         contentContainerStyle={dynamicStyles.listContent}
+        stickySectionHeadersEnabled={true}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -255,7 +390,7 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
         }
         onEndReached={onEndReached}
         onEndReachedThreshold={0.5}
-        ListHeaderComponent={renderViewModeToggle}
+        ListHeaderComponent={renderHeaderControls}
         ListFooterComponent={renderFooter}
       />
     );
@@ -266,74 +401,62 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
       flex: 1,
       backgroundColor: theme.background,
     },
-    header: {
+    headerControls: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
+      justifyContent: 'space-between',
       paddingHorizontal: 16,
       paddingVertical: 12,
       backgroundColor: theme.surface,
       borderBottomWidth: 1,
       borderBottomColor: theme.border,
+      gap: 12,
     },
-    filterContainer: {
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      backgroundColor: theme.surface,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.border,
+    filtersContainer: {
+      flexDirection: 'row',
+      gap: 8,
+      flex: 1,
     },
     filterButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: theme.background,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: theme.border,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-    },
-    filterButtonText: {
-      fontSize: 16,
-      fontWeight: '500',
-      color: theme.text,
-      flex: 1,
-    },
-    filterChevron: {
-      fontSize: 16,
-      color: theme.textSecondary,
-      marginLeft: 8,
-    },
-
-    content: {
-      flex: 1,
-      paddingHorizontal: 16,
-      paddingTop: 16,
-    },
-    viewToggle: {
-      flexDirection: 'row',
-      backgroundColor: theme.background,
-      borderRadius: 8,
-      padding: 2,
-    },
-    toggleButton: {
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 6,
+      backgroundColor: theme.background,
+      borderWidth: 1,
+      borderColor: theme.border,
     },
-    activeToggle: {
+    filterButtonActive: {
       backgroundColor: theme.primary,
+      borderColor: theme.primary,
     },
-    toggleText: {
+    filterButtonText: {
       fontSize: 14,
+      color: theme.text,
       fontWeight: '500',
     },
-    activeToggleText: {
+    filterButtonTextActive: {
       color: theme.surface,
     },
-    inactiveToggleText: {
-      color: theme.textSecondary,
+    viewModeContainer: {
+      flexDirection: 'row',
+      backgroundColor: theme.background,
+      borderRadius: 6,
+      padding: 2,
+    },
+    viewModeButton: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 4,
+    },
+    viewModeButtonActive: {
+      backgroundColor: theme.primary,
+    },
+    viewModeText: {
+      fontSize: 12,
+      fontWeight: '500',
+    },
+    viewModeTextActive: {
+      color: theme.surface,
     },
     modalOverlay: {
       flex: 1,
@@ -341,102 +464,81 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
       justifyContent: 'center',
       alignItems: 'center',
     },
-    dropdownModal: {
+    pickerModal: {
       backgroundColor: theme.surface,
       borderRadius: 12,
-      margin: 20,
+      width: '80%',
       maxHeight: '70%',
-      minWidth: 300,
       shadowColor: theme.shadow,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.3,
       shadowRadius: 8,
       elevation: 8,
     },
-    dropdownHeader: {
+    pickerHeader: {
       flexDirection: 'row',
-      alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
+      alignItems: 'center',
+      padding: 16,
       borderBottomWidth: 1,
       borderBottomColor: theme.border,
     },
-    dropdownTitle: {
+    pickerTitle: {
       fontSize: 18,
-      fontWeight: 'bold',
-      color: theme.text,
-      flex: 1,
-    },
-    backButton: {
-      padding: 8,
-      borderRadius: 6,
-      backgroundColor: theme.background,
-    },
-    backButtonText: {
-      fontSize: 14,
-      color: theme.primary,
-      fontWeight: '500',
-    },
-    closeButton: {
-      padding: 8,
-      borderRadius: 6,
-      backgroundColor: theme.background,
-    },
-    closeButtonText: {
-      fontSize: 16,
-      color: theme.textSecondary,
-      fontWeight: '500',
-    },
-    dropdownList: {
-      maxHeight: 400,
-    },
-    dropdownItem: {
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.borderLight,
-    },
-    dropdownItemText: {
-      fontSize: 16,
-      color: theme.text,
-    },
-    eventSection: {
-      marginBottom: 16,
-    },
-    sectionDate: {
-      fontSize: 16,
       fontWeight: '600',
-      color: theme.textSecondary,
-      marginBottom: 8,
-      paddingHorizontal: 4,
+      color: theme.text,
+    },
+    clearButton: {
+      padding: 8,
+    },
+    clearButtonText: {
+      color: theme.primary,
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    pickerContent: {
+      maxHeight: 300,
+    },
+    pickerItem: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    pickerItemSelected: {
+      backgroundColor: theme.primary + '20',
+    },
+    pickerItemText: {
+      fontSize: 16,
+      color: theme.text,
+    },
+    pickerItemTextSelected: {
+      color: theme.primary,
+      fontWeight: '600',
     },
     listContent: {
       padding: 16,
     },
-    viewModeContainer: {
-      flexDirection: 'row',
-      marginBottom: 16,
+    sectionHeader: {
       backgroundColor: theme.surface,
-      borderRadius: 8,
-      padding: 4,
-    },
-    viewModeButton: {
-      flex: 1,
       paddingVertical: 8,
-      alignItems: 'center',
-      borderRadius: 6,
+      paddingHorizontal: 16,
+      marginBottom: 12,
+      marginTop: 8,
+      borderRadius: 8,
+      flexDirection: 'column',
+      gap: 8,
     },
-    viewModeButtonActive: {
-      backgroundColor: theme.primary,
-    },
-    viewModeText: {
-      color: theme.textSecondary,
-      fontSize: 14,
+    sectionTitle: {
+      fontSize: 16,
       fontWeight: '600',
+      color: theme.text,
     },
-    viewModeTextActive: {
-      color: 'white',
+    sectionDivider: {
+      height: 2,
+      backgroundColor: theme.border,
+      width: '15%',
+      borderRadius: 1,
     },
     footerLoader: {
       paddingVertical: 16,
@@ -444,7 +546,13 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
     },
   });
 
-  return <View style={dynamicStyles.container}>{renderContent()}</View>;
+  return (
+    <View style={dynamicStyles.container}>
+      {renderContent()}
+      {renderYearPicker()}
+      {renderMonthPicker()}
+    </View>
+  );
 };
 
 export default EventsGroupedList;
