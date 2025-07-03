@@ -438,19 +438,22 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
     viewModeContainer: {
       flexDirection: 'row',
       backgroundColor: theme.background,
-      borderRadius: 6,
-      padding: 2,
+      borderRadius: 8,
+      padding: 4,
+      minWidth: 160,
     },
     viewModeButton: {
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 4,
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 6,
+      alignItems: 'center',
     },
     viewModeButtonActive: {
       backgroundColor: theme.primary,
     },
     viewModeText: {
-      fontSize: 12,
+      fontSize: 14,
       fontWeight: '500',
     },
     viewModeTextActive: {
