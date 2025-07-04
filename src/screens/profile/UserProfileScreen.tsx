@@ -7,6 +7,7 @@ import {
   Alert,
   RefreshControl,
   Linking,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -67,6 +68,13 @@ const UserProfileScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [collapsedSections, setCollapsedSections] = useState<{
+    hosting: boolean;
+    attending: boolean;
+  }>({
+    hosting: false,
+    attending: false
+  });
 
   const isOwnProfile = currentUser?.id === userId;
 
@@ -178,7 +186,12 @@ const UserProfileScreen: React.FC = () => {
     }
   };
 
-
+  const toggleSection = (section: 'hosting' | 'attending') => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
 
   const renderEventsSection = () => {
     const currentEvents = userEvents[activeTab];
@@ -221,37 +234,61 @@ const UserProfileScreen: React.FC = () => {
           <View style={styles.eventsContent}>
             {hasHostingEvents && (
               <View style={styles.eventSection}>
-                <Text style={styles.eventSectionTitle}>
-                  {activeTab === 'upcoming' ? 'Hosting' : 'Hosted'} ({currentEvents.hosting.length})
-                </Text>
-                {currentEvents.hosting.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    showHost={false}
-                    compact={true}
-                    showStatus={false}
-                    showPastEventBadge={false}
-                  />
-                ))}
+                <TouchableOpacity 
+                  style={styles.sectionHeader}
+                  onPress={() => toggleSection('hosting')}
+                >
+                  <Text style={styles.eventSectionTitle}>
+                    {activeTab === 'upcoming' ? 'Hosting' : 'Hosted'} ({currentEvents.hosting.length})
+                  </Text>
+                  <Text style={styles.collapseIcon}>
+                    {collapsedSections.hosting ? '▼' : '▲'}
+                  </Text>
+                </TouchableOpacity>
+                {!collapsedSections.hosting && (
+                  <View style={styles.sectionContent}>
+                    {currentEvents.hosting.map((event) => (
+                      <EventCard
+                        key={event.id}
+                        event={event}
+                        showHost={false}
+                        compact={true}
+                        showStatus={false}
+                        showPastEventBadge={false}
+                      />
+                    ))}
+                  </View>
+                )}
               </View>
             )}
 
             {hasAttendingEvents && (
               <View style={styles.eventSection}>
-                <Text style={styles.eventSectionTitle}>
-                  {activeTab === 'upcoming' ? 'Attending' : 'Attended'} ({currentEvents.attending.length})
-                </Text>
-                {currentEvents.attending.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    showHost={true}
-                    compact={true}
-                    showStatus={false}
-                    showPastEventBadge={false}
-                  />
-                ))}
+                <TouchableOpacity 
+                  style={styles.sectionHeader}
+                  onPress={() => toggleSection('attending')}
+                >
+                  <Text style={styles.eventSectionTitle}>
+                    {activeTab === 'upcoming' ? 'Attending' : 'Attended'} ({currentEvents.attending.length})
+                  </Text>
+                  <Text style={styles.collapseIcon}>
+                    {collapsedSections.attending ? '▼' : '▲'}
+                  </Text>
+                </TouchableOpacity>
+                {!collapsedSections.attending && (
+                  <View style={styles.sectionContent}>
+                    {currentEvents.attending.map((event) => (
+                      <EventCard
+                        key={event.id}
+                        event={event}
+                        showHost={true}
+                        compact={true}
+                        showStatus={false}
+                        showPastEventBadge={false}
+                      />
+                    ))}
+                  </View>
+                )}
               </View>
             )}
           </View>
@@ -731,6 +768,20 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   bottomSpacer: {
     height: 32,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  collapseIcon: {
+    fontSize: 12,
+    color: theme.textSecondary,
+    marginLeft: 8,
+  },
+  sectionContent: {
+    marginTop: 8,
   },
 });
 
