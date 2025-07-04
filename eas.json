@@ -25,7 +25,8 @@
     "production": {
       "autoIncrement": true,
       "ios": {
-        "resourceClass": "m1-medium"
+        "resourceClass": "m1-medium",
+        "distribution": "app-store"
       }
     }
   },
@@ -33,8 +34,8 @@
     "production": {
       "ios": {
         "appleId": "mitchellnkeo@gmail.com",
-        "ascAppId": "APP_STORE_CONNECT_APP_ID_HERE",
-        "appleTeamId": "TEAM_ID_HERE"
+        "ascAppId": "6748161420",
+        "appleTeamId": "UN9629AFCG"
       }
     }
   }
