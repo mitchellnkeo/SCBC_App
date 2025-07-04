@@ -82,16 +82,12 @@ const EventListItem: React.FC<EventListItemProps> = ({
       fontSize: 12,
       fontWeight: '500',
     },
-    roleBadgeContainer: {
-      position: 'absolute',
-      top: 8,
-      right: 8,
-      zIndex: 10,
-    },
     roleBadge: {
-      paddingHorizontal: 12,
-      paddingVertical: 4,
-      borderRadius: 20,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 12,
+      marginTop: 8,
+      alignSelf: 'flex-end',
     },
     hostingBadge: {
       backgroundColor: '#dc2626',
@@ -102,7 +98,7 @@ const EventListItem: React.FC<EventListItemProps> = ({
     roleBadgeText: {
       color: 'white',
       fontSize: 12,
-      fontWeight: 'bold',
+      fontWeight: '500',
     },
   });
 
@@ -111,19 +107,6 @@ const EventListItem: React.FC<EventListItemProps> = ({
       style={dynamicStyles.listItem}
       onPress={() => onPress(event.id)}
     >
-      {role?.showBadge && (
-        <View style={dynamicStyles.roleBadgeContainer}>
-          <View style={[
-            dynamicStyles.roleBadge,
-            role.type === 'hosting' ? dynamicStyles.hostingBadge : dynamicStyles.attendingBadge
-          ]}>
-            <Text style={dynamicStyles.roleBadgeText}>
-              {role.type === 'hosting' ? 'Hosting' : 'Attending'}
-            </Text>
-          </View>
-        </View>
-      )}
-
       <View style={dynamicStyles.listContent}>
         <View style={dynamicStyles.listHeader}>
           <Text style={dynamicStyles.listTitle}>{event.title}</Text>
@@ -162,6 +145,17 @@ const EventListItem: React.FC<EventListItemProps> = ({
             {event.location}
           </Text>
         </View>
+
+        {role?.showBadge && (
+          <View style={[
+            dynamicStyles.roleBadge,
+            role.type === 'hosting' ? dynamicStyles.hostingBadge : dynamicStyles.attendingBadge
+          ]}>
+            <Text style={dynamicStyles.roleBadgeText}>
+              {role.type === 'hosting' ? 'Hosting' : 'Attending'}
+            </Text>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
