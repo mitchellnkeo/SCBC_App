@@ -19,12 +19,16 @@ interface EventCardProps {
   event: BookClubEvent;
   showHost?: boolean;
   compact?: boolean;
+  showStatus?: boolean;
+  showPastEventBadge?: boolean;
 }
 
 const EventCard: React.FC<EventCardProps> = ({ 
   event, 
   showHost = true, 
-  compact = false 
+  compact = false,
+  showStatus = true,
+  showPastEventBadge = true
 }) => {
   const navigation = useNavigation<NavigationProp>();
 
@@ -75,9 +79,11 @@ const EventCard: React.FC<EventCardProps> = ({
           <Text style={[styles.title, compact && styles.compactTitle]} numberOfLines={compact ? 1 : 2}>
             {event.title}
           </Text>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(event.status) }]}>
-            <Text style={styles.statusText}>{getStatusText(event.status)}</Text>
-          </View>
+          {showStatus && (
+            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(event.status) }]}>
+              <Text style={styles.statusText}>{getStatusText(event.status)}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.dateTimeContainer}>
@@ -110,7 +116,7 @@ const EventCard: React.FC<EventCardProps> = ({
           </View>
         )}
 
-        {isPastEvent && (
+        {isPastEvent && showPastEventBadge && (
           <View style={styles.pastEventOverlay}>
             <Text style={styles.pastEventText}>Past Event</Text>
           </View>

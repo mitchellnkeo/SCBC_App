@@ -230,6 +230,8 @@ const UserProfileScreen: React.FC = () => {
                     event={event}
                     showHost={false}
                     compact={true}
+                    showStatus={false}
+                    showPastEventBadge={false}
                   />
                 ))}
               </View>
@@ -246,6 +248,8 @@ const UserProfileScreen: React.FC = () => {
                     event={event}
                     showHost={true}
                     compact={true}
+                    showStatus={false}
+                    showPastEventBadge={false}
                   />
                 ))}
               </View>
