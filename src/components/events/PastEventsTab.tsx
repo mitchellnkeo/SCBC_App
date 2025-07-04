@@ -17,6 +17,7 @@ import { formatPSTDate, getEventStatus } from '../../utils/timezone';
 import { formatTimeRange } from '../../utils/dateTimeUtils';
 import ProfilePicture from '../common/ProfilePicture';
 import EventsGroupedList from '../common/EventsGroupedList';
+import EventListItem from '../common/EventListItem';
 
 const PastEventsTab: React.FC = () => {
   const navigation = useNavigation<NavigationProp<MainStackParamList>>();
@@ -66,8 +67,19 @@ const PastEventsTab: React.FC = () => {
     return formatPSTDate(date);
   };
 
-  const getEventStatusInfo = (event: BookClubEvent) => {
-    return getEventStatus(event.date, event.startTime, event.endTime);
+  const getEventDisplayStatus = (event: BookClubEvent): { text: string; color: string } => {
+    const statusInfo = getEventStatus(event.date, event.startTime, event.endTime);
+    
+    switch (statusInfo.status) {
+      case 'upcoming':
+        return { text: statusInfo.description, color: theme.success };
+      case 'current':
+        return { text: statusInfo.description, color: theme.warning };
+      case 'past':
+        return { text: statusInfo.description, color: theme.textTertiary };
+      default:
+        return { text: 'Unknown', color: theme.textSecondary };
+    }
   };
 
   const dynamicStyles = StyleSheet.create({
@@ -169,7 +181,7 @@ const PastEventsTab: React.FC = () => {
   });
 
   const renderEventCard = (event: BookClubEvent) => {
-    const statusInfo = getEventStatusInfo(event);
+    const statusInfo = getEventDisplayStatus(event);
 
     return (
       <TouchableOpacity
@@ -237,7 +249,7 @@ const PastEventsTab: React.FC = () => {
                   { color: theme.textTertiary },
                 ]}
               >
-                {statusInfo.description}
+                {statusInfo.text}
               </Text>
             </View>
           </View>
@@ -247,53 +259,14 @@ const PastEventsTab: React.FC = () => {
   };
 
   const renderEventListItem = (event: BookClubEvent) => {
-    const statusInfo = getEventStatusInfo(event);
+    const statusInfo = getEventDisplayStatus(event);
 
     return (
-      <TouchableOpacity
-        style={dynamicStyles.listItem}
-        onPress={() => navigateToEventDetails(event.id)}
-      >
-        <View style={dynamicStyles.listContent}>
-          <View style={dynamicStyles.listHeader}>
-            <Text style={dynamicStyles.listTitle}>{event.title}</Text>
-            <View style={dynamicStyles.row}>
-              <View
-                style={[
-                  dynamicStyles.statusDot,
-                  { backgroundColor: theme.textTertiary },
-                ]}
-              />
-              <Text
-                style={[
-                  dynamicStyles.statusText,
-                  { color: theme.textTertiary },
-                ]}
-              >
-                {statusInfo.description}
-              </Text>
-            </View>
-          </View>
-
-          <View style={[dynamicStyles.row, { marginTop: 4 }]}>
-            <Text style={dynamicStyles.emoji}>📅</Text>
-            <Text style={dynamicStyles.eventDetail}>
-              {formatDate(new Date(event.date))}
-            </Text>
-            <Text style={dynamicStyles.emoji}>⏰</Text>
-            <Text style={dynamicStyles.eventDetail}>
-              {formatTimeRange(event.startTime, event.endTime)}
-            </Text>
-          </View>
-
-          <View style={[dynamicStyles.row, { marginTop: 4 }]}>
-            <Text style={dynamicStyles.emoji}>📍</Text>
-            <Text style={dynamicStyles.eventDetail}>
-              {event.location}
-            </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
+      <EventListItem
+        event={event}
+        onPress={navigateToEventDetails}
+        statusInfo={statusInfo}
+      />
     );
   };
 

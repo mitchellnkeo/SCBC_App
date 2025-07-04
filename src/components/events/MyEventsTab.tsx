@@ -23,6 +23,7 @@ import { Button } from '../common/Button';
 import EmptyState from '../common/EmptyState';
 import ProfilePicture from '../common/ProfilePicture';
 import EventsGroupedList from '../common/EventsGroupedList';
+import EventListItem from '../common/EventListItem';
 
 const MyEventsTab: React.FC = () => {
   const navigation = useNavigation<NavigationProp<MainStackParamList>>();
@@ -541,61 +542,15 @@ const MyEventsTab: React.FC = () => {
     const role = getEventRole(event);
 
     return (
-      <TouchableOpacity
-        style={dynamicStyles.listItem}
-        onPress={() => navigateToEventDetails(event.id)}
-      >
-        <View style={dynamicStyles.roleBadgeContainer}>
-          <View style={[
-            dynamicStyles.roleBadge,
-            role === 'hosting' ? dynamicStyles.hostingBadge : dynamicStyles.attendingBadge
-          ]}>
-            <Text style={dynamicStyles.roleBadgeText}>
-              {role === 'hosting' ? 'Hosting' : 'Attending'}
-            </Text>
-          </View>
-        </View>
-
-        <View style={dynamicStyles.listContent}>
-          <View style={dynamicStyles.listHeader}>
-            <Text style={dynamicStyles.listTitle}>{event.title}</Text>
-            <View style={dynamicStyles.row}>
-              <View
-                style={[
-                  dynamicStyles.statusDot,
-                  { backgroundColor: statusInfo.color },
-                ]}
-              />
-              <Text
-                style={[
-                  dynamicStyles.statusText,
-                  { color: statusInfo.color },
-                ]}
-              >
-                {statusInfo.text}
-              </Text>
-            </View>
-          </View>
-
-          <View style={[dynamicStyles.row, { marginTop: 4 }]}>
-            <Text style={dynamicStyles.emoji}>📅</Text>
-            <Text style={dynamicStyles.eventDetail}>
-              {formatDate(new Date(event.date))}
-            </Text>
-            <Text style={dynamicStyles.emoji}>⏰</Text>
-            <Text style={dynamicStyles.eventDetail}>
-              {formatTimeRange(event.startTime, event.endTime)}
-            </Text>
-          </View>
-
-          <View style={[dynamicStyles.row, { marginTop: 4 }]}>
-            <Text style={dynamicStyles.emoji}>📍</Text>
-            <Text style={dynamicStyles.eventDetail}>
-              {event.location}
-            </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
+      <EventListItem
+        event={event}
+        onPress={navigateToEventDetails}
+        statusInfo={statusInfo}
+        role={{
+          type: role,
+          showBadge: true
+        }}
+      />
     );
   };
 
