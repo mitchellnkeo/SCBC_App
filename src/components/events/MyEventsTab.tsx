@@ -107,8 +107,8 @@ const MyEventsTab: React.FC = () => {
       }
     });
     
-    // Sort upcoming events by date (earliest first)
-    upcoming.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    // Sort upcoming events by date (latest first)
+    upcoming.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
     // Sort past events by date (most recent first)
     past.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -623,17 +623,21 @@ const MyEventsTab: React.FC = () => {
   }
 
   return (
-    <EventsGroupedList
-      events={userEvents}
-      isLoading={isLoading}
-      isRefreshing={isRefreshing}
-      onRefresh={onRefresh}
-      viewMode={viewMode}
-      onViewModeChange={setViewMode}
-      renderEventCard={renderEventCard}
-      renderEventListItem={renderEventListItem}
-      emptyStateMessage="You haven't created or joined any events yet."
-    />
+    <View style={dynamicStyles.container}>
+      <EventsGroupedList
+        events={userEvents}
+        isLoading={isLoading}
+        isRefreshing={isRefreshing}
+        onRefresh={onRefresh}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        renderEventCard={renderEventCard}
+        renderEventListItem={renderEventListItem}
+        emptyStateMessage="You haven't joined any events yet"
+        hasMore={false}
+        onEndReached={() => {}}
+      />
+    </View>
   );
 };
 

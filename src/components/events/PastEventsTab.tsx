@@ -307,7 +307,9 @@ const PastEventsTab: React.FC = () => {
       onViewModeChange={setViewMode}
       renderEventCard={renderEventCard}
       renderEventListItem={renderEventListItem}
-      emptyStateMessage="No past events found."
+      emptyStateMessage="No past events found"
+      hasMore={false}
+      onEndReached={() => {}}
     />
   );
 };

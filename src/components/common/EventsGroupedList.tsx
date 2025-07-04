@@ -133,14 +133,14 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
           'January', 'February', 'March', 'April', 'May', 'June',
           'July', 'August', 'September', 'October', 'November', 'December'
         ];
-        return monthOrder.indexOf(a) - monthOrder.indexOf(b);
+        return monthOrder.indexOf(b) - monthOrder.indexOf(a);
       });
 
       months.forEach(month => {
         eventSections.push({
           title: `${month} ${year}`,
           data: grouped[year][month].sort((a, b) => 
-            new Date(a.date).getTime() - new Date(b.date).getTime()
+            new Date(b.date).getTime() - new Date(a.date).getTime()
           ),
           year,
           month
