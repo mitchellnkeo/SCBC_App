@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert, ActivityIndicator, Keyboard } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert, ActivityIndicator, Keyboard, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useForm, Controller } from 'react-hook-form';
@@ -53,11 +53,11 @@ const LoginScreen: React.FC = () => {
   return (
     <ScrollView style={styles.scrollContainer}>
       <View style={styles.container}>
-        <Text style={styles.title}>SCBC Login</Text>
-        
-        <Text style={styles.subtitle}>
-          Seattle Chinatown Book Club
-        </Text>
+        <Image 
+          source={require('../../../assets/scbc-logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
 
         <Form style={styles.form}>
           {/* Email Input */}
@@ -173,21 +173,16 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 40,
+    paddingTop: 100,
+    paddingBottom: 40,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 32,
-  },
-  subtitle: {
-    color: '#6b7280',
-    marginBottom: 24,
-    textAlign: 'center',
+  logo: {
+    width: 200,
+    height: 200,
+    marginBottom: 40,
   },
   form: {
     width: '100%',

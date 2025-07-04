@@ -70,3 +70,8 @@ coverage/
 
 # EAS
 .easignore
+
+# API Keys and Credentials
+credentials/
+*.p8
+AuthKey_*.p8
