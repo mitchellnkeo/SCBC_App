@@ -1,12 +1,13 @@
 {
   "expo": {
-    "name": "SCBCApp",
+    "name": "SCBC App",
     "slug": "SCBCApp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "description": "Seattle Chinatown Book Club - Connect with readers in your community",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -15,10 +16,12 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.mitchellkeo.SCBCApp",
+      "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "This app needs access to your camera to take profile pictures.",
-        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select profile pictures."
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select profile pictures.",
+        "UIBackgroundModes": ["remote-notification"]
       }
     },
     "android": {
