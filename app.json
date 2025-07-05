@@ -17,6 +17,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.mitchellkeo.SCBCApp",
       "buildNumber": "7",
+      "displayName": "SCBC App",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "This app needs access to your camera to take profile pictures.",
