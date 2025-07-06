@@ -36,6 +36,13 @@
         "ascAppId": "6748161420",
         "appleTeamId": "UN9629AFCG"
       }
+    },
+    "development": {
+      "ios": {
+        "appleId": "mitchellnkeo@gmail.com",
+        "ascAppId": "6748161420",
+        "appleTeamId": "UN9629AFCG"
+      }
     }
   }
 }

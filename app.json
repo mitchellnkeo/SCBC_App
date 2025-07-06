@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.mitchellkeo.SCBCApp",
-      "buildNumber": "7",
+      "buildNumber": "12",
       "displayName": "SCBC App",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
