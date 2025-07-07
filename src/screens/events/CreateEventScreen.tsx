@@ -119,9 +119,22 @@ const CreateEventScreen: React.FC = () => {
   const handleSubmit = async () => {
     if (!validateForm() || !user) return;
 
+    // Remove undefined, null or empty-string fields that crash native NSDictionary
+    const cleanedPayload = Object.entries(formData).reduce<Record<string, any>>((acc, [key, value]) => {
+      if (
+        value !== undefined &&
+        value !== null &&
+        // for strings, ignore empty ones
+        !(typeof value === 'string' && value.trim() === '')
+      ) {
+        acc[key] = value;
+      }
+      return acc;
+    }, {});
+
     try {
       const eventId = await createEvent(
-        formData,
+        cleanedPayload as CreateEventFormData,
         user.id,
         user.displayName || 'Unknown User',
         user.role || 'member',
