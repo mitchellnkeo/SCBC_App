@@ -6,37 +6,15 @@ import { logger } from './logger';
  */
 
 /**
- * Replace console methods with production-ready logger
+ * Initialize performance optimizations
  * Call this early in app initialization
  */
 export const initializeLogging = (): void => {
+  // No longer overriding console methods in production
+  // This prevents the infinite recursion issue
   if (!__DEV__) {
-    // In production, replace console methods with logger
-    const originalConsole = {
-      log: console.log,
-      error: console.error,
-      warn: console.warn,
-      info: console.info,
-    };
-
-    console.log = (...args: any[]) => {
-      logger.info('Console Log', { message: args.join(' ') });
-    };
-
-    console.error = (...args: any[]) => {
-      logger.error('Console Error', { message: args.join(' ') });
-    };
-
-    console.warn = (...args: any[]) => {
-      logger.warn('Console Warning', { message: args.join(' ') });
-    };
-
-    console.info = (...args: any[]) => {
-      logger.info('Console Info', { message: args.join(' ') });
-    };
-
-    // Store original console for debugging if needed
-    (global as any).__originalConsole = originalConsole;
+    // Log that we're in production mode
+    console.info('Running in production mode - using native console methods');
   }
 };
 

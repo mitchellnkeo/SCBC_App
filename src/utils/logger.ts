@@ -39,31 +39,29 @@ class Logger {
 
   error(message: string, error?: any): void {
     if (this.shouldLog(LOG_LEVELS.ERROR)) {
-      console.error(this.formatMessage('error', message, error));
-      
-      // In production, you might want to send errors to a service like Sentry
-      if (!this.isDevelopment && error) {
-        // TODO: Integrate with error reporting service
-        // Sentry.captureException(error);
-      }
+      // Use console.error directly
+      console.error(this.formatMessage('error', message), error);
     }
   }
 
   warn(message: string, data?: any): void {
     if (this.shouldLog(LOG_LEVELS.WARN)) {
-      console.warn(this.formatMessage('warn', message, data));
+      // Use console.warn directly
+      console.warn(this.formatMessage('warn', message), data);
     }
   }
 
   info(message: string, data?: any): void {
     if (this.shouldLog(LOG_LEVELS.INFO)) {
-      console.info(this.formatMessage('info', message, data));
+      // Use console.info directly
+      console.info(this.formatMessage('info', message), data);
     }
   }
 
   debug(message: string, data?: any): void {
     if (this.shouldLog(LOG_LEVELS.DEBUG)) {
-      console.log(this.formatMessage('debug', message, data));
+      // Use console.log directly
+      console.log(this.formatMessage('debug', message), data);
     }
   }
 
