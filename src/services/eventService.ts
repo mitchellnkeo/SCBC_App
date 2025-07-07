@@ -35,6 +35,7 @@ import {
 import { isEventCurrentOrUpcoming, hasEventEnded } from '../utils/timezone';
 import { logger } from '../utils/logger';
 import { cacheService, cacheKeys } from './cacheService';
+import { cleanObject } from '../utils/objectCleaner';
 
 // Collections
 const EVENTS_COLLECTION = 'events';
@@ -72,7 +73,10 @@ export const createEvent = async (
       updatedAt: serverTimestamp(),
     };
 
-    const docRef = await addDoc(collection(db, EVENTS_COLLECTION), eventDoc);
+    const docRef = await addDoc(
+      collection(db, EVENTS_COLLECTION),
+      cleanObject(eventDoc)
+    );
     console.log(`Event created with ID: ${docRef.id}, Status: ${status}`);
     
     // Invalidate cached event lists
@@ -151,10 +155,13 @@ export const updateEvent = async (
       // Re-fetch to keep types simple
       currentEvent = snap.data() as BookClubEvent;
 
-      tx.update(eventRef, {
-        ...eventDataWithoutPhoto,
-        updatedAt: serverTimestamp(),
-      });
+      tx.update(
+        eventRef,
+        cleanObject({
+          ...eventDataWithoutPhoto,
+          updatedAt: serverTimestamp(),
+        })
+      );
     });
     
     // Handle header image changes only if the image actually changed
