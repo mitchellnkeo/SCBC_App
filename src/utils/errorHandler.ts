@@ -7,6 +7,7 @@ import {
   FIREBASE_ERROR_MAPPINGS,
   ERROR_MESSAGES 
 } from '../types/errors';
+import logger from './logger';
 
 class ErrorHandler {
   private static instance: ErrorHandler;
@@ -308,16 +309,29 @@ class ErrorHandler {
   }
 
   private logError(appError: AppError): void {
-    console.group(`🚨 ${appError.severity} ERROR - ${appError.type}`);
-    console.error('Message:', appError.message);
-    console.error('User Message:', appError.userMessage);
-    console.error('Code:', appError.code);
-    console.error('Retryable:', appError.retryable);
-    console.error('Timestamp:', appError.timestamp.toISOString());
-    if (appError.details) {
-      console.error('Details:', appError.details);
+    // Use logger for safer, cross-platform logging
+    logger.error(`${appError.severity} ${appError.type} - ${appError.message}`, {
+      code: appError.code,
+      retryable: appError.retryable,
+      timestamp: appError.timestamp.toISOString(),
+      details: appError.details,
+    });
+
+    // Fallback to console logging if available (dev mode)
+    if (__DEV__) {
+      const group: any = (console as any).group || console.log;
+      const groupEnd: any = (console as any).groupEnd || (() => {});
+      group(`🚨 ${appError.severity} ERROR - ${appError.type}`);
+      console.error('Message:', appError.message);
+      console.error('User Message:', appError.userMessage);
+      console.error('Code:', appError.code);
+      console.error('Retryable:', appError.retryable);
+      console.error('Timestamp:', appError.timestamp.toISOString());
+      if (appError.details) {
+        console.error('Details:', appError.details);
+      }
+      groupEnd();
     }
-    console.groupEnd();
   }
 }
 
