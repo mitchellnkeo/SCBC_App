@@ -343,19 +343,89 @@ export const searchUsers = async (
       lastVisible
     } = options;
 
+    // If search query is empty, return all users
     if (!searchQuery.trim()) {
-      throw new Error('Search query cannot be empty');
+      return getAllUsers({ limitCount, lastVisible });
     }
 
     // Convert search query to lowercase for case-insensitive search
     const searchLower = searchQuery.toLowerCase().trim();
     
-    // Build query constraints
+    try {
+      // Try primary search method using searchTerms array
+      const constraints: QueryConstraint[] = [
+        where('searchTerms', 'array-contains', searchLower),
+        orderBy('displayName'),
+        limit(limitCount + 1)
+      ];
+
+      if (lastVisible) {
+        constraints.push(startAfter(lastVisible));
+      }
+
+      const usersQuery = query(
+        collection(db, USERS_COLLECTION),
+        ...constraints
+      );
+
+      const snapshot = await getDocs(usersQuery);
+      const docs = snapshot.docs;
+      
+      const hasMore = docs.length > limitCount;
+      const usersToProcess = hasMore ? docs.slice(0, limitCount) : docs;
+      const newLastVisible = usersToProcess[usersToProcess.length - 1];
+
+      const users = usersToProcess.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          displayName: data.displayName,
+          email: data.email,
+          profilePicture: data.profilePicture,
+          role: data.role || 'member',
+          bio: data.bio,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date(),
+        } as User;
+      });
+
+      return {
+        users,
+        lastVisible: newLastVisible,
+        hasMore
+      };
+    } catch (searchError) {
+      console.warn('Primary search failed, falling back to client-side search:', searchError);
+      
+      // Fallback to client-side search
+      return fallbackClientSideSearch(searchQuery, { limitCount, lastVisible });
+    }
+  } catch (error) {
+    console.error('Error searching users:', error);
+    return {
+      users: [],
+      lastVisible: null,
+      hasMore: false
+    };
+  }
+};
+
+/**
+ * Get all users (for when no search query is provided)
+ */
+export const getAllUsers = async (options: {
+  limitCount?: number;
+  lastVisible?: any;
+} = {}): Promise<{ users: User[]; lastVisible: any; hasMore: boolean }> => {
+  try {
+    const {
+      limitCount = 10,
+      lastVisible
+    } = options;
+
     const constraints: QueryConstraint[] = [
-      // Search by searchTerms array which contains lowercase name variations
-      where('searchTerms', 'array-contains', searchLower),
       orderBy('displayName'),
-      limit(limitCount + 1) // Get one extra to check if there are more
+      limit(limitCount + 1)
     ];
 
     if (lastVisible) {
@@ -394,7 +464,47 @@ export const searchUsers = async (
       hasMore
     };
   } catch (error) {
-    console.error('Error searching users:', error);
+    console.error('Error getting all users:', error);
+    return {
+      users: [],
+      lastVisible: null,
+      hasMore: false
+    };
+  }
+};
+
+/**
+ * Fallback client-side search when searchTerms field is not available
+ */
+export const fallbackClientSideSearch = async (
+  searchQuery: string,
+  options: {
+    limitCount?: number;
+    lastVisible?: any;
+  } = {}
+): Promise<{ users: User[]; lastVisible: any; hasMore: boolean }> => {
+  try {
+    const { limitCount = 10 } = options;
+    
+    // Get all users and filter client-side
+    const allUsersResult = await getAllUsers({ limitCount: 100 }); // Get more for filtering
+    const searchLower = searchQuery.toLowerCase().trim();
+    
+    const filteredUsers = allUsersResult.users.filter((user: User) => 
+      user.displayName.toLowerCase().includes(searchLower) ||
+      user.email.toLowerCase().includes(searchLower)
+    );
+
+    const users = filteredUsers.slice(0, limitCount);
+    const hasMore = filteredUsers.length > limitCount;
+
+    return {
+      users,
+      lastVisible: null, // Client-side search doesn't support pagination
+      hasMore
+    };
+  } catch (error) {
+    console.error('Error in fallback search:', error);
     return {
       users: [],
       lastVisible: null,
@@ -597,42 +707,6 @@ export const getUserPastEvents = async (userId: string, limitCount: number = 10)
       hosting: [],
       attending: [],
     };
-  }
-};
-
-/**
- * Get all users from Firestore (admin only)
- */
-export const getAllUsers = async (): Promise<User[]> => {
-  try {
-    const usersQuery = query(
-      collection(db, 'users'),
-      orderBy('createdAt', 'desc')
-    );
-    
-    const querySnapshot = await getDocs(usersQuery);
-    const users: User[] = [];
-
-    querySnapshot.forEach((doc) => {
-      const userData = doc.data();
-      users.push({
-        id: doc.id,
-        email: userData.email,
-        displayName: userData.displayName,
-        role: userData.role || 'member',
-        profilePicture: userData.profilePicture,
-        bio: userData.bio,
-        hobbies: userData.hobbies,
-        favoriteBooks: userData.favoriteBooks,
-        createdAt: userData.createdAt?.toDate() || new Date(),
-        updatedAt: userData.updatedAt?.toDate() || new Date(),
-      });
-    });
-
-    return users;
-  } catch (error) {
-    console.error('Error fetching all users:', error);
-    throw new Error('Failed to fetch users');
   }
 };
 

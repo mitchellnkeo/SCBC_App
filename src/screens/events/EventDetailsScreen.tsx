@@ -352,6 +352,11 @@ const styles = StyleSheet.create({
     maxHeight: 100,
     color: '#111827',
   },
+  inputActions: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
   sendCommentButton: {
     backgroundColor: '#ec4899',
     paddingHorizontal: 16,
@@ -360,7 +365,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 60,
-    marginLeft: 8,
     marginBottom: 4,
   },
   sendCommentButtonDisabled: {
@@ -570,14 +574,15 @@ const styles = StyleSheet.create({
     color: '#ec4899',
     fontWeight: '500',
   },
+  inputActions: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
   imagePickerDisabledText: {
     fontSize: 14,
     color: '#6b7280',
-  },
-  inputActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    fontWeight: '500',
   },
 });
 
@@ -796,6 +801,26 @@ const EventDetailsScreen: React.FC = memo(() => {
       return unsubscribe;
     }
   }, [eventId, user?.id]);
+
+  // Handle error state when event doesn't exist or fails to load
+  useEffect(() => {
+    if (error && !isLoading && !currentEvent) {
+      // Show error alert and navigate back
+      Alert.alert(
+        'Event Not Found',
+        'This event could not be found. It may have been deleted or you may not have permission to view it.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              clearError();
+              navigation.goBack();
+            }
+          }
+        ]
+      );
+    }
+  }, [error, isLoading, currentEvent, navigation, clearError]);
 
   const loadUsersForMentions = async () => {
     if (!eventId) return;

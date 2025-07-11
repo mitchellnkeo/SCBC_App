@@ -29,6 +29,64 @@ const FRIEND_REQUESTS_COLLECTION = 'friendRequests';
 const FRIENDSHIPS_COLLECTION = 'friendships';
 
 /**
+ * Get friend request between two users (if exists)
+ */
+export const getFriendRequestBetweenUsers = async (
+  fromUserId: string,
+  toUserId: string
+): Promise<FriendRequest | null> => {
+  try {
+    // Check for request from user1 to user2
+    const requestQuery1 = query(
+      collection(db, FRIEND_REQUESTS_COLLECTION),
+      where('fromUserId', '==', fromUserId),
+      where('toUserId', '==', toUserId),
+      where('status', '==', 'pending')
+    );
+    
+    // Check for request from user2 to user1
+    const requestQuery2 = query(
+      collection(db, FRIEND_REQUESTS_COLLECTION),
+      where('fromUserId', '==', toUserId),
+      where('toUserId', '==', fromUserId),
+      where('status', '==', 'pending')
+    );
+    
+    const [snapshot1, snapshot2] = await Promise.all([
+      getDocs(requestQuery1),
+      getDocs(requestQuery2)
+    ]);
+    
+    if (!snapshot1.empty) {
+      const doc = snapshot1.docs[0];
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+      } as FriendRequest;
+    }
+    
+    if (!snapshot2.empty) {
+      const doc = snapshot2.docs[0];
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+      } as FriendRequest;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting friend request between users:', error);
+    return null;
+  }
+};
+
+/**
  * Send a friend request
  */
 export const sendFriendRequest = async (
@@ -391,53 +449,6 @@ export const getSentFriendRequests = async (userId: string): Promise<FriendReque
   } catch (error) {
     console.error('Error getting sent friend requests:', error);
     throw error;
-  }
-};
-
-/**
- * Check if a friend request exists between two users
- */
-const getFriendRequestBetweenUsers = async (userId1: string, userId2: string): Promise<FriendRequest | null> => {
-  try {
-    // Check both directions
-    const requestQuery1 = query(
-      collection(db, FRIEND_REQUESTS_COLLECTION),
-      where('fromUserId', '==', userId1),
-      where('toUserId', '==', userId2),
-      where('status', '==', 'pending')
-    );
-    const requestQuery2 = query(
-      collection(db, FRIEND_REQUESTS_COLLECTION),
-      where('fromUserId', '==', userId2),
-      where('toUserId', '==', userId1),
-      where('status', '==', 'pending')
-    );
-    
-    const [requestSnapshot1, requestSnapshot2] = await Promise.all([
-      getDocs(requestQuery1),
-      getDocs(requestQuery2)
-    ]);
-
-    let requestDoc = null;
-    if (!requestSnapshot1.empty) {
-      requestDoc = requestSnapshot1.docs[0];
-    } else if (!requestSnapshot2.empty) {
-      requestDoc = requestSnapshot2.docs[0];
-    }
-
-    if (!requestDoc) {
-      return null;
-    }
-
-    return {
-      id: requestDoc.id,
-      ...requestDoc.data(),
-      createdAt: requestDoc.data().createdAt?.toDate() || new Date(),
-      updatedAt: requestDoc.data().updatedAt?.toDate() || new Date(),
-    } as FriendRequest;
-  } catch (error) {
-    console.error('Error checking friend request:', error);
-    return null;
   }
 };
 
