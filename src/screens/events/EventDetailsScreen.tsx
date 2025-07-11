@@ -579,6 +579,40 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontWeight: '500',
   },
+  replyHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  replySendButton: {
+    backgroundColor: '#ec4899',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 60,
+  },
+  replySendButtonDisabled: {
+    backgroundColor: '#d1d5db',
+  },
+  replySendText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  replyInput: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    minHeight: 80,
+    maxHeight: 120,
+    color: '#111827',
+  },
 });
 
 // Move CommentItem outside the main component to prevent re-creation on each render
@@ -689,40 +723,40 @@ const CommentItem: React.FC<{
         <View style={styles.replyInputContainer}>
           <View style={styles.replyInputHeader}>
             <Text style={styles.replyToUserText}>Replying to {comment.userName}</Text>
-            <TouchableOpacity
-              onPress={() => onCancelReply(comment.id)}
-              style={styles.cancelReplyButton}
-            >
-              <Text style={styles.cancelReplyText}>Cancel</Text>
-            </TouchableOpacity>
+            <View style={styles.replyHeaderActions}>
+              <TouchableOpacity
+                onPress={() => onAddReply(comment.id)}
+                disabled={!replyState.content.trim() || isCommenting}
+                style={[
+                  styles.replySendButton,
+                  (!replyState.content.trim() || isCommenting) && styles.replySendButtonDisabled
+                ]}
+              >
+                {isCommenting ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text style={styles.replySendText}>Send</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => onCancelReply(comment.id)}
+                style={styles.cancelReplyButton}
+              >
+                <Text style={styles.cancelReplyText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </View>
           
-          <View style={styles.commentInputContainer}>
-            <MentionInput
-              key={`reply-${comment.id}`}
-              value={replyState.content}
-              onChangeText={handleThisReplyTextChange}
-              placeholder="Write a reply..."
-              users={availableUsers}
-              multiline
-              maxLength={500}
-              style={styles.commentInput}
-            />
-            <TouchableOpacity
-              onPress={() => onAddReply(comment.id)}
-              disabled={!replyState.content.trim() || isCommenting}
-              style={[
-                styles.replySubmitButton,
-                (!replyState.content.trim() || isCommenting) && styles.replySubmitButtonDisabled
-              ]}
-            >
-              {isCommenting ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text style={styles.replySubmitText}>Send</Text>
-              )}
-            </TouchableOpacity>
-          </View>
+          <MentionInput
+            key={`reply-${comment.id}`}
+            value={replyState.content}
+            onChangeText={handleThisReplyTextChange}
+            placeholder="Write a reply..."
+            users={availableUsers}
+            multiline
+            maxLength={500}
+            style={styles.replyInput}
+          />
         </View>
       )}
       
