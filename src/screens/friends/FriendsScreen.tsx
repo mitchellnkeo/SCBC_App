@@ -117,10 +117,10 @@ const FriendsScreen: React.FC = () => {
 
     try {
       setIsSearching(true);
-      const results = await searchUsers(searchQuery.trim(), 20); // Get more results for filtering
+      const results = await searchUsers(searchQuery.trim(), { limitCount: 20 }); // Get more results for filtering
       
       // Filter out self and current friends
-      let filteredResults = results.filter(
+      let filteredResults = results.users.filter(
         (result) => result.id !== user?.id && !friends.some((friend) => friend.id === result.id)
       );
 
