@@ -574,11 +574,6 @@ const styles = StyleSheet.create({
     color: '#ec4899',
     fontWeight: '500',
   },
-  inputActions: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
-  },
   imagePickerDisabledText: {
     fontSize: 14,
     color: '#6b7280',
