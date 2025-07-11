@@ -25,6 +25,7 @@ import {
   subscribeToUserFriends,
   searchUsers,
 } from '../../services';
+import { getAllUsers } from '../../services/userService';
 import { FriendRequest, User } from '../../types';
 import { handleError } from '../../utils/errorHandler';
 import { formatTimeAgo } from '../../utils/dateTimeUtils';
@@ -81,9 +82,17 @@ const FriendsScreen: React.FC = () => {
     if (searchQuery.trim()) {
       handleSearch();
     } else {
-      setSearchResults([]);
+      // Show all users when search is empty
+      loadAllUsers();
     }
   }, [searchQuery, searchFilters]);
+
+  // Load all users when discover tab is first accessed
+  useEffect(() => {
+    if (activeTab === 'discover' && searchResults.length === 0 && !searchQuery.trim()) {
+      loadAllUsers();
+    }
+  }, [activeTab]);
 
   const loadData = async () => {
     if (!user) return;
@@ -110,6 +119,52 @@ const FriendsScreen: React.FC = () => {
     setIsRefreshing(true);
     await loadData();
     setIsRefreshing(false);
+  };
+
+  const loadAllUsers = async () => {
+    try {
+      setIsSearching(true);
+      const results = await getAllUsers({ limitCount: 50 }); // Get more users for better browsing
+      
+      // Filter out self and current friends
+      let filteredResults = results.users.filter(
+        (result: User) => result.id !== user?.id && !friends.some((friend) => friend.id === result.id)
+      );
+
+      // Apply additional filters
+      if (searchFilters.hasProfilePicture) {
+        filteredResults = filteredResults.filter((user: User) => user.profilePicture);
+      }
+
+      if (searchFilters.isActive) {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        filteredResults = filteredResults.filter((user: User) => 
+          user.lastActiveAt && new Date(user.lastActiveAt) > thirtyDaysAgo
+        );
+      }
+
+      // Apply sorting
+      switch (searchFilters.sortBy) {
+        case 'name':
+          filteredResults.sort((a: User, b: User) => a.displayName.localeCompare(b.displayName));
+          break;
+        case 'recent':
+          filteredResults.sort((a: User, b: User) => {
+            const aDate = a.lastActiveAt ? new Date(a.lastActiveAt) : new Date(0);
+            const bDate = b.lastActiveAt ? new Date(b.lastActiveAt) : new Date(0);
+            return bDate.getTime() - aDate.getTime();
+          });
+          break;
+        // 'relevance' is default from search results
+      }
+
+      setSearchResults(filteredResults);
+    } catch (error) {
+      handleError(error, { showAlert: true });
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handleSearch = async () => {
@@ -421,9 +476,9 @@ const FriendsScreen: React.FC = () => {
         )
       ) : (
         <EmptyState
-          emoji="🔍"
-          title="Discover Friends"
-          subtitle="Search for other book club members to add as friends."
+          emoji="👥"
+          title="All Members"
+          subtitle="Browse all book club members and add them as friends."
         />
       )}
     </View>
