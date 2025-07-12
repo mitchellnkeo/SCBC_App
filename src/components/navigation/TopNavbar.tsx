@@ -8,6 +8,7 @@ import {
   Animated,
   Dimensions,
   SafeAreaView,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -556,7 +557,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
                 </View>
 
                 {/* Menu Items */}
-                <View style={styles.menuItems}>
+                <ScrollView style={styles.menuItems} showsVerticalScrollIndicator={false}>
                   {menuGroups.map((group) => (
                     <View key={group.id}>
                       {/* Group Header */}
@@ -588,7 +589,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
                       )}
                     </View>
                   ))}
-                </View>
+                </ScrollView>
 
                 {/* User Info at Bottom */}
                 {user && (
