@@ -128,17 +128,24 @@ export const sendFriendRequest = async (
       throw new Error('Users are already friends');
     }
 
-    const friendRequest = {
+    // Create friend request object, filtering out undefined values
+    const friendRequest: any = {
       fromUserId,
       fromUserName,
-      fromUserProfilePicture,
       toUserId,
       toUserName,
-      toUserProfilePicture,
       status: 'pending' as const,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
+
+    // Only add profile picture fields if they have values
+    if (fromUserProfilePicture) {
+      friendRequest.fromUserProfilePicture = fromUserProfilePicture;
+    }
+    if (toUserProfilePicture) {
+      friendRequest.toUserProfilePicture = toUserProfilePicture;
+    }
 
     console.log('Creating friend request document:', friendRequest);
     const docRef = await addDoc(collection(db, FRIEND_REQUESTS_COLLECTION), friendRequest);

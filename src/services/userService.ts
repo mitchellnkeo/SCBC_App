@@ -741,7 +741,7 @@ export const getUserStats = async (): Promise<{
   recentSignups: number; // last 7 days
 }> => {
   try {
-    const usersResult = await getAllUsers();
+    const usersResult = await getAllUsers({ limitCount: 1000 }); // Get more users for accurate stats
     const users = usersResult.users;
     const now = new Date();
     const weekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));

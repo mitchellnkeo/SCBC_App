@@ -53,11 +53,11 @@ const UserManagementScreen: React.FC = () => {
     try {
       setIsLoading(true);
       const [usersData, statsData] = await Promise.all([
-        getAllUsers(),
+        getAllUsers({ limitCount: 1000 }), // Get more users for management
         getUserStats()
       ]);
       
-      setUsers(usersData);
+      setUsers(usersData.users); // Extract the users array from the result
       setUserStats(statsData);
     } catch (error) {
       console.error('Error loading user data:', error);

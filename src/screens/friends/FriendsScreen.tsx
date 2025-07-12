@@ -356,21 +356,14 @@ const FriendsScreen: React.FC = () => {
         showAvatar
         avatarSize="medium"
       />
-      <View style={styles.discoverContent}>
-        <Text style={styles.discoverName}>{user.displayName}</Text>
-        {user.email && <Text style={styles.discoverEmail}>{user.email}</Text>}
-        {user.lastActiveAt && (
-          <Text style={styles.discoverActivity}>
-            Active {formatTimeAgo(user.lastActiveAt)}
-          </Text>
-        )}
+      <View style={styles.discoverRoleContainer}>
+        <Text style={[
+          styles.discoverRoleText,
+          user.role === 'admin' ? styles.discoverRoleAdmin : styles.discoverRoleMember
+        ]}>
+          {user.role === 'admin' ? 'Admin' : 'Member'}
+        </Text>
       </View>
-      <FriendRequestButton
-        targetUserId={user.id}
-        targetUserName={user.displayName}
-        targetUserProfilePicture={user.profilePicture}
-        style={styles.discoverButton}
-      />
     </View>
   );
 
@@ -821,6 +814,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.border,
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   discoverContent: {
     flex: 1,
@@ -836,13 +830,24 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     color: theme.textSecondary,
   },
-  discoverButton: {
-    marginLeft: 12,
+  discoverRoleContainer: {
+    marginLeft: 'auto',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: theme.surface,
+    borderWidth: 1,
+    borderColor: theme.border,
   },
-  discoverActivity: {
+  discoverRoleText: {
     fontSize: 12,
-    color: theme.textTertiary,
-    marginTop: 2,
+    fontWeight: '600',
+  },
+  discoverRoleAdmin: {
+    color: theme.error || '#ef4444',
+  },
+  discoverRoleMember: {
+    color: theme.textSecondary,
   },
   filterButton: {
     backgroundColor: theme.primary,
