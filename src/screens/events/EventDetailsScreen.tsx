@@ -457,9 +457,9 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   replyInputHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    marginBottom: 8,
+  },
+  replyHeaderTop: {
     marginBottom: 8,
   },
   cancelReplyButton: {
@@ -582,7 +582,8 @@ const styles = StyleSheet.create({
   replyHeaderActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    justifyContent: 'flex-end',
+    gap: 8,
   },
   replySendButton: {
     backgroundColor: '#ec4899',
@@ -722,7 +723,9 @@ const CommentItem: React.FC<{
       {!isReply && replyState.isReplying && (
         <View style={styles.replyInputContainer}>
           <View style={styles.replyInputHeader}>
-            <Text style={styles.replyToUserText}>Replying to {comment.userName}</Text>
+            <View style={styles.replyHeaderTop}>
+              <Text style={styles.replyToUserText}>Replying to {comment.userName}</Text>
+            </View>
             <View style={styles.replyHeaderActions}>
               <TouchableOpacity
                 onPress={() => onAddReply(comment.id)}
@@ -1230,7 +1233,7 @@ const EventDetailsScreen: React.FC = memo(() => {
                 <Text style={styles.infoIcon}>📅</Text>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoText}>
-                    {formatFullDate(currentEvent.date)}
+                    {currentEvent.date ? formatFullDate(currentEvent.date) : 'Date TBD'}
                   </Text>
                   <Text style={styles.infoSubtext}>
                     {formatTimeRange(currentEvent.startTime, currentEvent.endTime)}

@@ -17,8 +17,32 @@ export const formatDate = (date: Date): string => {
 /**
  * Format a full date for display (used in event details)
  */
-export const formatFullDate = (date: Date): string => {
-  return date.toLocaleDateString('en-US', {
+export const formatFullDate = (date: Date | any): string => {
+  // Handle different date formats (Firestore timestamp, string, etc.)
+  let dateObj: Date;
+  
+  if (!date) {
+    return 'Date TBD';
+  }
+  
+  if (date instanceof Date) {
+    dateObj = date;
+  } else if (date.toDate && typeof date.toDate === 'function') {
+    // Handle Firestore timestamp
+    dateObj = date.toDate();
+  } else if (typeof date === 'string' || typeof date === 'number') {
+    // Handle string or timestamp
+    dateObj = new Date(date);
+  } else {
+    return 'Date TBD';
+  }
+  
+  // Check if the date is valid
+  if (isNaN(dateObj.getTime())) {
+    return 'Date TBD';
+  }
+  
+  return dateObj.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
