@@ -352,6 +352,11 @@ const styles = StyleSheet.create({
     maxHeight: 100,
     color: '#111827',
   },
+  inputActions: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
   sendCommentButton: {
     backgroundColor: '#ec4899',
     paddingHorizontal: 16,
@@ -360,7 +365,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 60,
-    marginLeft: 8,
     marginBottom: 4,
   },
   sendCommentButtonDisabled: {
@@ -453,9 +457,9 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   replyInputHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    marginBottom: 8,
+  },
+  replyHeaderTop: {
     marginBottom: 8,
   },
   cancelReplyButton: {
@@ -573,11 +577,42 @@ const styles = StyleSheet.create({
   imagePickerDisabledText: {
     fontSize: 14,
     color: '#6b7280',
+    fontWeight: '500',
   },
-  inputActions: {
+  replyHeaderActions: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-end',
     gap: 8,
+  },
+  replySendButton: {
+    backgroundColor: '#ec4899',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 60,
+  },
+  replySendButtonDisabled: {
+    backgroundColor: '#d1d5db',
+  },
+  replySendText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  replyInput: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    minHeight: 80,
+    maxHeight: 120,
+    color: '#111827',
   },
 });
 
@@ -688,41 +723,43 @@ const CommentItem: React.FC<{
       {!isReply && replyState.isReplying && (
         <View style={styles.replyInputContainer}>
           <View style={styles.replyInputHeader}>
-            <Text style={styles.replyToUserText}>Replying to {comment.userName}</Text>
-            <TouchableOpacity
-              onPress={() => onCancelReply(comment.id)}
-              style={styles.cancelReplyButton}
-            >
-              <Text style={styles.cancelReplyText}>Cancel</Text>
-            </TouchableOpacity>
+            <View style={styles.replyHeaderTop}>
+              <Text style={styles.replyToUserText}>Replying to {comment.userName}</Text>
+            </View>
+            <View style={styles.replyHeaderActions}>
+              <TouchableOpacity
+                onPress={() => onAddReply(comment.id)}
+                disabled={!replyState.content.trim() || isCommenting}
+                style={[
+                  styles.replySendButton,
+                  (!replyState.content.trim() || isCommenting) && styles.replySendButtonDisabled
+                ]}
+              >
+                {isCommenting ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text style={styles.replySendText}>Send</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => onCancelReply(comment.id)}
+                style={styles.cancelReplyButton}
+              >
+                <Text style={styles.cancelReplyText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </View>
           
-          <View style={styles.commentInputContainer}>
-            <MentionInput
-              key={`reply-${comment.id}`}
-              value={replyState.content}
-              onChangeText={handleThisReplyTextChange}
-              placeholder="Write a reply..."
-              users={availableUsers}
-              multiline
-              maxLength={500}
-              style={styles.commentInput}
-            />
-            <TouchableOpacity
-              onPress={() => onAddReply(comment.id)}
-              disabled={!replyState.content.trim() || isCommenting}
-              style={[
-                styles.replySubmitButton,
-                (!replyState.content.trim() || isCommenting) && styles.replySubmitButtonDisabled
-              ]}
-            >
-              {isCommenting ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text style={styles.replySubmitText}>Send</Text>
-              )}
-            </TouchableOpacity>
-          </View>
+          <MentionInput
+            key={`reply-${comment.id}`}
+            value={replyState.content}
+            onChangeText={handleThisReplyTextChange}
+            placeholder="Write a reply..."
+            users={availableUsers}
+            multiline
+            maxLength={500}
+            style={styles.replyInput}
+          />
         </View>
       )}
       
@@ -796,6 +833,26 @@ const EventDetailsScreen: React.FC = memo(() => {
       return unsubscribe;
     }
   }, [eventId, user?.id]);
+
+  // Handle error state when event doesn't exist or fails to load
+  useEffect(() => {
+    if (error && !isLoading && !currentEvent) {
+      // Show error alert and navigate back
+      Alert.alert(
+        'Event Not Found',
+        'This event could not be found. It may have been deleted or you may not have permission to view it.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              clearError();
+              navigation.goBack();
+            }
+          }
+        ]
+      );
+    }
+  }, [error, isLoading, currentEvent, navigation, clearError]);
 
   const loadUsersForMentions = async () => {
     if (!eventId) return;
@@ -1176,7 +1233,7 @@ const EventDetailsScreen: React.FC = memo(() => {
                 <Text style={styles.infoIcon}>📅</Text>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoText}>
-                    {formatFullDate(currentEvent.date)}
+                    {currentEvent.date ? formatFullDate(currentEvent.date) : 'Date TBD'}
                   </Text>
                   <Text style={styles.infoSubtext}>
                     {formatTimeRange(currentEvent.startTime, currentEvent.endTime)}

@@ -83,27 +83,49 @@ const UserProfileScreen: React.FC = () => {
       if (showRefresh) setIsRefreshing(true);
       else setIsLoading(true);
 
-      // Load user profile and events in parallel
-      const [user, upcomingEvents, pastEvents] = await Promise.all([
-        getUserProfile(userId),
-        getUserUpcomingEvents(userId, 5),
-        getUserPastEvents(userId, 5),
-      ]);
+      // For own profile, use current user data from auth store to ensure it's up-to-date
+      if (isOwnProfile && currentUser) {
+        // Convert AuthUser to User type
+        const userAsUser: User = {
+          ...currentUser,
+          createdAt: new Date(), // Default timestamp, will be overridden by actual data if needed
+          updatedAt: new Date(), // Default timestamp, will be overridden by actual data if needed
+        };
+        setProfileUser(userAsUser);
+        
+        // Still load events data
+        const [upcomingEvents, pastEvents] = await Promise.all([
+          getUserUpcomingEvents(userId, 5),
+          getUserPastEvents(userId, 5),
+        ]);
+        
+        setUserEvents({
+          upcoming: upcomingEvents,
+          past: pastEvents,
+        });
+      } else {
+        // For other users' profiles, fetch fresh data
+        const [user, upcomingEvents, pastEvents] = await Promise.all([
+          getUserProfile(userId),
+          getUserUpcomingEvents(userId, 5),
+          getUserPastEvents(userId, 5),
+        ]);
 
-      if (!user) {
-        Alert.alert(
-          'User Not Found',
-          'This user profile could not be found.',
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
-        );
-        return;
+        if (!user) {
+          Alert.alert(
+            'User Not Found',
+            'This user profile could not be found.',
+            [{ text: 'OK', onPress: () => navigation.goBack() }]
+          );
+          return;
+        }
+
+        setProfileUser(user);
+        setUserEvents({
+          upcoming: upcomingEvents,
+          past: pastEvents,
+        });
       }
-
-      setProfileUser(user);
-      setUserEvents({
-        upcoming: upcomingEvents,
-        past: pastEvents,
-      });
     } catch (error) {
       await handleError(error, {
         showAlert: true,
@@ -119,6 +141,19 @@ const UserProfileScreen: React.FC = () => {
   useEffect(() => {
     loadUserProfile();
   }, [userId]);
+
+  // Also reload when currentUser changes (for own profile)
+  useEffect(() => {
+    if (isOwnProfile && currentUser) {
+      // Convert AuthUser to User type
+      const userAsUser: User = {
+        ...currentUser,
+        createdAt: new Date(), // Default timestamp, will be overridden by actual data if needed
+        updatedAt: new Date(), // Default timestamp, will be overridden by actual data if needed
+      };
+      setProfileUser(userAsUser);
+    }
+  }, [currentUser, isOwnProfile]);
 
   const handleRefresh = () => {
     loadUserProfile(true);

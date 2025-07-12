@@ -280,20 +280,74 @@ export const useEventStore = create<EventState>((set, get) => ({
   // Update RSVP
   updateRSVP: async (eventId: string, userId: string, userName: string, status: 'going' | 'maybe' | 'not-going', userProfilePicture?: string) => {
     set({ isRsvping: true, error: null });
+    
+    // Get current event state for optimistic update
+    const { currentEvent } = get();
+    if (!currentEvent || currentEvent.id !== eventId) {
+      set({ isRsvping: false });
+      return;
+    }
+
+    // Create optimistic user RSVP
+    const optimisticUserRSVP = {
+      id: `temp-${Date.now()}`,
+      eventId,
+      userId,
+      userName,
+      userProfilePicture,
+      status,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Find existing user RSVP in the current event
+    const existingRSVPIndex = currentEvent.rsvps.findIndex(rsvp => rsvp.userId === userId);
+    let optimisticRSVPs = [...currentEvent.rsvps];
+    
+    if (existingRSVPIndex >= 0) {
+      // Update existing RSVP
+      optimisticRSVPs[existingRSVPIndex] = {
+        ...optimisticRSVPs[existingRSVPIndex],
+        status,
+        updatedAt: new Date(),
+      };
+    } else {
+      // Add new RSVP
+      optimisticRSVPs.push(optimisticUserRSVP);
+    }
+
+    // Calculate optimistic stats
+    const optimisticStats = {
+      totalAttendees: optimisticRSVPs.length,
+      goingCount: optimisticRSVPs.filter(r => r.status === 'going').length,
+      maybeCount: optimisticRSVPs.filter(r => r.status === 'maybe').length,
+      notGoingCount: optimisticRSVPs.filter(r => r.status === 'not-going').length,
+      commentsCount: currentEvent.stats.commentsCount,
+    };
+
+    // Optimistically update the current event
+    const optimisticEvent = {
+      ...currentEvent,
+      rsvps: optimisticRSVPs,
+      stats: optimisticStats,
+      userRsvp: existingRSVPIndex >= 0 ? optimisticRSVPs[existingRSVPIndex] : optimisticUserRSVP,
+    };
+
+    set({ currentEvent: optimisticEvent });
+
     try {
+      // Perform the actual API call
       await eventService.createOrUpdateRSVP(eventId, userId, userName, status, userProfilePicture);
       
-      // Refresh current event if it's the one being RSVP'd to
-      const { currentEvent } = get();
-      if (currentEvent && currentEvent.id === eventId) {
-        const updatedEvent = await eventService.getPopulatedEvent(eventId, userId);
-        set({ currentEvent: updatedEvent });
-      }
-      
-      set({ isRsvping: false });
+      // Refresh with real data from server
+      const updatedEvent = await eventService.getPopulatedEvent(eventId, userId);
+      set({ currentEvent: updatedEvent, isRsvping: false });
     } catch (error) {
+      // Revert optimistic update on error
+      set({ currentEvent, isRsvping: false });
+      
       const errorMessage = error instanceof Error ? error.message : 'Failed to update RSVP';
-      set({ error: errorMessage, isRsvping: false });
+      set({ error: errorMessage });
       throw error;
     }
   },

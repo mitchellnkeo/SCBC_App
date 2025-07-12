@@ -31,24 +31,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      // Get current user if any
-      const currentUser = await getCurrentUser();
-      
-      if (currentUser) {
-        set({
-          user: currentUser,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-      } else {
-        set({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false,
-        });
-      }
-
-      // Set up auth state listener
+      // Set up auth state listener first - this will handle the restored auth state
       onAuthStateChange((user: AuthUser | null) => {
         set({
           user,
@@ -56,6 +39,21 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           isLoading: false,
         });
       });
+
+      // Give Firebase Auth time to restore state from AsyncStorage
+      // The auth state listener will handle the actual state update
+      setTimeout(() => {
+        // If still loading after 3 seconds, something went wrong
+        const currentState = get();
+        if (currentState.isLoading) {
+          console.warn('Auth initialization timeout - setting to not authenticated');
+          set({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        }
+      }, 3000);
 
     } catch (error: any) {
       console.error('Auth initialization error:', error);
