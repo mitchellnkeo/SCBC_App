@@ -30,6 +30,7 @@ interface EditProfileFormData {
   bio: string;
   hobbies: string;
   favoriteBooks: string;
+  storyGraph: string;
   instagram: string;
   x: string;
   linkedin: string;
@@ -46,6 +47,7 @@ export const EditProfileScreen: React.FC = () => {
   const bioRef = useRef<TextInput>(null);
   const hobbiesRef = useRef<TextInput>(null);
   const favoriteBooksRef = useRef<TextInput>(null);
+  const storyGraphRef = useRef<TextInput>(null);
   const instagramRef = useRef<TextInput>(null);
   const xRef = useRef<TextInput>(null);
   const linkedinRef = useRef<TextInput>(null);
@@ -61,6 +63,7 @@ export const EditProfileScreen: React.FC = () => {
       bio: '',
       hobbies: '',
       favoriteBooks: '',
+      storyGraph: '',
       instagram: '',
       x: '',
       linkedin: '',
@@ -82,6 +85,7 @@ export const EditProfileScreen: React.FC = () => {
         bio: user.bio || '',
         hobbies: Array.isArray(user.hobbies) ? user.hobbies.join(', ') : '',
         favoriteBooks: Array.isArray(user.favoriteBooks) ? user.favoriteBooks.join(', ') : '',
+        storyGraph: user.storyGraph || '',
         instagram: user.socialLinks?.instagram || '',
         x: user.socialLinks?.x || '',
         linkedin: user.socialLinks?.linkedin || '',
@@ -122,6 +126,7 @@ export const EditProfileScreen: React.FC = () => {
       const cleanedInstagram = data.instagram ? cleanUsername(data.instagram.trim(), 'instagram') : '';
       const cleanedX = data.x ? cleanUsername(data.x.trim(), 'x') : '';
       const cleanedLinkedin = data.linkedin ? cleanUsername(data.linkedin.trim(), 'linkedin') : '';
+      const cleanedStoryGraph = data.storyGraph ? cleanUsername(data.storyGraph.trim(), 'storygraph') : '';
 
       // Validate usernames if provided
       if (cleanedInstagram && !isValidUsername(cleanedInstagram, 'instagram')) {
@@ -136,12 +141,17 @@ export const EditProfileScreen: React.FC = () => {
         Alert.alert('Invalid Username', 'Please enter a valid LinkedIn username (3+ characters, letters, numbers, periods, hyphens, underscores only).');
         return;
       }
+      if (cleanedStoryGraph && !isValidUsername(cleanedStoryGraph, 'storygraph')) {
+        Alert.alert('Invalid Username', 'Please enter a valid StoryGraph username (2+ characters, letters, numbers, periods, hyphens, underscores only).');
+        return;
+      }
 
       const updateData = {
         displayName: data.displayName.trim(),
         bio: data.bio.trim(),
         hobbies,
         favoriteBooks,
+        storyGraph: cleanedStoryGraph || undefined,
         socialLinks: {
           ...(cleanedInstagram ? { instagram: cleanedInstagram } : {}),
           ...(cleanedX ? { x: cleanedX } : {}),
@@ -388,6 +398,25 @@ export const EditProfileScreen: React.FC = () => {
                   multiline
                   helpText="Separate multiple books with commas"
                   ref={favoriteBooksRef}
+                  returnKeyType="next"
+                  onSubmitEditing={() => storyGraphRef.current?.focus()}
+                />
+              )}
+            />
+
+            {/* StoryGraph */}
+            <Controller
+              control={control}
+              name="storyGraph"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  label="StoryGraph Profile"
+                  placeholder="e.g., your-username"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  helpText="Your StoryGraph username (optional)"
+                  ref={storyGraphRef}
                   returnKeyType="next"
                   onSubmitEditing={() => instagramRef.current?.focus()}
                 />

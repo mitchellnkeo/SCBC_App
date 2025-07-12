@@ -147,6 +147,27 @@ const ProfileScreen: React.FC = () => {
               </View>
             )}
 
+            {/* StoryGraph Section */}
+            {user.storyGraph && (
+              <View style={styles.interestsSection}>
+                <Text style={styles.interestsLabel}>StoryGraph</Text>
+                <TouchableOpacity
+                  style={styles.storyGraphLink}
+                  onPress={() => {
+                    try {
+                      if (user.storyGraph) {
+                        Linking.openURL(user.storyGraph);
+                      }
+                    } catch (error) {
+                      Alert.alert('Error', 'Unable to open StoryGraph profile');
+                    }
+                  }}
+                >
+                  <Text style={styles.storyGraphText}>📚 View StoryGraph Profile</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             {/* Social Media Links */}
             {user.socialLinks && Object.values(user.socialLinks).some(link => link) && (
               <View style={styles.socialLinksSection}>
@@ -444,6 +465,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#475569',
     fontWeight: '500',
+  },
+  storyGraphLink: {
+    backgroundColor: '#f0f9ff',
+    borderWidth: 1,
+    borderColor: '#1e40af',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  storyGraphText: {
+    fontSize: 16,
+    color: '#1e40af',
+    fontWeight: '600',
   },
 });
 

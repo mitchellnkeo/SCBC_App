@@ -57,6 +57,7 @@ export const registerUser = async (credentials: RegisterCredentials): Promise<Au
       bio: undefined,
       hobbies: undefined,
       favoriteBooks: undefined,
+      storyGraph: undefined,
       socialLinks: undefined,
     };
   } catch (error: any) {
@@ -100,6 +101,7 @@ export const loginUser = async (credentials: LoginCredentials): Promise<AuthUser
       bio: userData?.bio,
       hobbies: userData?.hobbies,
       favoriteBooks: userData?.favoriteBooks,
+      storyGraph: userData?.storyGraph,
       socialLinks: userData?.socialLinks,
     };
   } catch (error: any) {
@@ -149,6 +151,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
       bio: userData?.bio,
       hobbies: userData?.hobbies,
       favoriteBooks: userData?.favoriteBooks,
+      storyGraph: userData?.storyGraph,
       socialLinks: userData?.socialLinks,
     };
   } catch (error) {
@@ -185,6 +188,7 @@ export const onAuthStateChange = (callback: (user: AuthUser | null) => void) => 
           bio: userData?.bio,
           hobbies: userData?.hobbies,
           favoriteBooks: userData?.favoriteBooks,
+          storyGraph: userData?.storyGraph,
           socialLinks: userData?.socialLinks,
         };
 
@@ -201,6 +205,7 @@ export const onAuthStateChange = (callback: (user: AuthUser | null) => void) => 
           bio: undefined,
           hobbies: undefined,
           favoriteBooks: undefined,
+          storyGraph: undefined,
           socialLinks: undefined,
         };
         

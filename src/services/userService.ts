@@ -351,55 +351,9 @@ export const searchUsers = async (
     // Convert search query to lowercase for case-insensitive search
     const searchLower = searchQuery.toLowerCase().trim();
     
-    try {
-      // Try primary search method using searchTerms array
-      const constraints: QueryConstraint[] = [
-        where('searchTerms', 'array-contains', searchLower),
-        orderBy('displayName'),
-        limit(limitCount + 1)
-      ];
-
-      if (lastVisible) {
-        constraints.push(startAfter(lastVisible));
-      }
-
-      const usersQuery = query(
-        collection(db, USERS_COLLECTION),
-        ...constraints
-      );
-
-      const snapshot = await getDocs(usersQuery);
-      const docs = snapshot.docs;
-      
-      const hasMore = docs.length > limitCount;
-      const usersToProcess = hasMore ? docs.slice(0, limitCount) : docs;
-      const newLastVisible = usersToProcess[usersToProcess.length - 1];
-
-      const users = usersToProcess.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          displayName: data.displayName,
-          email: data.email,
-          profilePicture: data.profilePicture,
-          role: data.role || 'member',
-          bio: data.bio,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          updatedAt: data.updatedAt?.toDate() || new Date(),
-        } as User;
-      });
-
-      return {
-        users,
-        lastVisible: newLastVisible,
-        hasMore
-      };
-    } catch (searchError) {
-      console.warn('Primary search failed, falling back to client-side search:', searchError);
-      
-      // Fallback to client-side search
-      return fallbackClientSideSearch(searchQuery, { limitCount, lastVisible });
-    }
+    // For now, always use client-side search since searchTerms might not be populated
+    // This ensures consistent search behavior across all users
+    return fallbackClientSideSearch(searchQuery, { limitCount, lastVisible });
   } catch (error) {
     console.error('Error searching users:', error);
     return {
@@ -487,7 +441,7 @@ export const fallbackClientSideSearch = async (
     const { limitCount = 10 } = options;
     
     // Get all users and filter client-side
-    const allUsersResult = await getAllUsers({ limitCount: 100 }); // Get more for filtering
+    const allUsersResult = await getAllUsers({ limitCount: 1000 }); // Get more users for better search
     const searchLower = searchQuery.toLowerCase().trim();
     
     const filteredUsers = allUsersResult.users.filter((user: User) => 
@@ -495,8 +449,25 @@ export const fallbackClientSideSearch = async (
       user.email.toLowerCase().includes(searchLower)
     );
 
-    const users = filteredUsers.slice(0, limitCount);
-    const hasMore = filteredUsers.length > limitCount;
+    // Sort by relevance (exact matches first, then partial matches)
+    const sortedUsers = filteredUsers.sort((a, b) => {
+      const aNameLower = a.displayName.toLowerCase();
+      const bNameLower = b.displayName.toLowerCase();
+      
+      // Exact match gets highest priority
+      if (aNameLower === searchLower && bNameLower !== searchLower) return -1;
+      if (bNameLower === searchLower && aNameLower !== searchLower) return 1;
+      
+      // Starts with query gets second priority
+      if (aNameLower.startsWith(searchLower) && !bNameLower.startsWith(searchLower)) return -1;
+      if (bNameLower.startsWith(searchLower) && !aNameLower.startsWith(searchLower)) return 1;
+      
+      // Otherwise sort alphabetically
+      return aNameLower.localeCompare(bNameLower);
+    });
+
+    const users = sortedUsers.slice(0, limitCount);
+    const hasMore = sortedUsers.length > limitCount;
 
     return {
       users,

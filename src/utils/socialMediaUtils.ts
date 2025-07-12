@@ -2,7 +2,7 @@ import { Share } from 'react-native';
 import { BookClubEvent } from '../types';
 import { formatFullDate, formatTimeRange } from './dateTimeUtils';
 
-export type SocialPlatform = 'instagram' | 'x' | 'linkedin';
+export type SocialPlatform = 'instagram' | 'x' | 'linkedin' | 'storygraph';
 
 export interface SocialMediaConfig {
   baseUrl: string;
@@ -32,6 +32,11 @@ const SOCIAL_MEDIA_CONFIGS: Record<SocialPlatform, SocialMediaConfig> = {
     displayName: 'LinkedIn',
     iconName: 'linkedin',
     // LinkedIn doesn't have a reliable app scheme for profiles
+  },
+  storygraph: {
+    baseUrl: 'https://app.thestorygraph.com/profile/',
+    displayName: 'StoryGraph',
+    iconName: 'book-open', // FontAwesome book icon
   },
 };
 
@@ -145,6 +150,10 @@ export const isValidUsername = (username: string, platform: SocialPlatform): boo
       // LinkedIn: more flexible, but basic check
       return /^[a-zA-Z0-9._-]{1,50}$/.test(cleaned) && cleaned.length >= 3;
     
+    case 'storygraph':
+      // StoryGraph usernames: more flexible, but basic check
+      return /^[a-zA-Z0-9._-]{1,50}$/.test(cleaned) && cleaned.length >= 2;
+    
     default:
       return false;
   }
@@ -175,6 +184,8 @@ export const getPlatformEmoji = (platform: SocialPlatform): string => {
       return '𝕏'; // X logo as Unicode character
     case 'linkedin':
       return '💼';
+    case 'storygraph':
+      return '📚';
     default:
       return '🔗';
   }

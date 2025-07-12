@@ -1,5 +1,5 @@
 // User Types
-export interface User {
+  export interface User {
     id: string;
     email: string;
     displayName: string;
@@ -8,6 +8,7 @@ export interface User {
     bio?: string;
     hobbies?: string[];
     favoriteBooks?: string[];
+    storyGraph?: string; // StoryGraph profile URL
     socialLinks?: {
       instagram?: string;
       x?: string;
@@ -28,6 +29,7 @@ export interface User {
     bio?: string;
     hobbies?: string[];
     favoriteBooks?: string[];
+    storyGraph?: string; // StoryGraph profile URL
     socialLinks?: {
       instagram?: string;
       x?: string;

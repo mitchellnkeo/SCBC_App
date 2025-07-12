@@ -531,7 +531,26 @@ const UserProfileScreen: React.FC = () => {
           </View>
         )}
 
-
+        {/* StoryGraph Section */}
+        {profileUser.storyGraph && (
+          <View style={styles.interestsCard}>
+            <Text style={styles.interestsTitle}>StoryGraph</Text>
+            <TouchableOpacity
+              style={styles.storyGraphLink}
+              onPress={() => {
+                try {
+                  if (profileUser.storyGraph) {
+                    Linking.openURL(profileUser.storyGraph);
+                  }
+                } catch (error) {
+                  Alert.alert('Error', 'Unable to open StoryGraph profile');
+                }
+              }}
+            >
+              <Text style={styles.storyGraphText}>📚 View StoryGraph Profile</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Events Section */}
         {renderEventsSection()}
@@ -817,6 +836,20 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   sectionContent: {
     marginTop: 8,
+  },
+  storyGraphLink: {
+    backgroundColor: theme.surface,
+    borderWidth: 1,
+    borderColor: theme.primary,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  storyGraphText: {
+    fontSize: 16,
+    color: theme.primary,
+    fontWeight: '600',
   },
 });
 

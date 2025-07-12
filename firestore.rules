@@ -98,7 +98,7 @@ service cloud.firestore {
       allow read: if request.auth != null && 
         (request.auth.uid == resource.data.fromUserId || 
          request.auth.uid == resource.data.toUserId);
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.fromUserId && notRateLimited();
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.fromUserId;
       allow update: if request.auth != null && 
         request.auth.uid == resource.data.toUserId && 
         request.resource.data.status in ['accepted', 'declined'];
