@@ -111,6 +111,19 @@ const ProfileScreen: React.FC = () => {
               </View>
             </View>
             
+            {/* StoryGraph Section */}
+            {user.storyGraph && (
+              <View style={styles.interestsSection}>
+                <Text style={styles.interestsLabel}>StoryGraph</Text>
+                <TouchableOpacity
+                  style={styles.storyGraphLink}
+                  onPress={() => handleSocialLinkPress(user.storyGraph!, 'storygraph')}
+                >
+                  <Text style={styles.storyGraphText}>📚 View StoryGraph Profile</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            
             {/* Bio Section */}
             {user.bio && (
               <View style={styles.bioSection}>
@@ -144,19 +157,6 @@ const ProfileScreen: React.FC = () => {
                     </View>
                   ))}
                 </View>
-              </View>
-            )}
-
-            {/* StoryGraph Section */}
-            {user.storyGraph && (
-              <View style={styles.interestsSection}>
-                <Text style={styles.interestsLabel}>StoryGraph</Text>
-                <TouchableOpacity
-                  style={styles.storyGraphLink}
-                  onPress={() => handleSocialLinkPress(user.storyGraph!, 'storygraph')}
-                >
-                  <Text style={styles.storyGraphText}>📚 View StoryGraph Profile</Text>
-                </TouchableOpacity>
               </View>
             )}
 
