@@ -19,6 +19,7 @@ import { Button } from '../components/common/Button';
 import LoadingState from '../components/common/LoadingState';
 import ErrorMessage from '../components/common/ErrorMessage';
 import { formatFullDate } from '../utils/dateTimeUtils';
+import TopNavbar from '../components/navigation/TopNavbar';
 
 interface Announcement {
   id: string;
@@ -116,6 +117,7 @@ const AnnouncementsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <TopNavbar title="Announcements" />
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
