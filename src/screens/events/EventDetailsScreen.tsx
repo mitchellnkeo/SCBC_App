@@ -265,6 +265,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 2,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48, // Ensure consistent height
   },
   rsvpButtonGoing: {
     backgroundColor: 'white',
@@ -294,6 +296,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 18, // Ensure consistent line height
   },
   rsvpButtonTextSelected: {
     color: 'white',
@@ -1288,7 +1292,7 @@ const EventDetailsScreen: React.FC = memo(() => {
                     style={getRSVPButtonStyle('going')}
                   >
                     <Text style={getRSVPTextStyle('going')}>
-                      ✓ Going ({currentEvent.stats.goingCount})
+                      Going ({currentEvent.stats.goingCount})
                     </Text>
                   </TouchableOpacity>
                   
@@ -1298,7 +1302,7 @@ const EventDetailsScreen: React.FC = memo(() => {
                     style={getRSVPButtonStyle('maybe')}
                   >
                     <Text style={getRSVPTextStyle('maybe')}>
-                      ? Maybe ({currentEvent.stats.maybeCount})
+                      Maybe ({currentEvent.stats.maybeCount})
                     </Text>
                   </TouchableOpacity>
                   
@@ -1308,7 +1312,7 @@ const EventDetailsScreen: React.FC = memo(() => {
                     style={getRSVPButtonStyle('not-going')}
                   >
                     <Text style={getRSVPTextStyle('not-going')}>
-                      ✗ Can't Go ({currentEvent.stats.notGoingCount})
+                      Can't Go ({currentEvent.stats.notGoingCount})
                     </Text>
                   </TouchableOpacity>
                 </View>
