@@ -1,6 +1,7 @@
 import { collection, doc, addDoc, getDocs, deleteDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuthStore } from '../stores/authStore';
+import { createAnnouncementNotification } from './internalNotificationService';
 
 export interface Announcement {
   id: string;
@@ -56,12 +57,21 @@ class AnnouncementService {
       }
 
       const announcementsRef = this.getAnnouncementsCollection();
-      await addDoc(announcementsRef, {
+      const docRef = await addDoc(announcementsRef, {
         content,
         authorId: user.id,
         authorName: user.displayName || 'Admin',
         createdAt: serverTimestamp(),
       });
+
+      // Send notifications to all users
+      await createAnnouncementNotification(
+        docRef.id,
+        content,
+        user.id,
+        user.displayName || 'Admin',
+        user.profilePicture
+      );
     } catch (error: any) {
       console.error('Error creating announcement:', error);
       throw new Error(error.message || 'Failed to create announcement');

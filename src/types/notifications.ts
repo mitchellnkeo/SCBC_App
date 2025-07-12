@@ -11,7 +11,8 @@ export type NotificationType =
   | 'profile_comment_reply'
   | 'admin_message'
   | 'new_report'
-  | 'report_resolved';
+  | 'report_resolved'
+  | 'announcement';
 
 export interface Notification {
   id: string;
@@ -105,6 +106,13 @@ export interface NotificationData {
     reportType: string;
     contentPreview: string;
     resolution: string;
+  };
+  
+  // For announcements
+  announcement?: {
+    announcementId: string;
+    content: string;
+    adminName: string;
   };
 }
 

@@ -232,6 +232,64 @@ export const createEventUpdateNotification = async (
 };
 
 /**
+ * Create announcement notification for all users
+ */
+export const createAnnouncementNotification = async (
+  announcementId: string,
+  announcementContent: string,
+  adminUserId: string,
+  adminUserName: string,
+  adminProfilePicture?: string
+): Promise<void> => {
+  try {
+    // Get all users
+    const usersQuery = query(collection(db, 'users'));
+    const usersSnapshot = await getDocs(usersQuery);
+    
+    if (usersSnapshot.empty) return;
+
+    const batch = writeBatch(db);
+    const notifiedUsers = new Set<string>();
+    
+    usersSnapshot.docs.forEach(userDoc => {
+      const userData = userDoc.data();
+      const userId = userDoc.id;
+      
+      // Don't notify the admin who posted the announcement or duplicate users
+      if (userId === adminUserId || notifiedUsers.has(userId)) return;
+      
+      notifiedUsers.add(userId);
+      
+      const notificationRef = doc(collection(db, NOTIFICATIONS_COLLECTION));
+      batch.set(notificationRef, {
+        userId,
+        type: 'announcement' as NotificationType,
+        title: 'New Announcement',
+        message: `New announcement from ${adminUserName}`,
+        data: {
+          announcement: {
+            announcementId,
+            content: announcementContent,
+            adminName: adminUserName,
+          }
+        },
+        isRead: false,
+        fromUserId: adminUserId,
+        fromUserName: adminUserName,
+        fromUserProfilePicture: adminProfilePicture,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    });
+
+    await batch.commit();
+    console.log(`Created ${notifiedUsers.size} announcement notifications`);
+  } catch (error) {
+    console.error('Error creating announcement notifications:', error);
+  }
+};
+
+/**
  * Create event approval/rejection notification
  */
 export const createEventApprovalNotification = async (
@@ -333,6 +391,7 @@ export const getNotificationStats = async (userId: string): Promise<Notification
       admin_message: 0,
       new_report: 0,
       report_resolved: 0,
+      announcement: 0,
     };
     
     let totalUnread = 0;
@@ -368,6 +427,7 @@ export const getNotificationStats = async (userId: string): Promise<Notification
         admin_message: 0,
         new_report: 0,
         report_resolved: 0,
+        announcement: 0,
       },
     };
   }
@@ -494,6 +554,7 @@ export const subscribeToNotificationStats = (
       admin_message: 0,
       new_report: 0,
       report_resolved: 0,
+      announcement: 0,
     };
     
     let totalUnread = 0;
