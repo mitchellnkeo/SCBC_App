@@ -10,7 +10,8 @@ service cloud.firestore {
     // Basic per-user rate-limit helper.
     // Allows a write only if the user's lastRequest is more than 60 seconds ago OR the field is missing.
     function notRateLimited() {
-      return userDoc().data.lastRequest == null ||
+      return userDoc() == null || 
+             userDoc().data.lastRequest == null ||
              request.time > userDoc().data.lastRequest + duration.value(1, 'm');
     }
 
@@ -38,13 +39,13 @@ service cloud.firestore {
     match /events/{eventId} {
       allow read: if request.auth != null;
 
-      // New events: authenticated, validated, and rate-limited (1 write/min per user)
-      allow create: if request.auth != null && isValidEvent() && notRateLimited();
+      // New events: authenticated and validated
+      allow create: if request.auth != null && isValidEvent();
 
-      // Updates / deletes: owner or admin; still rate-limited to blunt spam-edits
-      allow update, delete: if request.auth != null && notRateLimited() && (
+      // Updates / deletes: owner or admin
+      allow update, delete: if request.auth != null && (
         request.auth.uid == resource.data.createdBy ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        (userDoc() != null && userDoc().data.role == 'admin')
       );
     }
     
