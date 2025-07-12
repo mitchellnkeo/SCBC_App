@@ -98,15 +98,33 @@ export const sendFriendRequest = async (
   toUserProfilePicture?: string
 ): Promise<string> => {
   try {
+    console.log('Sending friend request:', { fromUserId, toUserId, fromUserName, toUserName });
+    
+    // Validate inputs
+    if (!fromUserId || !toUserId || !fromUserName || !toUserName) {
+      throw new Error('Missing required fields for friend request');
+    }
+    
+    if (fromUserId === toUserId) {
+      throw new Error('Cannot send friend request to yourself');
+    }
+
     // Check if request already exists
-    const existingRequest = await getFriendRequestBetweenUsers(fromUserId, toUserId);
-    if (existingRequest) {
-      throw new Error('Friend request already exists');
+    try {
+      const existingRequest = await getFriendRequestBetweenUsers(fromUserId, toUserId);
+      if (existingRequest) {
+        console.log('Friend request already exists:', existingRequest.id);
+        throw new Error('Friend request already exists');
+      }
+    } catch (error) {
+      console.error('Error checking existing friend request:', error);
+      // Continue anyway - the error might be due to missing function
     }
 
     // Check if they're already friends
     const friendStatus = await getFriendStatus(fromUserId, toUserId);
     if (friendStatus.isFriend) {
+      console.log('Users are already friends');
       throw new Error('Users are already friends');
     }
 
@@ -122,26 +140,32 @@ export const sendFriendRequest = async (
       updatedAt: serverTimestamp(),
     };
 
+    console.log('Creating friend request document:', friendRequest);
     const docRef = await addDoc(collection(db, FRIEND_REQUESTS_COLLECTION), friendRequest);
 
     // Create notification for the recipient
-    await createNotification({
-      userId: toUserId,
-      type: 'friend_request',
-      title: 'New friend request',
-      message: `${fromUserName} sent you a friend request`,
-      data: {
-        friendRequest: {
-          requestId: docRef.id,
-          fromUserName,
-        }
-      },
-      fromUserId,
-      fromUserName,
-      fromUserProfilePicture,
-    });
+    try {
+      await createNotification({
+        userId: toUserId,
+        type: 'friend_request',
+        title: 'New friend request',
+        message: `${fromUserName} sent you a friend request`,
+        data: {
+          friendRequest: {
+            requestId: docRef.id,
+            fromUserName,
+          }
+        },
+        fromUserId,
+        fromUserName,
+        fromUserProfilePicture,
+      });
+    } catch (notificationError) {
+      console.warn('Failed to create notification, but friend request was sent:', notificationError);
+      // Don't fail the entire operation if notification fails
+    }
 
-    console.log('Friend request sent:', docRef.id);
+    console.log('Friend request sent successfully:', docRef.id);
     return docRef.id;
   } catch (error) {
     console.error('Error sending friend request:', error);

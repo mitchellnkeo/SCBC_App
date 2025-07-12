@@ -94,6 +94,13 @@ const FriendsScreen: React.FC = () => {
     }
   }, [activeTab]);
 
+  // Load all users immediately when component mounts if on discover tab
+  useEffect(() => {
+    if (activeTab === 'discover' && !isLoading) {
+      loadAllUsers();
+    }
+  }, [activeTab, isLoading]);
+
   const loadData = async () => {
     if (!user) return;
 
@@ -474,6 +481,16 @@ const FriendsScreen: React.FC = () => {
             subtitle={`No members found for "${searchQuery}"`}
           />
         )
+      ) : searchResults.length > 0 ? (
+        <FlatList
+          data={searchResults}
+          renderItem={renderDiscoverItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+        />
+      ) : isSearching ? (
+        <Text style={styles.searchingText}>Loading members...</Text>
       ) : (
         <EmptyState
           emoji="👥"

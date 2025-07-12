@@ -98,6 +98,8 @@ setInterval(() => {
  */
 export const createNotification = async (notificationData: CreateNotificationData): Promise<string> => {
   try {
+    console.log('Creating notification:', notificationData);
+    
     const notification = {
       ...notificationData,
       isRead: false,
@@ -106,10 +108,11 @@ export const createNotification = async (notificationData: CreateNotificationDat
     };
 
     const docRef = await addDoc(collection(db, NOTIFICATIONS_COLLECTION), notification);
-    console.log('Notification created:', docRef.id);
+    console.log('Notification created successfully:', docRef.id, 'for user:', notificationData.userId);
     return docRef.id;
   } catch (error) {
     console.error('Error creating notification:', error);
+    console.error('Notification data that failed:', notificationData);
     throw new Error('Failed to create notification');
   }
 };
