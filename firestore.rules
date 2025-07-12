@@ -26,6 +26,12 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
       allow read: if request.auth != null; // Allow reading other users for mentions, profiles, etc.
+      
+      // Allow admins to update user roles (but not other fields for security)
+      allow update: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' &&
+        request.auth.uid != userId && // Prevent admins from updating their own role via this rule
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'updatedAt']);
     }
     
     // Events rules
