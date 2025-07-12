@@ -307,16 +307,18 @@ const FriendsScreen: React.FC = () => {
   );
 
   const renderSentRequestItem = ({ item: request }: { item: FriendRequest }) => (
-    <View style={styles.requestItem}>
-      <ClickableUser
-        userId={request.toUserId}
-        displayName={request.toUserName}
-        profilePicture={request.toUserProfilePicture}
-        showAvatar
-        avatarSize="medium"
-      />
-      <View style={styles.requestContent}>
-        <Text style={styles.requestText}>
+    <View style={styles.sentRequestItem}>
+      <View style={styles.sentRequestHeader}>
+        <ClickableUser
+          userId={request.toUserId}
+          displayName={request.toUserName}
+          profilePicture={request.toUserProfilePicture}
+          showAvatar
+          avatarSize="medium"
+        />
+      </View>
+      <View style={styles.sentRequestContent}>
+        <Text style={styles.sentRequestText}>
           <Text style={styles.requestMessage}>Friend request sent to </Text>
           <Text style={styles.requestUserName}>{request.toUserName}</Text>
         </Text>
@@ -699,6 +701,25 @@ const createStyles = (theme: any) => StyleSheet.create({
   requestContent: {
     flex: 1,
     marginLeft: 12,
+  },
+  sentRequestItem: {
+    padding: 16,
+    backgroundColor: theme.card,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  sentRequestHeader: {
+    marginBottom: 12,
+  },
+  sentRequestContent: {
+    paddingLeft: 48, // Align with the avatar
+  },
+  sentRequestText: {
+    fontSize: 14,
+    color: theme.text,
+    marginBottom: 4,
   },
   requestText: {
     fontSize: 14,
