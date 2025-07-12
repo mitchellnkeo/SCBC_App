@@ -153,15 +153,7 @@ const ProfileScreen: React.FC = () => {
                 <Text style={styles.interestsLabel}>StoryGraph</Text>
                 <TouchableOpacity
                   style={styles.storyGraphLink}
-                  onPress={() => {
-                    try {
-                      if (user.storyGraph) {
-                        Linking.openURL(user.storyGraph);
-                      }
-                    } catch (error) {
-                      Alert.alert('Error', 'Unable to open StoryGraph profile');
-                    }
-                  }}
+                  onPress={() => handleSocialLinkPress(user.storyGraph!, 'storygraph')}
                 >
                   <Text style={styles.storyGraphText}>📚 View StoryGraph Profile</Text>
                 </TouchableOpacity>
