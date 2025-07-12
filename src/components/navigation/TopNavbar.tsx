@@ -124,6 +124,12 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
       title: 'Book Club',
       items: [
         {
+          title: 'Announcements',
+          onPress: () => handleMenuItemPress(() => {
+            navigation.navigate('Announcements');
+          }),
+        },
+        {
           title: 'Monthly Meeting Details',
           onPress: () => handleMenuItemPress(() => {
             navigation.navigate('MonthlyBook');

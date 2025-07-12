@@ -23,9 +23,11 @@ import EditMonthlyBookScreen from '../screens/admin/EditMonthlyBookScreen';
 import UserManagementScreen from '../screens/admin/UserManagementScreen';
 import ContentModerationScreen from '../screens/admin/ContentModerationScreen';
 import FriendsScreen from '../screens/friends/FriendsScreen';
+import AnnouncementsScreen from '../screens/AnnouncementsScreen';
 import { useAuthStore } from '../stores/authStore';
 
 export type MainStackParamList = {
+  Announcements: undefined;
   Events: undefined;
   EventDetails: { eventId: string };
   CreateEvent: undefined;
@@ -63,9 +65,18 @@ const MainNavigator: React.FC = () => {
         headerShown: false,
         cardStyle: { backgroundColor: '#f9fafb' }
       }}
-      initialRouteName="Events"
+      initialRouteName="Announcements"
     >
-      {/* Main Events Screen - This will be the home screen */}
+      {/* Announcements Screen - This will be the home screen */}
+      <Stack.Screen 
+        name="Announcements" 
+        component={AnnouncementsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      
+      {/* Main Events Screen */}
       <Stack.Screen 
         name="Events" 
         component={EventsListScreen}

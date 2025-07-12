@@ -2,6 +2,7 @@ export { updateUserProfile, getUserProfile, updateProfilePicture, removeProfileP
 export type { ProfileUpdateData } from './profileService';
 export * from './imageService';
 export * from './whatsappService';
+export * from './announcementService';
 export { 
   getUsersForMentions, 
   searchUsersForMentions, 
