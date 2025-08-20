@@ -1,7 +1,7 @@
 import { collection, doc, addDoc, getDocs, deleteDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { useAuthStore } from '../stores/authStore';
 import { createAnnouncementNotification } from './internalNotificationService';
+import { AuthUser } from '../types';
 
 export interface Announcement {
   id: string;
@@ -45,9 +45,8 @@ class AnnouncementService {
     }
   }
 
-  async createAnnouncement(content: string): Promise<void> {
+  async createAnnouncement(content: string, user: AuthUser): Promise<void> {
     try {
-      const { user } = useAuthStore.getState();
       if (!user) {
         throw new Error('User not authenticated');
       }
@@ -78,9 +77,8 @@ class AnnouncementService {
     }
   }
 
-  async deleteAnnouncement(announcementId: string): Promise<void> {
+  async deleteAnnouncement(announcementId: string, user: AuthUser): Promise<void> {
     try {
-      const { user } = useAuthStore.getState();
       if (!user) {
         throw new Error('User not authenticated');
       }
