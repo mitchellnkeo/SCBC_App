@@ -162,8 +162,11 @@ class CacheService {
    */
   cleanupMemoryCache(): void {
     let cleaned = 0;
-    for (const [key, item] of this.memoryCache.entries()) {
-      if (!this.isValid(item)) {
+    const keys = Array.from(this.memoryCache.keys());
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      const item = this.memoryCache.get(key);
+      if (item && !this.isValid(item)) {
         this.memoryCache.delete(key);
         cleaned++;
       }
