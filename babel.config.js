@@ -3,7 +3,10 @@ module.exports = function(api) {
     return {
       presets: ['babel-preset-expo'],
       plugins: [
-        'react-native-worklets/plugin'  // Changed from 'react-native-reanimated/plugin'
+        'react-native-reanimated/plugin',
+        '@babel/plugin-transform-optional-chaining',
+        '@babel/plugin-transform-nullish-coalescing-operator',
+        '@babel/plugin-transform-logical-assignment-operators'
       ],
     };
   };
