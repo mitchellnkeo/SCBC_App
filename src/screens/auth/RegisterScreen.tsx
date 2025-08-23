@@ -13,6 +13,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useForm, Controller } from 'react-hook-form';
+import { Ionicons } from '@expo/vector-icons';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { useAuthStore } from '../../stores/authStore';
 import { RegisterCredentials } from '../../types';
@@ -20,13 +21,17 @@ import { handleError } from '../../utils/errorHandler';
 import { Button } from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import { Form } from '../../components/common/Form';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type RegisterScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Register'>;
 
 const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<RegisterScreenNavigationProp>();
   const { register, isLoading, error, clearError } = useAuthStore();
+  const { theme } = useTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     control,
@@ -47,6 +52,14 @@ const RegisterScreen: React.FC = () => {
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const confirmPasswordRef = useRef<TextInput>(null);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
 
   const onSubmit = async (data: RegisterCredentials & { confirmPassword: string }) => {
     try {
@@ -70,6 +83,27 @@ const RegisterScreen: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
+  // Password visibility toggle icons
+  const passwordToggleIcon = (
+    <TouchableOpacity onPress={togglePasswordVisibility} style={styles.passwordToggle}>
+      <Ionicons
+        name={showPassword ? 'eye-off' : 'eye'}
+        size={20}
+        color={theme.textTertiary}
+      />
+    </TouchableOpacity>
+  );
+
+  const confirmPasswordToggleIcon = (
+    <TouchableOpacity onPress={toggleConfirmPasswordVisibility} style={styles.passwordToggle}>
+      <Ionicons
+        name={showConfirmPassword ? 'eye-off' : 'eye'}
+        size={20}
+        color={theme.textTertiary}
+      />
+    </TouchableOpacity>
+  );
 
   return (
     <KeyboardAvoidingView 
@@ -169,7 +203,7 @@ const RegisterScreen: React.FC = () => {
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
-                  secureTextEntry
+                  secureTextEntry={!showPassword}
                   autoCapitalize="none"
                   autoCorrect={false}
                   returnKeyType="next"
@@ -179,6 +213,7 @@ const RegisterScreen: React.FC = () => {
                   ref={passwordRef}
                   error={errors.password?.message}
                   required
+                  rightIcon={passwordToggleIcon}
                 />
               )}
             />
@@ -198,7 +233,7 @@ const RegisterScreen: React.FC = () => {
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
-                  secureTextEntry
+                  secureTextEntry={!showConfirmPassword}
                   autoCapitalize="none"
                   autoCorrect={false}
                   returnKeyType="done"
@@ -209,6 +244,7 @@ const RegisterScreen: React.FC = () => {
                   ref={confirmPasswordRef}
                   error={errors.confirmPassword?.message}
                   required
+                  rightIcon={confirmPasswordToggleIcon}
                 />
               )}
             />
@@ -300,6 +336,12 @@ const styles = StyleSheet.create({
     color: '#dc2626',
     fontSize: 16,
     fontWeight: '500',
+  },
+  passwordToggle: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

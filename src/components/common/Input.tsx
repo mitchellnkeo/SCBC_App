@@ -115,8 +115,8 @@ export const Input = forwardRef<TextInput, InputProps>(({
       ...sizeStyles[size],
       ...variantStyles[variant],
       ...(multiline && { textAlignVertical: 'top' as const }),
-      ...(leftIcon && { paddingLeft: sizeStyles[size].padding + 32 }),
-      ...(rightIcon && { paddingRight: sizeStyles[size].padding + 32 }),
+      ...(leftIcon && { paddingLeft: 44 }),
+      ...(rightIcon && { paddingRight: 44 }),
     };
   };
 
@@ -134,7 +134,7 @@ export const Input = forwardRef<TextInput, InputProps>(({
       height: '100%',
       justifyContent: 'center',
       alignItems: 'center',
-      ...sizeStyles[size],
+      width: 44, // Fixed width for consistent icon positioning
       zIndex: 1,
     };
   };

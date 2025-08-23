@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert,
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useForm, Controller } from 'react-hook-form';
+import { Ionicons } from '@expo/vector-icons';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { useAuthStore } from '../../stores/authStore';
 import { LoginCredentials } from '../../types';
@@ -10,13 +11,16 @@ import { handleError } from '../../utils/errorHandler';
 import { Button } from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import { Form } from '../../components/common/Form';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
 const LoginScreen: React.FC = () => {
   const navigation = useNavigation<LoginScreenNavigationProp>();
   const { login, isLoading, error, clearError } = useAuthStore();
+  const { theme } = useTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     control,
@@ -32,6 +36,10 @@ const LoginScreen: React.FC = () => {
   // Add refs for TextInput fields
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   const onSubmit = async (data: LoginCredentials) => {
     try {
@@ -49,6 +57,17 @@ const LoginScreen: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
+  // Password visibility toggle icon
+  const passwordToggleIcon = (
+    <TouchableOpacity onPress={togglePasswordVisibility} style={styles.passwordToggle}>
+      <Ionicons
+        name={showPassword ? 'eye-off' : 'eye'}
+        size={20}
+        color={theme.textTertiary}
+      />
+    </TouchableOpacity>
+  );
 
   return (
     <ScrollView style={styles.scrollContainer}>
@@ -110,7 +129,7 @@ const LoginScreen: React.FC = () => {
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
                 returnKeyType="done"
@@ -121,6 +140,7 @@ const LoginScreen: React.FC = () => {
                 ref={passwordRef}
                 error={errors.password?.message}
                 required
+                rightIcon={passwordToggleIcon}
               />
             )}
           />
@@ -214,6 +234,12 @@ const styles = StyleSheet.create({
     color: '#dc2626',
     fontSize: 16,
     fontWeight: '500',
+  },
+  passwordToggle: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
