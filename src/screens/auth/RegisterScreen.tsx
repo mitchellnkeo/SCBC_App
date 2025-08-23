@@ -89,7 +89,7 @@ const RegisterScreen: React.FC = () => {
     <TouchableOpacity onPress={togglePasswordVisibility} style={styles.passwordToggle}>
       <Ionicons
         name={showPassword ? 'eye-off' : 'eye'}
-        size={20}
+        size={18}
         color={theme.textTertiary}
       />
     </TouchableOpacity>
@@ -99,7 +99,7 @@ const RegisterScreen: React.FC = () => {
     <TouchableOpacity onPress={toggleConfirmPasswordVisibility} style={styles.passwordToggle}>
       <Ionicons
         name={showConfirmPassword ? 'eye-off' : 'eye'}
-        size={20}
+        size={18}
         color={theme.textTertiary}
       />
     </TouchableOpacity>
