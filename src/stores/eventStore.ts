@@ -27,6 +27,7 @@ interface EventState {
   pastError: string | null;
   lastVisible: any;
   hasMore: boolean;
+  unsubscribeEventDetails: (() => void) | null;
   
   // Actions
   loadEvents: (refresh?: boolean) => Promise<void>;
@@ -70,6 +71,7 @@ export const useEventStore = create<EventState>((set, get) => ({
   pastError: null,
   lastVisible: null,
   hasMore: true,
+  unsubscribeEventDetails: null as (() => void) | null,
   
   // Load all approved events with pagination
   loadEvents: async (refresh = false) => {
@@ -282,23 +284,20 @@ export const useEventStore = create<EventState>((set, get) => ({
     set({ isRsvping: true, error: null });
     
     // Get current event state for optimistic update
-    const { currentEvent } = get();
+    const { currentEvent, unsubscribeEventDetails } = get();
     if (!currentEvent || currentEvent.id !== eventId) {
       set({ isRsvping: false });
       return;
     }
 
-    // Create optimistic user RSVP
-    const optimisticUserRSVP = {
-      id: `temp-${Date.now()}`,
-      eventId,
-      userId,
-      userName,
-      userProfilePicture,
-      status,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    // Store the original event for potential rollback
+    const originalEvent = { ...currentEvent };
+
+    // Temporarily unsubscribe from real-time updates to prevent overriding optimistic update
+    if (unsubscribeEventDetails) {
+      unsubscribeEventDetails();
+      set({ unsubscribeEventDetails: null });
+    }
 
     // Find existing user RSVP in the current event
     const existingRSVPIndex = currentEvent.rsvps.findIndex(rsvp => rsvp.userId === userId);
@@ -313,6 +312,16 @@ export const useEventStore = create<EventState>((set, get) => ({
       };
     } else {
       // Add new RSVP
+      const optimisticUserRSVP = {
+        id: `temp-${Date.now()}`,
+        eventId,
+        userId,
+        userName,
+        userProfilePicture,
+        status,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
       optimisticRSVPs.push(optimisticUserRSVP);
     }
 
@@ -330,21 +339,32 @@ export const useEventStore = create<EventState>((set, get) => ({
       ...currentEvent,
       rsvps: optimisticRSVPs,
       stats: optimisticStats,
-      userRsvp: existingRSVPIndex >= 0 ? optimisticRSVPs[existingRSVPIndex] : optimisticUserRSVP,
+      userRsvp: existingRSVPIndex >= 0 ? optimisticRSVPs[existingRSVPIndex] : optimisticRSVPs[optimisticRSVPs.length - 1],
     };
 
     set({ currentEvent: optimisticEvent });
 
     try {
       // Perform the actual API call
-      await eventService.createOrUpdateRSVP(eventId, userId, userName, status, userProfilePicture);
+      const updatedEvent = await eventService.createOrUpdateRSVP(eventId, userId, userName, status, userProfilePicture);
       
-      // Refresh with real data from server
-      const updatedEvent = await eventService.getPopulatedEvent(eventId, userId);
+      // Use the returned event data directly
       set({ currentEvent: updatedEvent, isRsvping: false });
+      
+      // Re-enable real-time subscription
+      const unsubscribe = eventService.subscribeToEventDetails(eventId, userId, (event) => {
+        set({ currentEvent: event });
+      });
+      set({ unsubscribeEventDetails: unsubscribe });
     } catch (error) {
       // Revert optimistic update on error
-      set({ currentEvent, isRsvping: false });
+      set({ currentEvent: originalEvent, isRsvping: false });
+      
+      // Re-enable real-time subscription on error
+      const unsubscribe = eventService.subscribeToEventDetails(eventId, userId, (event) => {
+        set({ currentEvent: event });
+      });
+      set({ unsubscribeEventDetails: unsubscribe });
       
       const errorMessage = error instanceof Error ? error.message : 'Failed to update RSVP';
       set({ error: errorMessage });
@@ -397,7 +417,13 @@ export const useEventStore = create<EventState>((set, get) => ({
   // Utility actions
   clearError: () => set({ error: null }),
   clearPastError: () => set({ pastError: null }),
-  clearCurrentEvent: () => set({ currentEvent: null }),
+  clearCurrentEvent: () => {
+    const { unsubscribeEventDetails } = get();
+    if (unsubscribeEventDetails) {
+      unsubscribeEventDetails();
+    }
+    set({ currentEvent: null, unsubscribeEventDetails: null });
+  },
   
   // Real-time subscriptions
   subscribeToEvents: () => {
@@ -423,8 +449,16 @@ export const useEventStore = create<EventState>((set, get) => ({
   },
   
   subscribeToEventDetails: (eventId: string, userId?: string) => {
-    return eventService.subscribeToEventDetails(eventId, userId, (event) => {
+    // Clean up existing subscription if any
+    const { unsubscribeEventDetails } = get();
+    if (unsubscribeEventDetails) {
+      unsubscribeEventDetails();
+    }
+    
+    const unsubscribe = eventService.subscribeToEventDetails(eventId, userId, (event) => {
       set({ currentEvent: event });
     });
+    set({ unsubscribeEventDetails: unsubscribe });
+    return unsubscribe;
   },
 })); 

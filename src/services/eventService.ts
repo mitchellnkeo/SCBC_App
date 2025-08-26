@@ -499,7 +499,7 @@ export const createOrUpdateRSVP = async (
   userName: string,
   status: 'going' | 'maybe' | 'not-going',
   userProfilePicture?: string
-): Promise<void> => {
+): Promise<PopulatedEvent> => {
   try {
     // Check if RSVP already exists
     const rsvpQuery = query(
@@ -538,18 +538,14 @@ export const createOrUpdateRSVP = async (
     // Create RSVP notification for event host (if not the user who RSVP'd)
     try {
       const event = await getEvent(eventId);
-      if (event && event.createdBy !== userId) {
+      if (event && event.createdBy !== userId && previousStatus !== status) {
         const { createNotification } = await import('./internalNotificationService');
         
         let notificationMessage: string;
         if (isNewRSVP) {
           notificationMessage = `${userName} RSVP'd "${status}" to your event "${event.title}"`;
-        } else if (previousStatus !== status) {
-          notificationMessage = `${userName} changed their RSVP from "${previousStatus}" to "${status}" for your event "${event.title}"`;
         } else {
-          // No notification needed if status didn't change
-          console.log('RSVP updated:', { eventId, userId, status });
-          return;
+          notificationMessage = `${userName} changed their RSVP from "${previousStatus}" to "${status}" for your event "${event.title}"`;
         }
         
         await createNotification({
@@ -575,6 +571,26 @@ export const createOrUpdateRSVP = async (
     }
     
     console.log('RSVP updated:', { eventId, userId, status });
+    
+    // Invalidate cached event details to ensure fresh data
+    cacheService.remove(cacheKeys.eventDetails(eventId)).catch(() => {});
+    cacheService.remove(cacheKeys.events()).catch(() => {});
+    
+    // Also clear any cached RSVP data for this event
+    try {
+      const rsvpCacheKey = `rsvps_${eventId}`;
+      cacheService.remove(rsvpCacheKey).catch(() => {});
+    } catch (error) {
+      // Ignore cache clearing errors
+    }
+    
+    // Return the updated event data immediately
+    const updatedEvent = await getPopulatedEvent(eventId, userId);
+    if (!updatedEvent) {
+      throw new Error('Failed to fetch updated event data');
+    }
+    
+    return updatedEvent;
   } catch (error) {
     console.error('Error updating RSVP:', error);
     throw new Error('Failed to update RSVP. Please try again.');
