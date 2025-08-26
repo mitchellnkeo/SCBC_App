@@ -375,20 +375,78 @@ export const useEventStore = create<EventState>((set, get) => ({
   // Create comment
   createComment: async (eventId: string, userId: string, userName: string, commentData: CreateCommentFormData, userProfilePicture?: string) => {
     set({ isCommenting: true, error: null });
+    
+    // Get current event state for optimistic update
+    const { currentEvent, unsubscribeEventDetails } = get();
+    if (!currentEvent || currentEvent.id !== eventId) {
+      set({ isCommenting: false });
+      return;
+    }
+
+    // Store the original event for potential rollback
+    const originalEvent = { ...currentEvent };
+
+    // Temporarily unsubscribe from real-time updates to prevent overriding optimistic update
+    if (unsubscribeEventDetails) {
+      unsubscribeEventDetails();
+      set({ unsubscribeEventDetails: null });
+    }
+
+    // Create optimistic comment
+    const optimisticComment = {
+      id: `temp-${Date.now()}`,
+      eventId,
+      userId,
+      userName,
+      userProfilePicture: userProfilePicture || undefined,
+      content: commentData.content,
+      images: commentData.images || [],
+      mentions: commentData.mentions || [],
+      parentCommentId: commentData.parentCommentId || undefined,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      replies: [],
+    };
+
+    // Add optimistic comment to current event
+    const optimisticEvent = {
+      ...currentEvent,
+      comments: [...currentEvent.comments, optimisticComment],
+      stats: {
+        ...currentEvent.stats,
+        commentsCount: currentEvent.stats.commentsCount + 1,
+      },
+    };
+
+    set({ currentEvent: optimisticEvent });
+
     try {
       await eventService.createComment(eventId, userId, userName, commentData, userProfilePicture);
       
-      // Refresh current event to show new comment
-      const { currentEvent } = get();
-      if (currentEvent && currentEvent.id === eventId) {
-        const updatedEvent = await eventService.getPopulatedEvent(eventId, userId);
-        set({ currentEvent: updatedEvent });
-      }
+      // Wait a moment for Firestore to update, then refresh with real data
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      set({ isCommenting: false });
+      // Refresh current event to show new comment
+      const updatedEvent = await eventService.getPopulatedEvent(eventId, userId);
+      set({ currentEvent: updatedEvent, isCommenting: false });
+      
+      // Re-enable real-time subscription
+      const unsubscribe = eventService.subscribeToEventDetails(eventId, userId, (event) => {
+        set({ currentEvent: event });
+      });
+      set({ unsubscribeEventDetails: unsubscribe });
     } catch (error) {
+      // Revert optimistic update on error
+      set({ currentEvent: originalEvent, isCommenting: false });
+      
+      // Re-enable real-time subscription on error
+      const unsubscribe = eventService.subscribeToEventDetails(eventId, userId, (event) => {
+        set({ currentEvent: event });
+      });
+      set({ unsubscribeEventDetails: unsubscribe });
+      
       const errorMessage = error instanceof Error ? error.message : 'Failed to create comment';
-      set({ error: errorMessage, isCommenting: false });
+      set({ error: errorMessage });
       throw error;
     }
   },
@@ -396,20 +454,50 @@ export const useEventStore = create<EventState>((set, get) => ({
   // Delete comment
   deleteComment: async (commentId: string) => {
     set({ isLoading: true, error: null });
+    
+    // Get current event state
+    const { currentEvent, unsubscribeEventDetails } = get();
+    if (!currentEvent) {
+      set({ isLoading: false });
+      return;
+    }
+
+    // Store the original event for potential rollback
+    const originalEvent = { ...currentEvent };
+
+    // Temporarily unsubscribe from real-time updates to prevent overriding optimistic update
+    if (unsubscribeEventDetails) {
+      unsubscribeEventDetails();
+      set({ unsubscribeEventDetails: null });
+    }
+
     try {
       await eventService.deleteComment(commentId);
       
-      // Refresh current event to remove deleted comment
-      const { currentEvent } = get();
-      if (currentEvent) {
-        const updatedEvent = await eventService.getPopulatedEvent(currentEvent.id, undefined);
-        set({ currentEvent: updatedEvent });
-      }
+      // Wait a moment for Firestore to update, then refresh with real data
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      set({ isLoading: false });
+      // Refresh current event to remove deleted comment
+      const updatedEvent = await eventService.getPopulatedEvent(currentEvent.id, undefined);
+      set({ currentEvent: updatedEvent, isLoading: false });
+      
+      // Re-enable real-time subscription
+      const unsubscribe = eventService.subscribeToEventDetails(currentEvent.id, undefined, (event) => {
+        set({ currentEvent: event });
+      });
+      set({ unsubscribeEventDetails: unsubscribe });
     } catch (error) {
+      // Revert optimistic update on error
+      set({ currentEvent: originalEvent, isLoading: false });
+      
+      // Re-enable real-time subscription on error
+      const unsubscribe = eventService.subscribeToEventDetails(currentEvent.id, undefined, (event) => {
+        set({ currentEvent: event });
+      });
+      set({ unsubscribeEventDetails: unsubscribe });
+      
       const errorMessage = error instanceof Error ? error.message : 'Failed to delete comment';
-      set({ error: errorMessage, isLoading: false });
+      set({ error: errorMessage });
       throw error;
     }
   },
