@@ -674,6 +674,10 @@ export const createComment = async (
     const docRef = await addDoc(collection(db, COMMENTS_COLLECTION), commentDoc);
     console.log('Comment created with ID:', docRef.id);
     
+    // Invalidate cached event details to ensure fresh data
+    cacheService.remove(cacheKeys.eventDetails(eventId)).catch(() => {});
+    cacheService.remove(cacheKeys.events()).catch(() => {});
+    
     // Create mention notifications if there are mentions
     if (commentData.mentions && commentData.mentions.length > 0) {
       try {
