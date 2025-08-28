@@ -359,6 +359,7 @@ const AllEventsTab: React.FC = () => {
       renderEventCard={renderEventCard}
       renderEventListItem={renderEventListItem}
       emptyStateMessage="No upcoming events found."
+      sortDirection="asc"
     />
   );
 };

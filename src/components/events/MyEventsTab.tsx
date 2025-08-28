@@ -591,6 +591,7 @@ const MyEventsTab: React.FC = () => {
         emptyStateMessage="You haven't joined any events yet"
         hasMore={false}
         onEndReached={() => {}}
+        sortDirection="desc"
       />
     </View>
   );
