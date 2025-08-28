@@ -1100,8 +1100,8 @@ export const getUserEvents = async (userId: string): Promise<BookClubEvent[]> =>
       event.createdBy === userId || rsvpEventIds.includes(event.id)
     );
 
-    // Sort by date
-    return userEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
+    // Sort by date (latest first)
+    return userEvents.sort((a, b) => b.date.getTime() - a.date.getTime());
   } catch (error) {
     console.error('Error getting user events:', error);
     throw new Error('Failed to load your events. Please try again.');
@@ -1135,7 +1135,7 @@ export const subscribeToUserEvents = (
     const userEvents = allEvents.filter(event => 
       event.createdBy === userId || rsvpEventIds.includes(event.id)
     );
-    const sortedEvents = userEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
+    const sortedEvents = userEvents.sort((a, b) => b.date.getTime() - a.date.getTime());
     callback(sortedEvents);
   };
 

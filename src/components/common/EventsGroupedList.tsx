@@ -30,6 +30,7 @@ interface EventsGroupedListProps {
   renderEventCard: (event: BookClubEvent) => React.ReactElement;
   renderEventListItem: (event: BookClubEvent) => React.ReactElement;
   emptyStateMessage?: string;
+  sortDirection?: 'asc' | 'desc'; // 'asc' for earliest first, 'desc' for latest first
 }
 
 interface GroupedEvents {
@@ -56,7 +57,8 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
   onEndReached,
   renderEventCard,
   renderEventListItem,
-  emptyStateMessage = 'No events found'
+  emptyStateMessage = 'No events found',
+  sortDirection = 'asc' // Default to earliest first for upcoming events
 }) => {
   const { theme } = useTheme();
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
@@ -133,23 +135,38 @@ const EventsGroupedList: React.FC<EventsGroupedListProps> = ({
           'January', 'February', 'March', 'April', 'May', 'June',
           'July', 'August', 'September', 'October', 'November', 'December'
         ];
-        return monthOrder.indexOf(b) - monthOrder.indexOf(a);
+        // For ascending (upcoming events): January → December
+        // For descending (past events): December → January
+        return sortDirection === 'asc' 
+          ? monthOrder.indexOf(a) - monthOrder.indexOf(b)
+          : monthOrder.indexOf(b) - monthOrder.indexOf(a);
       });
 
       months.forEach(month => {
         eventSections.push({
           title: `${month} ${year}`,
-          data: grouped[year][month].sort((a, b) => 
-            new Date(b.date).getTime() - new Date(a.date).getTime()
-          ),
+          data: grouped[year][month].sort((a, b) => {
+            const aTime = new Date(a.date).getTime();
+            const bTime = new Date(b.date).getTime();
+            return sortDirection === 'asc' ? aTime - bTime : bTime - aTime;
+          }),
           year,
           month
         });
       });
     });
 
+    // Sort the final sections based on sortDirection
+    eventSections.sort((a, b) => {
+      const aDate = new Date(`${a.month} 1, ${a.year}`);
+      const bDate = new Date(`${b.month} 1, ${b.year}`);
+      return sortDirection === 'asc' 
+        ? aDate.getTime() - bDate.getTime()  // Earliest first for upcoming events
+        : bDate.getTime() - aDate.getTime(); // Latest first for past events
+    });
+
     return eventSections;
-  }, [filteredEvents]);
+  }, [filteredEvents, sortDirection]);
 
   const handleYearSelect = (year: string | null) => {
     setSelectedYear(year);

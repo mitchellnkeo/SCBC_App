@@ -283,6 +283,7 @@ const PastEventsTab: React.FC = () => {
       emptyStateMessage="No past events found"
       hasMore={false}
       onEndReached={() => {}}
+      sortDirection="desc"
     />
   );
 };
