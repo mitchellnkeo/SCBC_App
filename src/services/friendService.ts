@@ -152,7 +152,7 @@ export const sendFriendRequest = async (
 
     // Create notification for the recipient
     try {
-      await createNotification({
+      const notificationData: any = {
         userId: toUserId,
         type: 'friend_request',
         title: 'New friend request',
@@ -165,8 +165,14 @@ export const sendFriendRequest = async (
         },
         fromUserId,
         fromUserName,
-        fromUserProfilePicture,
-      });
+      };
+
+      // Only add profile picture if it has a value
+      if (fromUserProfilePicture) {
+        notificationData.fromUserProfilePicture = fromUserProfilePicture;
+      }
+
+      await createNotification(notificationData);
     } catch (notificationError) {
       console.warn('Failed to create notification, but friend request was sent:', notificationError);
       // Don't fail the entire operation if notification fails
@@ -205,20 +211,28 @@ export const acceptFriendRequest = async (requestId: string): Promise<void> => {
 
     // Create friendship record
     const friendshipRef = doc(collection(db, FRIENDSHIPS_COLLECTION));
-    batch.set(friendshipRef, {
+    const friendshipData: any = {
       user1Id: requestData.fromUserId,
       user1Name: requestData.fromUserName,
-      user1ProfilePicture: requestData.fromUserProfilePicture,
       user2Id: requestData.toUserId,
       user2Name: requestData.toUserName,
-      user2ProfilePicture: requestData.toUserProfilePicture,
       createdAt: serverTimestamp(),
-    });
+    };
+
+    // Only add profile picture fields if they have values
+    if (requestData.fromUserProfilePicture) {
+      friendshipData.user1ProfilePicture = requestData.fromUserProfilePicture;
+    }
+    if (requestData.toUserProfilePicture) {
+      friendshipData.user2ProfilePicture = requestData.toUserProfilePicture;
+    }
+
+    batch.set(friendshipRef, friendshipData);
 
     await batch.commit();
 
     // Create notification for the request sender
-    await createNotification({
+    const notificationData: any = {
       userId: requestData.fromUserId,
       type: 'friend_request_accepted',
       title: 'Friend request accepted!',
@@ -230,8 +244,14 @@ export const acceptFriendRequest = async (requestId: string): Promise<void> => {
       },
       fromUserId: requestData.toUserId,
       fromUserName: requestData.toUserName,
-      fromUserProfilePicture: requestData.toUserProfilePicture,
-    });
+    };
+
+    // Only add profile picture if it has a value
+    if (requestData.toUserProfilePicture) {
+      notificationData.fromUserProfilePicture = requestData.toUserProfilePicture;
+    }
+
+    await createNotification(notificationData);
 
     console.log('Friend request accepted');
   } catch (error) {
