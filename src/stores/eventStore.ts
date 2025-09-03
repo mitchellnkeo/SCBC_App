@@ -9,6 +9,7 @@ import {
 } from '../types';
 import * as eventService from '../services/eventService';
 import { logger } from '../utils/logger';
+import { cacheService, cacheKeys } from '../services/cacheService';
 
 interface EventState {
   // State
@@ -456,7 +457,7 @@ export const useEventStore = create<EventState>((set, get) => ({
     set({ isLoading: true, error: null });
     
     // Get current event state
-    const { currentEvent, unsubscribeEventDetails } = get();
+    const { currentEvent } = get();
     if (!currentEvent) {
       set({ isLoading: false });
       return;
@@ -465,39 +466,73 @@ export const useEventStore = create<EventState>((set, get) => ({
     // Store the original event for potential rollback
     const originalEvent = { ...currentEvent };
 
-    // Temporarily unsubscribe from real-time updates to prevent overriding optimistic update
-    if (unsubscribeEventDetails) {
-      unsubscribeEventDetails();
-      set({ unsubscribeEventDetails: null });
-    }
+    // Optimistically remove the comment from the UI
+    const updatedEvent = {
+      ...currentEvent,
+      comments: currentEvent.comments.filter(comment => {
+        // Remove the main comment and all its replies
+        if (comment.id === commentId) return false;
+        if (comment.replies) {
+          comment.replies = comment.replies.filter(reply => reply.id !== commentId);
+        }
+        return true;
+      }).map(comment => ({
+        ...comment,
+        // Ensure main comment date fields are properly preserved as Date objects
+        createdAt: comment.createdAt instanceof Date ? comment.createdAt : 
+                   (comment.createdAt ? new Date(comment.createdAt) : new Date()),
+        updatedAt: comment.updatedAt instanceof Date ? comment.updatedAt : 
+                   (comment.updatedAt ? new Date(comment.updatedAt) : new Date()),
+        // Ensure replies array exists and is properly structured
+        replies: comment.replies ? comment.replies.map(reply => ({
+          ...reply,
+          // Ensure date fields are properly preserved as Date objects
+          createdAt: reply.createdAt instanceof Date ? reply.createdAt : 
+                     (reply.createdAt ? new Date(reply.createdAt) : new Date()),
+          updatedAt: reply.updatedAt instanceof Date ? reply.updatedAt : 
+                     (reply.updatedAt ? new Date(reply.updatedAt) : new Date())
+        })) : []
+      })),
+      stats: {
+        ...currentEvent.stats,
+        commentsCount: Math.max(0, currentEvent.stats.commentsCount - 1)
+      }
+    };
 
     try {
+      // Update UI immediately
+      set({ currentEvent: updatedEvent });
+
+      // Delete from backend
       await eventService.deleteComment(commentId);
       
-      // Wait a moment for Firestore to update, then refresh with real data
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Invalidate specific event cache to ensure fresh data
+      cacheService.remove(cacheKeys.eventDetails(currentEvent.id)).catch(() => {});
       
-      // Refresh current event to remove deleted comment
-      const updatedEvent = await eventService.getPopulatedEvent(currentEvent.id, undefined);
-      set({ currentEvent: updatedEvent, isLoading: false });
+      set({ isLoading: false });
       
-      // Re-enable real-time subscription
-      const unsubscribe = eventService.subscribeToEventDetails(currentEvent.id, undefined, (event) => {
-        set({ currentEvent: event });
-      });
-      set({ unsubscribeEventDetails: unsubscribe });
+      console.log('Comment deleted successfully:', commentId);
     } catch (error) {
-      // Revert optimistic update on error
-      set({ currentEvent: originalEvent, isLoading: false });
+      // Revert optimistic update on error (unless comment was already deleted)
+      let shouldRevert = true;
+      let errorMessage = 'Failed to delete comment';
       
-      // Re-enable real-time subscription on error
-      const unsubscribe = eventService.subscribeToEventDetails(currentEvent.id, undefined, (event) => {
-        set({ currentEvent: event });
-      });
-      set({ unsubscribeEventDetails: unsubscribe });
+      if (error instanceof Error) {
+        if (error.message === 'Comment not found') {
+          errorMessage = 'Comment not found - it may have already been deleted';
+          // Don't revert the UI update if comment was already deleted
+          shouldRevert = false;
+        } else {
+          errorMessage = error.message;
+        }
+      }
       
-      const errorMessage = error instanceof Error ? error.message : 'Failed to delete comment';
-      set({ error: errorMessage });
+      if (shouldRevert) {
+        set({ currentEvent: originalEvent });
+      }
+      
+      set({ isLoading: false, error: errorMessage });
+      console.error('Error deleting comment:', error);
       throw error;
     }
   },

@@ -710,6 +710,16 @@ export const createComment = async (
 
 export const deleteComment = async (commentId: string): Promise<void> => {
   try {
+    // First, check if the comment exists and get its eventId
+    const commentDoc = await getDoc(doc(db, COMMENTS_COLLECTION, commentId));
+    if (!commentDoc.exists()) {
+      console.warn('Comment not found:', commentId);
+      throw new Error('Comment not found');
+    }
+
+    const commentData = commentDoc.data();
+    const eventId = commentData.eventId;
+
     const batch = writeBatch(db);
     
     // Delete the comment
@@ -728,8 +738,17 @@ export const deleteComment = async (commentId: string): Promise<void> => {
     
     await batch.commit();
     console.log('Comment and replies deleted:', commentId);
+    
+    // Invalidate caches to ensure fresh data
+    cacheService.remove(cacheKeys.events()).catch(() => {});
+    if (eventId) {
+      cacheService.remove(cacheKeys.eventDetails(eventId)).catch(() => {});
+    }
   } catch (error) {
     console.error('Error deleting comment:', error);
+    if (error instanceof Error && error.message === 'Comment not found') {
+      throw error; // Re-throw the specific error
+    }
     throw new Error('Failed to delete comment. Please try again.');
   }
 };
