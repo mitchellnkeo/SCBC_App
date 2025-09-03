@@ -22,6 +22,7 @@ import { Button } from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import { Form } from '../../components/common/Form';
 import { useTheme } from '../../contexts/ThemeContext';
+import { APP_CONFIG } from '../../config/constants';
 
 type RegisterScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Register'>;
 
@@ -276,6 +277,11 @@ const RegisterScreen: React.FC = () => {
               Already have an account? Login
             </Text>
           </TouchableOpacity>
+
+          {/* Version Number */}
+          <View style={styles.versionContainer}>
+            <Text style={styles.versionText}>v{APP_CONFIG.VERSION}</Text>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -342,6 +348,14 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  versionContainer: {
+    marginTop: 20,
+    paddingVertical: 10,
+  },
+  versionText: {
+    fontSize: 12,
+    color: '#6b7280',
   },
 });
 

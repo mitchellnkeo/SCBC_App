@@ -1,5 +1,8 @@
-// App Configuration Constants
+// App Configuration
 export const APP_CONFIG = {
+  NAME: 'Seattle Chinatown Book Club',
+  VERSION: '1.1.1', // This should match app.json version
+  BUILD_NUMBER: '13', // This should match app.json ios.buildNumber
   // Pagination and Limits
   EVENTS_PER_PAGE: 20,
   COMMENTS_PER_PAGE: 50,
@@ -40,7 +43,7 @@ export const APP_CONFIG = {
   },
 } as const;
 
-// Firebase Collection Names
+// Collections
 export const COLLECTIONS = {
   USERS: 'users',
   EVENTS: 'events',
