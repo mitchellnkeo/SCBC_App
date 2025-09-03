@@ -653,6 +653,12 @@ const CommentItem: React.FC<{
   const canDelete = user?.role === 'admin' || user?.id === comment.userId;
   const replyState = replyStates[comment.id] || { isReplying: false, content: '', mentions: [] };
   
+  // Safety check: ensure comment has required fields
+  if (!comment || !comment.id || !comment.content) {
+    console.warn('Invalid comment data:', comment);
+    return null;
+  }
+  
   // Memoize the reply text change handler for this specific comment
   const handleThisReplyTextChange = useCallback((text: string, mentions: Mention[]) => {
     onReplyTextChange(comment.id, text, mentions);
@@ -671,7 +677,10 @@ const CommentItem: React.FC<{
         
         <View style={styles.commentMeta}>
           <Text style={styles.commentTime}>
-            {comment.createdAt.toLocaleDateString()} at {comment.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {comment.createdAt ? 
+              `${comment.createdAt.toLocaleDateString()} at ${comment.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` :
+              'Date unavailable'
+            }
           </Text>
         </View>
         
@@ -768,24 +777,26 @@ const CommentItem: React.FC<{
       )}
       
       {/* Render replies */}
-      {comment.replies && comment.replies.map((reply) => (
-        <CommentItem 
-          key={reply.id} 
-          comment={reply} 
-          isReply={true}
-          user={user}
-          replyStates={replyStates}
-          availableUsers={availableUsers}
-          isCommenting={isCommenting}
-          onDeleteComment={onDeleteComment}
-          onStartReply={onStartReply}
-          onCancelReply={onCancelReply}
-          onReplyTextChange={onReplyTextChange}
-          onAddReply={onAddReply}
-          onMentionPress={onMentionPress}
-          onOpenImageViewer={onOpenImageViewer}
-        />
-      ))}
+      {comment.replies && comment.replies
+        .filter(reply => reply && reply.id && reply.content) // Safety filter for replies
+        .map((reply) => (
+          <CommentItem 
+            key={reply.id} 
+            comment={reply} 
+            isReply={true}
+            user={user}
+            replyStates={replyStates}
+            availableUsers={availableUsers}
+            isCommenting={isCommenting}
+            onDeleteComment={onDeleteComment}
+            onStartReply={onStartReply}
+            onCancelReply={onCancelReply}
+            onReplyTextChange={onReplyTextChange}
+            onAddReply={onAddReply}
+            onMentionPress={onMentionPress}
+            onOpenImageViewer={onOpenImageViewer}
+          />
+        ))}
     </View>
   );
 });
@@ -1484,23 +1495,25 @@ const EventDetailsScreen: React.FC = memo(() => {
                       </Text>
                     </View>
                   ) : (
-                    currentEvent.comments.map((comment) => (
-                      <CommentItem 
-                        key={comment.id} 
-                        comment={comment}
-                        user={user}
-                        replyStates={replyStates}
-                        availableUsers={availableUsers}
-                        isCommenting={isCommenting}
-                        onDeleteComment={handleDeleteComment}
-                        onStartReply={handleStartReply}
-                        onCancelReply={handleCancelReply}
-                        onReplyTextChange={handleReplyTextChange}
-                        onAddReply={handleAddReply}
-                        onMentionPress={handleMentionPress}
-                        onOpenImageViewer={openImageViewer}
-                      />
-                    ))
+                    currentEvent.comments
+                      .filter(comment => comment && comment.id && comment.content) // Safety filter
+                      .map((comment) => (
+                        <CommentItem 
+                          key={comment.id} 
+                          comment={comment}
+                          user={user}
+                          replyStates={replyStates}
+                          availableUsers={availableUsers}
+                          isCommenting={isCommenting}
+                          onDeleteComment={handleDeleteComment}
+                          onStartReply={handleStartReply}
+                          onCancelReply={handleCancelReply}
+                          onReplyTextChange={handleReplyTextChange}
+                          onAddReply={handleAddReply}
+                          onMentionPress={handleMentionPress}
+                          onOpenImageViewer={openImageViewer}
+                        />
+                      ))
                   )}
                 </View>
               </View>
