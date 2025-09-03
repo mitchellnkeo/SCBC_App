@@ -1,23 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
+  StyleSheet,
   Modal,
   Animated,
-  Dimensions,
-  SafeAreaView,
   ScrollView,
+  SafeAreaView,
+  Platform,
+  Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../stores/authStore';
 import { useTheme } from '../../contexts/ThemeContext';
-import ProfilePicture from '../common/ProfilePicture';
 import { Button } from '../common/Button';
+import ProfilePicture from '../common/ProfilePicture';
 import NotificationBadge from '../common/NotificationBadge';
+import { APP_CONFIG } from '../../config/constants';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { MainStackParamList } from '../../navigation/MainNavigator';
 
 type NavigationProp = StackNavigationProp<MainStackParamList>;
@@ -591,6 +593,11 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
                   ))}
                 </ScrollView>
 
+                {/* Version Number */}
+                <View style={styles.versionContainer}>
+                  <Text style={styles.versionText}>v{APP_CONFIG.VERSION}</Text>
+                </View>
+
                 {/* User Info at Bottom */}
                 {user && (
                   <View style={dynamicStyles.userInfoSection}>
@@ -703,6 +710,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: 'white',
+  },
+  versionContainer: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  versionText: {
+    fontSize: 12,
+    color: '#6b7280',
   },
 });
 

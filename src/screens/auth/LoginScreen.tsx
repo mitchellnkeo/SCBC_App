@@ -12,6 +12,7 @@ import { Button } from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import { Form } from '../../components/common/Form';
 import { useTheme } from '../../contexts/ThemeContext';
+import { APP_CONFIG } from '../../config/constants';
 
 type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -181,6 +182,11 @@ const LoginScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Version Number */}
+        <View style={styles.versionContainer}>
+          <Text style={styles.versionText}>v{APP_CONFIG.VERSION}</Text>
+        </View>
       </View>
     </ScrollView>
   );
@@ -240,6 +246,17 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  versionContainer: {
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+  },
+  versionText: {
+    fontSize: 12,
+    color: '#666',
   },
 });
 

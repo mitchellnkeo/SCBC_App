@@ -20,6 +20,7 @@ import { handleError } from '../../utils/errorHandler';
 import { Button } from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import { Form } from '../../components/common/Form';
+import { APP_CONFIG } from '../../config/constants';
 
 type AccountRecoveryScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'AccountRecovery'>;
 
@@ -148,8 +149,13 @@ const AccountRecoveryScreen: React.FC = () => {
           style={styles.linkButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.linkText}>Back to Login</Text>
+          <Text style={styles.linkText}>← Back to Login</Text>
         </TouchableOpacity>
+
+        {/* Version Number */}
+        <View style={styles.versionContainer}>
+          <Text style={styles.versionText}>v{APP_CONFIG.VERSION}</Text>
+        </View>
       </View>
     </ScrollView>
   );
@@ -195,6 +201,14 @@ const styles = StyleSheet.create({
     color: '#dc2626',
     fontSize: 16,
     fontWeight: '500',
+  },
+  versionContainer: {
+    marginTop: 32,
+    alignItems: 'center',
+  },
+  versionText: {
+    color: '#6b7280',
+    fontSize: 14,
   },
 });
 
