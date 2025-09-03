@@ -14,38 +14,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        console.log('Starting authentication initialization...');
-        
-        // Check if we have a stored user first
         const storedUser = await AsyncStorage.getItem('auth-user');
         if (storedUser) {
-          console.log('Found stored user, restoring session...');
           const userData = JSON.parse(storedUser);
-          // Update the store with stored user data
-          useAuthStore.setState({ 
-            user: userData, 
-            isAuthenticated: true, 
-            isLoading: false 
-          });
+          useAuthStore.setState({ user: userData, isAuthenticated: true, isLoading: false });
         }
-        
-        // Initialize Firebase auth (this will override stored data if user is still valid)
         await initialize();
-        console.log('Authentication initialization complete');
       } catch (error) {
-        console.error('Auth initialization failed:', error);
-        // Clear any invalid stored data
         await AsyncStorage.removeItem('auth-user');
-        useAuthStore.setState({ 
-          user: null, 
-          isAuthenticated: false, 
-          isLoading: false 
-        });
+        useAuthStore.setState({ user: null, isAuthenticated: false, isLoading: false });
       } finally {
         setIsInitializing(false);
       }
     };
-
     initAuth();
   }, [initialize]);
 

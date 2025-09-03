@@ -77,7 +77,6 @@ export const createEvent = async (
       collection(db, EVENTS_COLLECTION),
       cleanObject(eventDoc)
     );
-    console.log(`Event created with ID: ${docRef.id}, Status: ${status}`);
     
     // Invalidate cached event lists
     cacheService.remove(cacheKeys.events()).catch(() => {});
@@ -90,7 +89,6 @@ export const createEvent = async (
           headerPhoto: imageUrl,
           updatedAt: serverTimestamp(),
         });
-        console.log('Event header image uploaded and linked');
       } catch (error) {
         console.error('Error uploading header image:', error);
         // Don't fail event creation if image upload fails
@@ -189,7 +187,6 @@ export const updateEvent = async (
               headerPhoto: imageUrl,
               updatedAt: serverTimestamp(),
             });
-            console.log('Event header image updated');
           } catch (error) {
             console.error('Error uploading new header image:', error);
             // Set headerPhoto to null if upload fails
@@ -205,12 +202,8 @@ export const updateEvent = async (
             updatedAt: serverTimestamp(),
           });
         }
-      } else {
-        console.log('Header photo unchanged, skipping image processing');
       }
     }
-    
-    console.log('Event updated:', eventId);
     
     // Invalidate caches related to this event
     cacheService.remove(cacheKeys.eventDetails(eventId)).catch(() => {});
@@ -280,15 +273,12 @@ export const deleteEvent = async (eventId: string): Promise<void> => {
     if (event?.headerPhoto) {
       try {
         await deleteEventHeaderImage(event.headerPhoto);
-        console.log('Event header image deleted');
       } catch (error) {
         console.warn('Failed to delete event header image:', error);
         // Don't fail the deletion if image cleanup fails
       }
     }
     
-    console.log('Event and related data deleted:', eventId);
-
     // Invalidate caches
     cacheService.remove(cacheKeys.eventDetails(eventId)).catch(() => {});
     cacheService.remove(cacheKeys.events()).catch(() => {});
@@ -570,8 +560,6 @@ export const createOrUpdateRSVP = async (
       // Don't fail RSVP creation if notification fails
     }
     
-    console.log('RSVP updated:', { eventId, userId, status });
-    
     // Invalidate cached event details to ensure fresh data
     cacheService.remove(cacheKeys.eventDetails(eventId)).catch(() => {});
     cacheService.remove(cacheKeys.events()).catch(() => {});
@@ -672,7 +660,6 @@ export const createComment = async (
     };
 
     const docRef = await addDoc(collection(db, COMMENTS_COLLECTION), commentDoc);
-    console.log('Comment created with ID:', docRef.id);
     
     // Invalidate cached event details to ensure fresh data
     cacheService.remove(cacheKeys.eventDetails(eventId)).catch(() => {});
@@ -991,7 +978,6 @@ export const approveEvent = async (
     }
     
     await updateDoc(eventRef, updateData);
-    console.log(`Event ${approvalData.action}d:`, eventId);
     
     // Invalidate caches
     cacheService.remove(cacheKeys.eventDetails(eventId)).catch(() => {});
@@ -1214,7 +1200,6 @@ export const uploadEventHeaderImage = async (eventId: string, imageUri: string):
     // Get download URL
     const downloadURL = await getDownloadURL(snapshot.ref);
     
-    console.log('Event header image uploaded:', eventId);
     return downloadURL;
   } catch (error) {
     console.error('Error uploading event header image:', error);
@@ -1263,7 +1248,6 @@ export const deleteEventHeaderImage = async (imageUrl: string): Promise<void> =>
     const storageRef = ref(storage, filePath);
     
     await deleteObject(storageRef);
-    console.log('Event header image deleted from Firebase Storage');
   } catch (error) {
     console.error('Error deleting event header image:', error);
     // Don't throw error as this is cleanup - event can still be updated

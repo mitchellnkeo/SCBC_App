@@ -162,7 +162,10 @@ const EditEventScreen: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (!validateForm() || !user || !currentEvent) return;
+    
+    if (!validateForm() || !user || !currentEvent) {
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -179,6 +182,7 @@ const EditEventScreen: React.FC = () => {
         ]
       );
     } catch (error) {
+      console.error('Error in handleSubmit:', error);
       await handleError(error, {
         showAlert: true,
         logError: true,

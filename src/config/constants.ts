@@ -43,6 +43,22 @@ export const APP_CONFIG = {
   },
 } as const;
 
+// Utility function to sanitize comment dates
+export const sanitizeCommentDates = (comment: any) => ({
+  ...comment,
+  createdAt: comment.createdAt instanceof Date ? comment.createdAt : 
+             (comment.createdAt ? new Date(comment.createdAt) : new Date()),
+  updatedAt: comment.updatedAt instanceof Date ? comment.updatedAt : 
+             (comment.updatedAt ? new Date(comment.updatedAt) : new Date()),
+  replies: comment.replies ? comment.replies.map((reply: any) => ({
+    ...reply,
+    createdAt: reply.createdAt instanceof Date ? reply.createdAt : 
+               (reply.createdAt ? new Date(reply.createdAt) : new Date()),
+    updatedAt: reply.updatedAt instanceof Date ? reply.updatedAt : 
+               (reply.updatedAt ? new Date(reply.updatedAt) : new Date())
+  })) : []
+});
+
 // Collections
 export const COLLECTIONS = {
   USERS: 'users',
