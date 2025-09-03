@@ -31,8 +31,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      // Set up auth state listener first - this will handle the restored auth state
-      onAuthStateChange((user: AuthUser | null) => {
+      // Set up auth state listener
+      const unsubscribe = onAuthStateChange((user: AuthUser | null) => {
+        console.log('Auth state changed:', user ? `User ${user.email} authenticated` : 'User signed out');
         set({
           user,
           isAuthenticated: !!user,
@@ -40,20 +41,14 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         });
       });
 
-      // Give Firebase Auth time to restore state from AsyncStorage
-      // The auth state listener will handle the actual state update
+      // Give Firebase Auth time to restore state
       setTimeout(() => {
-        // If still loading after 3 seconds, something went wrong
         const currentState = get();
         if (currentState.isLoading) {
-          console.warn('Auth initialization timeout - setting to not authenticated');
-          set({
-            user: null,
-            isAuthenticated: false,
-            isLoading: false,
-          });
+          console.log('Auth initialization complete');
+          set({ isLoading: false });
         }
-      }, 3000);
+      }, 1000);
 
     } catch (error: any) {
       console.error('Auth initialization error:', error);
@@ -85,7 +80,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         error: error.message || 'Login failed',
         isLoading: false,
       });
-      throw error; // Re-throw so UI can handle it
+      throw error;
     }
   },
 
@@ -109,7 +104,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         error: error.message || 'Registration failed',
         isLoading: false,
       });
-      throw error; // Re-throw so UI can handle it
+      throw error;
     }
   },
 
@@ -137,9 +132,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   // Clear error
-  clearError: () => {
-    set({ error: null });
-  },
+  clearError: () => set({ error: null }),
 
   // Refresh current user data
   refreshUser: async () => {
@@ -148,7 +141,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       if (currentUser) {
         set({ user: currentUser });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error refreshing user:', error);
     }
   },
