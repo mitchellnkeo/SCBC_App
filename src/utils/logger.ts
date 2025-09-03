@@ -17,9 +17,9 @@ class Logger {
   private enabledLevels: string[];
 
   constructor() {
-    // In production, only log errors and warnings
+    // Disable debug logs even in development to reduce console noise
     this.enabledLevels = this.isDevelopment 
-      ? ['error', 'warn', 'info', 'debug']
+      ? ['error', 'warn', 'info'] // Removed 'debug'
       : ['error', 'warn'];
   }
 

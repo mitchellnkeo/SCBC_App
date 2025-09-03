@@ -677,7 +677,7 @@ const CommentItem: React.FC<{
         
         <View style={styles.commentMeta}>
           <Text style={styles.commentTime}>
-            {comment.createdAt ? 
+            {comment.createdAt && comment.createdAt instanceof Date ? 
               `${comment.createdAt.toLocaleDateString()} at ${comment.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` :
               'Date unavailable'
             }

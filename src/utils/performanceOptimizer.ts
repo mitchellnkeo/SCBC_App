@@ -211,13 +211,19 @@ export const performanceMonitor = {
    * Memory usage tracking
    */
   logMemoryUsage: (context: string): void => {
-    if (__DEV__ && (performance as any).memory) {
-      const memory = (performance as any).memory;
-      logger.debug(`Memory usage - ${context}`, {
-        usedJSHeapSize: `${Math.round(memory.usedJSHeapSize / 1024 / 1024)}MB`,
-        totalJSHeapSize: `${Math.round(memory.totalJSHeapSize / 1024 / 1024)}MB`,
-        jsHeapSizeLimit: `${Math.round(memory.jsHeapSizeLimit / 1024 / 1024)}MB`,
-      });
+    if (__DEV__) {
+      const used = process.memoryUsage();
+      const memoryInfo = {
+        rss: `${Math.round(used.rss / 1024 / 1024)}MB`,
+        heapTotal: `${Math.round(used.heapTotal / 1024 / 1024)}MB`,
+        heapUsed: `${Math.round(used.heapUsed / 1024 / 1024)}MB`,
+        external: `${Math.round(used.external / 1024 / 1024)}MB`,
+      };
+      
+      // Only log if memory usage is high
+      if (used.heapUsed > 100 * 1024 * 1024) { // 100MB threshold
+        logger.warn(`High memory usage detected - ${context}`, memoryInfo);
+      }
     }
   },
 };

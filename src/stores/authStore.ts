@@ -33,7 +33,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
       // Set up auth state listener
       const unsubscribe = onAuthStateChange((user: AuthUser | null) => {
-        console.log('Auth state changed:', user ? `User ${user.email} authenticated` : 'User signed out');
         set({
           user,
           isAuthenticated: !!user,
@@ -45,13 +44,11 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       setTimeout(() => {
         const currentState = get();
         if (currentState.isLoading) {
-          console.log('Auth initialization complete');
           set({ isLoading: false });
         }
       }, 1000);
 
     } catch (error: any) {
-      console.error('Auth initialization error:', error);
       set({
         error: error.message || 'Failed to initialize authentication',
         isLoading: false,
@@ -75,7 +72,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       });
 
     } catch (error: any) {
-      console.error('Login error:', error);
       set({
         error: error.message || 'Login failed',
         isLoading: false,
@@ -99,7 +95,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       });
 
     } catch (error: any) {
-      console.error('Registration error:', error);
       set({
         error: error.message || 'Registration failed',
         isLoading: false,
@@ -123,7 +118,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       });
 
     } catch (error: any) {
-      console.error('Logout error:', error);
       set({
         error: error.message || 'Logout failed',
         isLoading: false,

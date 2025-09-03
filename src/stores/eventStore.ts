@@ -10,45 +10,52 @@ import {
 import * as eventService from '../services/eventService';
 import { logger } from '../utils/logger';
 import { cacheService, cacheKeys } from '../services/cacheService';
+import { sanitizeCommentDates } from '../config/constants';
 
 interface EventState {
-  // State
+  // Data
   events: BookClubEvent[];
   pastEvents: BookClubEvent[];
   pendingEvents: BookClubEvent[];
   pendingStats: PendingEventStats;
   currentEvent: PopulatedEvent | null;
+  
+  // Loading states
   isLoading: boolean;
   isPastLoading: boolean;
   isCreating: boolean;
-  isCommenting: boolean;
-  isRsvping: boolean;
+  isUpdating: boolean;
+  isDeleting: boolean;
   isApproving: boolean;
+  isRsvping: boolean;
+  isCommenting: boolean;
+  
+  // Error states
   error: string | null;
   pastError: string | null;
+  
+  // Pagination
   lastVisible: any;
   hasMore: boolean;
+  
+  // Real-time subscriptions
   unsubscribeEventDetails: (() => void) | null;
   
   // Actions
   loadEvents: (refresh?: boolean) => Promise<void>;
-  loadMoreEvents: () => Promise<void>;
   loadPastEvents: () => Promise<void>;
   loadPendingEvents: () => Promise<void>;
-  loadPendingStats: () => Promise<void>;
   loadEvent: (eventId: string, userId?: string) => Promise<void>;
   createEvent: (eventData: CreateEventFormData, userId: string, userName: string, userRole: 'admin' | 'member', userProfilePicture?: string) => Promise<string>;
+  approveEvent: (eventId: string, adminUserId: string, approvalData: ApprovalFormData) => Promise<void>;
   updateEvent: (eventId: string, eventData: Partial<CreateEventFormData>, updaterUserId?: string, updaterUserName?: string, updaterProfilePicture?: string) => Promise<void>;
   deleteEvent: (eventId: string) => Promise<void>;
-  approveEvent: (eventId: string, adminUserId: string, approvalData: ApprovalFormData) => Promise<void>;
   updateRSVP: (eventId: string, userId: string, userName: string, status: 'going' | 'maybe' | 'not-going', userProfilePicture?: string) => Promise<void>;
   createComment: (eventId: string, userId: string, userName: string, commentData: CreateCommentFormData, userProfilePicture?: string) => Promise<void>;
   deleteComment: (commentId: string) => Promise<void>;
   clearError: () => void;
   clearPastError: () => void;
   clearCurrentEvent: () => void;
-  
-  // Real-time subscriptions
   subscribeToEvents: () => () => void;
   subscribeToPastEvents: () => () => void;
   subscribeToPendingEvents: () => () => void;
@@ -65,9 +72,11 @@ export const useEventStore = create<EventState>((set, get) => ({
   isLoading: false,
   isPastLoading: false,
   isCreating: false,
-  isCommenting: false,
-  isRsvping: false,
+  isUpdating: false,
+  isDeleting: false,
   isApproving: false,
+  isRsvping: false,
+  isCommenting: false,
   error: null,
   pastError: null,
   lastVisible: null,
@@ -76,57 +85,21 @@ export const useEventStore = create<EventState>((set, get) => ({
   
   // Load all approved events with pagination
   loadEvents: async (refresh = false) => {
-    logger.debug('Loading events:', { refresh, currentCount: get().events.length });
+    const { events, isLoading } = get();
+    
+    // Don't reload if already loading
+    if (isLoading) return;
+    
     set({ isLoading: true, error: null });
     
     try {
-      if (refresh) {
-        logger.debug('Refreshing events from start');
-        set({ lastVisible: null });
-      }
-      
-      const result = await eventService.getAllEvents({
-        limitCount: 20,
-        lastVisible: refresh ? null : get().lastVisible
-      });
-      
-      const newEvents = refresh ? result.events : [...get().events, ...result.events];
-      
-      logger.debug('Events loaded:', {
-        newCount: result.events.length,
-        totalCount: newEvents.length,
-        hasMore: result.hasMore
-      });
-      
-      set({ 
-        events: newEvents,
-        lastVisible: result.lastVisible,
-        hasMore: result.hasMore,
-        isLoading: false 
-      });
+      const result = await eventService.getAllEvents();
+      set({ events: result.events, isLoading: false });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load events';
-      logger.error('Failed to load events:', { error: errorMessage });
       set({ error: errorMessage, isLoading: false });
+      throw error;
     }
-  },
-
-  // Load more events (pagination)
-  loadMoreEvents: async () => {
-    const state = get();
-    if (!state.hasMore || state.isLoading) {
-      logger.debug('Skipping loadMoreEvents:', {
-        hasMore: state.hasMore,
-        isLoading: state.isLoading
-      });
-      return;
-    }
-    
-    logger.debug('Loading more events:', {
-      currentCount: state.events.length
-    });
-    
-    await state.loadEvents(false);
   },
   
   // Load past events
@@ -168,7 +141,17 @@ export const useEventStore = create<EventState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const event = await eventService.getPopulatedEvent(eventId, userId);
-      set({ currentEvent: event, isLoading: false });
+      
+      // Sanitize comment dates to ensure they are proper Date objects
+      if (event && event.comments) {
+        const sanitizedEvent = {
+          ...event,
+          comments: event.comments.map(sanitizeCommentDates)
+        };
+        set({ currentEvent: sanitizedEvent, isLoading: false });
+      } else {
+        set({ currentEvent: event, isLoading: false });
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load event';
       set({ error: errorMessage, isLoading: false, currentEvent: null });
@@ -476,27 +459,8 @@ export const useEventStore = create<EventState>((set, get) => ({
           comment.replies = comment.replies.filter(reply => reply.id !== commentId);
         }
         return true;
-      }).map(comment => ({
-        ...comment,
-        // Ensure main comment date fields are properly preserved as Date objects
-        createdAt: comment.createdAt instanceof Date ? comment.createdAt : 
-                   (comment.createdAt ? new Date(comment.createdAt) : new Date()),
-        updatedAt: comment.updatedAt instanceof Date ? comment.updatedAt : 
-                   (comment.updatedAt ? new Date(comment.updatedAt) : new Date()),
-        // Ensure replies array exists and is properly structured
-        replies: comment.replies ? comment.replies.map(reply => ({
-          ...reply,
-          // Ensure date fields are properly preserved as Date objects
-          createdAt: reply.createdAt instanceof Date ? reply.createdAt : 
-                     (reply.createdAt ? new Date(reply.createdAt) : new Date()),
-          updatedAt: reply.updatedAt instanceof Date ? reply.updatedAt : 
-                     (reply.updatedAt ? new Date(reply.updatedAt) : new Date())
-        })) : []
-      })),
-      stats: {
-        ...currentEvent.stats,
-        commentsCount: Math.max(0, currentEvent.stats.commentsCount - 1)
-      }
+      }).map(sanitizeCommentDates),
+      stats: { ...currentEvent.stats, commentsCount: Math.max(0, currentEvent.stats.commentsCount - 1) }
     };
 
     try {
@@ -579,7 +543,16 @@ export const useEventStore = create<EventState>((set, get) => ({
     }
     
     const unsubscribe = eventService.subscribeToEventDetails(eventId, userId, (event) => {
-      set({ currentEvent: event });
+      // Sanitize comment dates to ensure they are proper Date objects
+      if (event && event.comments) {
+        const sanitizedEvent = {
+          ...event,
+          comments: event.comments.map(sanitizeCommentDates)
+        };
+        set({ currentEvent: sanitizedEvent });
+      } else {
+        set({ currentEvent: event });
+      }
     });
     set({ unsubscribeEventDetails: unsubscribe });
     return unsubscribe;

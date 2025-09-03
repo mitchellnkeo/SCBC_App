@@ -19,39 +19,28 @@ class CacheService {
    * Get data from cache (memory first, then AsyncStorage)
    */
   async get<T>(key: string): Promise<T | null> {
-    try {
-      // Check memory cache first
-      const memoryItem = this.memoryCache.get(key);
-      if (memoryItem && this.isValid(memoryItem)) {
-        logger.debug('Cache hit (memory)', { key });
-        return memoryItem.data;
-      }
+    // Check memory cache first
+    const memoryItem = this.memoryCache.get(key);
+    if (memoryItem && !this.isExpired(memoryItem)) {
+      return memoryItem.data;
+    }
 
-      // Check AsyncStorage cache
-      const storageKey = this.prefix + key;
-      const storedData = await AsyncStorage.getItem(storageKey);
-      
-      if (storedData) {
-        const cacheItem: CacheItem<T> = JSON.parse(storedData);
-        
-        if (this.isValid(cacheItem)) {
-          // Restore to memory cache
-          this.memoryCache.set(key, cacheItem);
-          logger.debug('Cache hit (storage)', { key });
-          return cacheItem.data;
-        } else {
-          // Remove expired item
-          await AsyncStorage.removeItem(storageKey);
-          this.memoryCache.delete(key);
+    // Check AsyncStorage
+    try {
+      const stored = await AsyncStorage.getItem(key);
+      if (stored) {
+        const item: CacheItem<T> = JSON.parse(stored);
+        if (!this.isExpired(item)) {
+          // Update memory cache
+          this.memoryCache.set(key, item);
+          return item.data;
         }
       }
-
-      logger.debug('Cache miss', { key });
-      return null;
     } catch (error) {
-      logger.error('Cache get error', { key, error });
-      return null;
+      // Ignore storage errors
     }
+
+    return null;
   }
 
   /**
