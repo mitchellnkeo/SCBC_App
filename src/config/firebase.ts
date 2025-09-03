@@ -31,44 +31,34 @@ if (getApps().length === 0) {
   console.log('Firebase app already exists');
 }
 
-// Initialize Firebase Auth with AsyncStorage persistence for React Native/Development Build
+// Initialize Firebase Auth - Firebase will automatically handle persistence
 let auth: Auth;
 try {
   // Try to get existing auth instance
   auth = getAuth(app);
   console.log('Using existing Firebase Auth instance');
 } catch (error) {
-  // For Development Build, we can use a custom persistence setup
-  console.log('Initializing Firebase Auth for Development Build with AsyncStorage');
-  
-  // Create a custom persistence object that uses AsyncStorage
-  const customPersistence = {
-    type: 'LOCAL',
-    isAvailable: () => Promise.resolve(true),
-    clear: () => AsyncStorage.removeItem('firebase:authUser'),
-    get: (key: string) => AsyncStorage.getItem(key),
-    set: (key: string, value: string) => AsyncStorage.setItem(key, value),
-    remove: (key: string) => AsyncStorage.removeItem(key),
-  };
-
-  auth = initializeAuth(app, {
-    persistence: customPersistence as any,
-  });
+  // Initialize new auth instance
+  console.log('Initializing new Firebase Auth instance');
+  auth = initializeAuth(app);
+  console.log('Firebase Auth initialized');
 }
 
 export { auth };
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-console.log('Firebase Auth, Firestore, and Storage initialized for Development Build');
-
-// Analytics only works in web/production builds, not in Expo development
+// Initialize Analytics only in production builds
 let analytics;
 try {
-  analytics = getAnalytics(app);
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Skipping Analytics initialization in development');
+  } else {
+    analytics = getAnalytics(app);
+    console.log('Analytics initialized');
+  }
 } catch (error) {
-  // Analytics not available in development environment
-  console.log('Analytics not available in this environment');
+  console.warn('Analytics initialization failed:', error);
 }
 
 export { analytics };
