@@ -13,10 +13,13 @@ const LOG_LEVELS: LogLevel = {
 };
 
 class Logger {
-  private isDevelopment = __DEV__;
+  private isDevelopment: boolean;
   private enabledLevels: string[];
 
   constructor() {
+    // Safely check for development mode
+    this.isDevelopment = typeof __DEV__ !== 'undefined' ? __DEV__ : false;
+    
     // Disable debug logs even in development to reduce console noise
     this.enabledLevels = this.isDevelopment 
       ? ['error', 'warn', 'info'] // Removed 'debug'
